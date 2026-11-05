@@ -4,25 +4,34 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
+import '../../data/calendar_controller.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../shell/app_shell.dart';
 
-Future<void> showEventDetail(BuildContext context, RadarEvent event, {VoidCallback? onShowOnMap}) {
+Future<void> showEventDetail(
+  BuildContext context,
+  RadarEvent event, {
+  VoidCallback? onShowOnMap,
+  RouteOpportunity? opportunity,
+}) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
     useSafeArea: true,
-    builder: (_) => EventDetailSheet(event: event, onShowOnMap: onShowOnMap),
+    builder: (_) => EventDetailSheet(event: event, onShowOnMap: onShowOnMap, opportunity: opportunity),
   );
 }
 
 class EventDetailSheet extends ConsumerWidget {
-  const EventDetailSheet({super.key, required this.event, this.onShowOnMap});
+  const EventDetailSheet({super.key, required this.event, this.onShowOnMap, this.opportunity});
 
   final RadarEvent event;
   final VoidCallback? onShowOnMap;
+
+  /// Route rejimidan ochilganda: yo'ldan uzoqlik va qo'shimcha yo'l.
+  final RouteOpportunity? opportunity;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -53,6 +62,11 @@ class EventDetailSheet extends ConsumerWidget {
           _InfoRow(Icons.schedule, '${context.formatDateTime(event.start)} – ${context.formatDateTime(event.end)}'),
           _InfoRow(Icons.place_outlined, '${event.venue} · ${event.city}'),
           if (event.deadline != null) _InfoRow(Icons.timer_outlined, '⏰ ${context.formatDate(event.deadline!)}'),
+          if (opportunity != null)
+            _InfoRow(
+              Icons.alt_route,
+              '${l10n.onYourWay}: ${opportunity!.detourKm != null ? l10n.routeDetour(opportunity!.detourKm!.toStringAsFixed(1), opportunity!.detourMinutes!) : l10n.routeFromRoute(opportunity!.distanceFromRouteKm.toStringAsFixed(1))}',
+            ),
           const SizedBox(height: 12),
           Text(context.tr(event.description), style: text.bodyLarge),
           if (matched.isNotEmpty) ...[
@@ -84,9 +98,7 @@ class EventDetailSheet extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
-            // TODO(D7): Google Calendar events.insert
-            onPressed: () => ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text('${l10n.addToCalendar}: ${l10n.comingSoon}'))),
+            onPressed: () => _addToCalendar(context, ref),
             icon: const Icon(Icons.event_available),
             label: Text(l10n.addToCalendar),
           ),
@@ -104,6 +116,31 @@ class EventDetailSheet extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+extension on EventDetailSheet {
+  /// Google Calendar'ga qo'shish. Ulanmagan bo'lsa Google ruxsat oynasi ochiladi.
+  Future<void> _addToCalendar(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final title = context.tr(event.title);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.addingToCalendar), duration: const Duration(seconds: 2)));
+    try {
+      final link = await ref.read(calendarProvider.notifier).addEvent(event, title: title);
+      messenger.showSnackBar(SnackBar(
+        content: Text(l10n.addedToCalendar),
+        action: link == null
+            ? null
+            : SnackBarAction(
+                label: 'Open',
+                onPressed: () => launchUrl(Uri.parse(link), mode: LaunchMode.externalApplication),
+              ),
+      ));
+    } catch (e) {
+      final msg = e.toString().contains('not-configured') ? l10n.calendarNotConfigured : l10n.calendarError('$e');
+      messenger.showSnackBar(SnackBar(content: Text(msg)));
+    }
   }
 }
 

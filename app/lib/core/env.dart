@@ -10,6 +10,8 @@ abstract final class Env {
   static const kakaoJsKey = String.fromEnvironment('KAKAO_JS_KEY');
   static const kakaoRestApiKey = String.fromEnvironment('KAKAO_REST_API_KEY');
   static const tmapAppKey = String.fromEnvironment('TMAP_APP_KEY');
+  static const googleApiKey = String.fromEnvironment('GOOGLE_API_KEY');
+  static const googleOAuthWebClientId = String.fromEnvironment('GOOGLE_OAUTH_WEB_CLIENT_ID');
 
   /// Web'da JS SDK index.html orqali (kakao_config.js), Android'da native key bilan.
   static bool get hasKakaoMapKey => kIsWeb ? kakaoJsKey.isNotEmpty : kakaoNativeAppKey.isNotEmpty;

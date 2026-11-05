@@ -10,7 +10,13 @@
   "whyItMatters": "Why it matters",
   "sources": "Sources",
   "confidence": "Confidence {percent}%",
-  "@confidence": {"placeholders": {"percent": {"type": "int"}}},
+  "@confidence": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "showOnMap": "Show on map",
   "feedbackThanks": "Thanks! We'll tune your signals.",
   "layerPlans": "My Plans",
@@ -19,10 +25,15 @@
   "modeExplore": "Explore",
   "modeMyMap": "My Map",
   "modeRoute": "Route",
-  "routeComingSoon": "Route discovery is coming next: set origin and destination to find events along the way.",
   "mapKeyMissing": "Kakao Map key is missing.\nRun with --dart-define-from-file=env.json",
   "mapError": "Map failed to load: {message}",
-  "@mapError": {"placeholders": {"message": {"type": "String"}}},
+  "@mapError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "plansEmpty": "No upcoming plans yet. Connect Google Calendar to import them.",
   "connectCalendar": "Connect Google Calendar",
   "comingSoon": "Coming soon",
@@ -33,7 +44,13 @@
   "noRegisterLink": "No registration link yet",
   "sampleData": "Sample data",
   "matchesInterests": "Matches your interests: {tags}",
-  "@matchesInterests": {"placeholders": {"tags": {"type": "String"}}},
+  "@matchesInterests": {
+    "placeholders": {
+      "tags": {
+        "type": "String"
+      }
+    }
+  },
   "language": "Language",
   "categoryConference": "Conference",
   "categoryHackathon": "Hackathon",
@@ -43,5 +60,120 @@
   "categoryJob": "Job",
   "categoryScholarship": "Scholarship",
   "mapSdkNotLoaded": "Kakao Map SDK did not load.\nRegister this address as a Web domain in Kakao Developers:\n{origin}",
-  "@mapSdkNotLoaded": {"placeholders": {"origin": {"type": "String"}}}
+  "@mapSdkNotLoaded": {
+    "placeholders": {
+      "origin": {
+        "type": "String"
+      }
+    }
+  },
+  "routeFrom": "From",
+  "routeTo": "To",
+  "routeDate": "Date",
+  "routeFind": "Find opportunities",
+  "routeDemo": "Demo: Seoul St. → Busan St.",
+  "routeSearchHint": "Search a place (e.g. 부산역, BEXCO)",
+  "routeNoResults": "No places found",
+  "routeSummary": "{distance} km · {duration} by car",
+  "@routeSummary": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "routeAlongTheWay": "Along the way ({count})",
+  "@routeAlongTheWay": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "routeNoOpportunities": "No matching events within 15 km of this route on that day.",
+  "routeDetour": "+{km} km · +{minutes} min",
+  "@routeDetour": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "routeFromRoute": "{km} km from route",
+  "@routeFromRoute": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "routeError": "Route failed: {message}",
+  "@routeError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "onYourWay": "On your way",
+  "hoursMinutes": "{h}h {m}m",
+  "@hoursMinutes": {
+    "placeholders": {
+      "h": {
+        "type": "int"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "travelCar": "Car",
+  "travelTransit": "Transit",
+  "routeSummaryTransit": "{distance} km · {duration} · {lines}",
+  "@routeSummaryTransit": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "lines": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarConnecting": "Connecting to Google…",
+  "calendarSyncing": "Syncing calendar…",
+  "calendarConnectedCount": "Google Calendar · {count} upcoming plans",
+  "@calendarConnectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarSync": "Sync",
+  "calendarDisconnect": "Disconnect",
+  "calendarExpired": "Google session expired. Please connect again.",
+  "calendarNotConfigured": "Google sign-in isn't set up on this platform yet (web only for now).",
+  "calendarError": "Calendar error: {message}",
+  "@calendarError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarPrivacy": "LifeRadar only reads upcoming events and adds events you choose. Disconnect anytime.",
+  "noLocation": "No location",
+  "sourceCalendar": "Google Calendar",
+  "addedToCalendar": "Added to Google Calendar",
+  "addingToCalendar": "Adding…"
 }

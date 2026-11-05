@@ -206,12 +206,6 @@ abstract class AppLocalizations {
   /// **'Route'**
   String get modeRoute;
 
-  /// No description provided for @routeComingSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Route discovery is coming next: set origin and destination to find events along the way.'**
-  String get routeComingSoon;
-
   /// No description provided for @mapKeyMissing.
   ///
   /// In en, this message translates to:
@@ -337,6 +331,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Kakao Map SDK did not load.\nRegister this address as a Web domain in Kakao Developers:\n{origin}'**
   String mapSdkNotLoaded(String origin);
+
+  /// No description provided for @routeFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get routeFrom;
+
+  /// No description provided for @routeTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get routeTo;
+
+  /// No description provided for @routeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get routeDate;
+
+  /// No description provided for @routeFind.
+  ///
+  /// In en, this message translates to:
+  /// **'Find opportunities'**
+  String get routeFind;
+
+  /// No description provided for @routeDemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo: Seoul St. → Busan St.'**
+  String get routeDemo;
+
+  /// No description provided for @routeSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a place (e.g. 부산역, BEXCO)'**
+  String get routeSearchHint;
+
+  /// No description provided for @routeNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No places found'**
+  String get routeNoResults;
+
+  /// No description provided for @routeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} km · {duration} by car'**
+  String routeSummary(String distance, String duration);
+
+  /// No description provided for @routeAlongTheWay.
+  ///
+  /// In en, this message translates to:
+  /// **'Along the way ({count})'**
+  String routeAlongTheWay(int count);
+
+  /// No description provided for @routeNoOpportunities.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching events within 15 km of this route on that day.'**
+  String get routeNoOpportunities;
+
+  /// No description provided for @routeDetour.
+  ///
+  /// In en, this message translates to:
+  /// **'+{km} km · +{minutes} min'**
+  String routeDetour(String km, int minutes);
+
+  /// No description provided for @routeFromRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km from route'**
+  String routeFromRoute(String km);
+
+  /// No description provided for @routeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Route failed: {message}'**
+  String routeError(String message);
+
+  /// No description provided for @onYourWay.
+  ///
+  /// In en, this message translates to:
+  /// **'On your way'**
+  String get onYourWay;
+
+  /// No description provided for @hoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{h}h {m}m'**
+  String hoursMinutes(int h, int m);
+
+  /// No description provided for @travelCar.
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get travelCar;
+
+  /// No description provided for @travelTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit'**
+  String get travelTransit;
+
+  /// No description provided for @routeSummaryTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'{distance} km · {duration} · {lines}'**
+  String routeSummaryTransit(String distance, String duration, String lines);
+
+  /// No description provided for @calendarConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to Google…'**
+  String get calendarConnecting;
+
+  /// No description provided for @calendarSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing calendar…'**
+  String get calendarSyncing;
+
+  /// No description provided for @calendarConnectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Calendar · {count} upcoming plans'**
+  String calendarConnectedCount(int count);
+
+  /// No description provided for @calendarSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get calendarSync;
+
+  /// No description provided for @calendarDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get calendarDisconnect;
+
+  /// No description provided for @calendarExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Google session expired. Please connect again.'**
+  String get calendarExpired;
+
+  /// No description provided for @calendarNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in isn\'t set up on this platform yet (web only for now).'**
+  String get calendarNotConfigured;
+
+  /// No description provided for @calendarError.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar error: {message}'**
+  String calendarError(String message);
+
+  /// No description provided for @calendarPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'LifeRadar only reads upcoming events and adds events you choose. Disconnect anytime.'**
+  String get calendarPrivacy;
+
+  /// No description provided for @noLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'No location'**
+  String get noLocation;
+
+  /// No description provided for @sourceCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Calendar'**
+  String get sourceCalendar;
+
+  /// No description provided for @addedToCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to Google Calendar'**
+  String get addedToCalendar;
+
+  /// No description provided for @addingToCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding…'**
+  String get addingToCalendar;
 }
 
 class _AppLocalizationsDelegate

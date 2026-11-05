@@ -20,9 +20,10 @@
 | KAKAO_JS_KEY | Web xarita (domen bilan cheklangan) |
 | KAKAO_NATIVE_APP_KEY | Android xarita |
 | KAKAO_REST_API_KEY | Joy qidirish / geocoding |
-| TMAP_APP_KEY | Jamoat transporti yo'nalishi |
+| GOOGLE_API_KEY | Jamoat transporti (Routes TRANSIT), Places, Weather |
+| TMAP_APP_KEY | (zaxira) — kunlik limiti juda kichik |
 
-⚠️ REST/TMAP kalitlari hozir client'da — keyinroq Cloud Functions'ga ko'chiriladi.
+⚠️ REST/Google/TMAP kalitlari hozir client'da — keyinroq Cloud Functions'ga ko'chiriladi.
 
 ## Tuzilma
 ```

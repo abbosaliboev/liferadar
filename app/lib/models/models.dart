@@ -135,3 +135,55 @@ class Insight {
         feedback: feedback ?? this.feedback,
       );
 }
+
+/// Qidiruvdan topilgan joy (Kakao Local).
+class Place {
+  const Place({required this.name, required this.address, required this.location});
+  final String name;
+  final String address;
+  final GeoPoint location;
+}
+
+enum TravelMode { car, transit }
+
+/// Yo'nalish: avtomobil (Kakao Mobility) yoki jamoat transporti (Google Routes).
+class TravelRoute {
+  const TravelRoute({
+    required this.distanceMeters,
+    required this.durationSeconds,
+    this.points = const [],
+    this.mode = TravelMode.car,
+    this.transitLines = const [],
+  });
+  final int distanceMeters;
+  final int durationSeconds;
+  final List<GeoPoint> points;
+  final TravelMode mode;
+
+  /// Masalan ["KTX 경부"] — faqat transit uchun.
+  final List<String> transitLines;
+}
+
+/// Yo'l bo'yidagi imkoniyat: event + yo'ldan uzoqligi + qo'shimcha yo'l.
+class RouteOpportunity {
+  const RouteOpportunity({
+    required this.event,
+    required this.distanceFromRouteKm,
+    required this.score,
+    this.detourKm,
+    this.detourMinutes,
+  });
+  final RadarEvent event;
+  final double distanceFromRouteKm;
+  final double score;
+  final double? detourKm;
+  final int? detourMinutes;
+
+  RouteOpportunity withDetour(double km, int minutes) => RouteOpportunity(
+        event: event,
+        distanceFromRouteKm: distanceFromRouteKm,
+        score: score,
+        detourKm: km,
+        detourMinutes: minutes,
+      );
+}

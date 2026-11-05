@@ -2,7 +2,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/models.dart';
+import '../services/google_api.dart';
+import '../services/kakao_api.dart';
 import 'sample_data.dart';
+
+final kakaoApiProvider = Provider<KakaoApi>((ref) => KakaoApi());
+final googleApiProvider = Provider<GoogleApi>((ref) => GoogleApi());
 
 /// null = qurilma tili.
 final localeProvider = NotifierProvider<LocaleController, Locale?>(LocaleController.new);
@@ -20,7 +25,17 @@ final interestsProvider = Provider<Set<String>>((ref) => {'ai', 'startup', 'deve
 
 // TODO(D3): Firestore stream'lari bilan almashtiriladi.
 final eventsProvider = Provider<List<RadarEvent>>((ref) => sampleEvents);
-final plansProvider = Provider<List<Plan>>((ref) => samplePlans);
+
+/// Rejalar: Google Calendar ulanmaguncha sample, ulangandan keyin haqiqiy kalendar.
+final plansProvider = NotifierProvider<PlansController, List<Plan>>(PlansController.new);
+
+class PlansController extends Notifier<List<Plan>> {
+  @override
+  List<Plan> build() => samplePlans;
+
+  void setPlans(List<Plan> plans) => state = plans;
+  void resetToSample() => state = samplePlans;
+}
 
 final eventByIdProvider = Provider.family<RadarEvent?, String>((ref, id) {
   for (final e in ref.watch(eventsProvider)) {

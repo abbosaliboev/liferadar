@@ -7,6 +7,7 @@ import 'package:kakao_map_sdk/kakao_map_sdk.dart';
 import 'core/env.dart';
 import 'core/router.dart';
 import 'core/theme.dart';
+import 'data/calendar_controller.dart';
 import 'data/providers.dart';
 import 'l10n/app_localizations.dart';
 
@@ -18,6 +19,8 @@ Future<void> main() async {
     // Kakao Developers'ga ro'yxatdan o'tkazish uchun key hash'ni konsolga chiqaramiz.
     debugPrint('Kakao key hash: ${await KakaoMapSdk.instance.hashKey()}');
   }
+  // GIS SDK'ni fonda yuklaymiz — ilova ochilishini kutdirmaymiz.
+  initGoogleSignIn().catchError((Object e) => debugPrint('Google Sign-In init failed: $e'));
   runApp(const ProviderScope(child: LifeRadarApp()));
 }
 

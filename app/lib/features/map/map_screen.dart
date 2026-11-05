@@ -8,7 +8,10 @@ import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
+import '../../services/route_matcher.dart';
 import '../event/event_detail_sheet.dart';
+import '../route/route_controller.dart';
+import '../route/route_panel.dart';
 import '../shell/app_shell.dart';
 import 'marker_icons.dart';
 
@@ -34,6 +37,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   /// Har bir layer'dagi chizilgan Poi'lar (yashirish/ko'rsatish uchun).
   final Map<MapLayer, List<km.Poi>> _pois = {for (final l in MapLayer.values) l: []};
 
+  /// Chizilgan yo'nalish chizig'i (Route layer).
+  km.Route? _routeLine;
+
+  /// Route opportunity Poi'si → opportunity (bosilganda detour ko'rsatish uchun).
+  final Map<String, RouteOpportunity> _routeOppByEventId = {};
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -41,6 +50,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     // Home/Discover'dan "xaritada ko'rsatish" kelganda.
     ref.listen<String?>(mapFocusProvider, (_, id) {
       if (id != null) _focusEvent(id);
+    });
+
+    // Yangi yo'nalish yoki detour natijalari kelganda qayta chizamiz.
+    // Kalendar sinxronidan keyin rejalar o'zgaradi.
+    ref.listen<List<Plan>>(plansProvider, (_, next) {
+      _drawing = _drawing.then((_) => _drawPlans(next)).catchError((_) {});
+    });
+
+    ref.listen<RouteState>(routeProvider, (prev, next) {
+      if (prev?.route != next.route || prev?.opportunities != next.opportunities) {
+        _drawRoute(next, fit: prev?.route != next.route);
+      }
     });
 
     return Scaffold(
@@ -79,16 +100,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             left: 12,
             right: 12,
             bottom: 12,
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(children: [
-                  const Icon(Icons.alt_route, color: AppColors.route),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(l10n.routeComingSoon)),
-                ]),
-              ),
-            ),
+            child: RoutePanel(onOpportunityTap: _openOpportunity),
           ),
       ]),
     );
@@ -127,19 +139,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Future<void> _drawOverlays() async {
     final map = _map;
     if (map == null) return;
-    final plans = ref.read(plansProvider);
     final events = ref.read(eventsProvider);
 
-    final planIcon = await MarkerIcons.pin(AppColors.plan, Icons.event);
-    for (final p in plans) {
-      if (p.location == null) continue;
-      final poi = await map.labelLayer.addPoi(
-        _ll(p.location!),
-        style: km.PoiStyle(icon: planIcon),
-        visible: _layers.contains(MapLayer.plans),
-      );
-      _pois[MapLayer.plans]!.add(poi);
-    }
+    await _drawPlans(ref.read(plansProvider));
 
     for (final e in events) {
       final icon = await MarkerIcons.pin(AppColors.recommended, categoryIcon(e.category));
@@ -154,27 +156,137 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
+  /// "My Plans" markerlari — Google Calendar sinxronidan keyin qayta chiziladi.
+  Future<void> _drawPlans(List<Plan> plans) async {
+    final map = _map;
+    if (map == null) return;
+    for (final poi in _pois[MapLayer.plans]!) {
+      await poi.remove();
+    }
+    _pois[MapLayer.plans]!.clear();
+    final planIcon = await MarkerIcons.pin(AppColors.plan, Icons.event);
+    for (final p in plans) {
+      if (p.location == null) continue;
+      _pois[MapLayer.plans]!.add(await map.labelLayer.addPoi(
+        _ll(p.location!),
+        style: km.PoiStyle(
+          icon: planIcon,
+          textStyle: const [km.PoiTextStyle(size: 12, color: Colors.black87, stroke: 2, strokeColor: Colors.white)],
+        ),
+        text: p.title,
+        visible: _layers.contains(MapLayer.plans),
+      ));
+    }
+  }
+
   Future<void> _setLayer(MapLayer layer, bool on) async {
     setState(() => on ? _layers.add(layer) : _layers.remove(layer));
     for (final poi in _pois[layer]!) {
       on ? await poi.show() : await poi.hide();
     }
+    if (layer == MapLayer.route && _routeLine != null) {
+      on ? await _routeLine!.show() : await _routeLine!.hide();
+    }
+  }
+
+  // ---------- Route ----------
+
+  /// Chizishlar ketma-ket bajarilsin (route + detour natijalari tez-tez keladi).
+  Future<void> _drawing = Future.value();
+
+  void _drawRoute(RouteState s, {required bool fit}) {
+    _drawing = _drawing.then((_) => _doDrawRoute(s, fit: fit)).catchError((_) {});
+  }
+
+  Future<void> _doDrawRoute(RouteState s, {required bool fit}) async {
+    final map = _map;
+    if (map == null) return;
+
+    // Eskisini tozalash
+    if (_routeLine != null) {
+      await map.routeLayer.removeRoute(_routeLine!);
+      _routeLine = null;
+    }
+    for (final poi in _pois[MapLayer.route]!) {
+      await poi.remove();
+    }
+    _pois[MapLayer.route]!.clear();
+    _routeOppByEventId.clear();
+
+    final route = s.route;
+    if (route == null || route.points.length < 2) return;
+    final visible = _layers.contains(MapLayer.route);
+
+    // Yo'l chizig'i (siyraklashtirilgan — web'da tez chiziladi)
+    final pts = RouteMatcher.sample(route.points, 0.3).map(_ll).toList();
+    _routeLine = await map.routeLayer.addRoute(
+      pts,
+      km.RouteStyle(AppColors.route, 8, strokeColor: Colors.white, strokeWidth: 2),
+    );
+    if (!visible) await _routeLine!.hide();
+
+    // Boshlanish / tugash
+    final endIcon = await MarkerIcons.pin(AppColors.route, Icons.flag);
+    final startIcon = await MarkerIcons.pin(AppColors.route, Icons.trip_origin);
+    for (final (p, icon) in [(s.origin, startIcon), (s.destination, endIcon)]) {
+      if (p == null) continue;
+      _pois[MapLayer.route]!.add(await map.labelLayer.addPoi(
+        _ll(p.location),
+        style: km.PoiStyle(
+          icon: icon,
+          textStyle: const [km.PoiTextStyle(size: 13, color: Colors.black87, stroke: 2, strokeColor: Colors.white)],
+        ),
+        text: p.name,
+        visible: visible,
+      ));
+    }
+
+    // Yo'l bo'yidagi imkoniyatlar
+    for (final o in s.opportunities) {
+      final icon = await MarkerIcons.pin(AppColors.route, categoryIcon(o.event.category), selected: true);
+      _routeOppByEventId[o.event.id] = o;
+      _pois[MapLayer.route]!.add(await map.labelLayer.addPoi(
+        _ll(o.event.location),
+        id: 'route-${o.event.id}',
+        style: km.PoiStyle(icon: icon),
+        visible: visible,
+        onClick: () => _openOpportunity(_routeOppByEventId[o.event.id] ?? o),
+      ));
+    }
+
+    if (fit) {
+      final step = (pts.length / 40).ceil().clamp(1, pts.length);
+      await _fit([for (var i = 0; i < pts.length; i += step) pts[i], pts.last]);
+    }
+  }
+
+  void _openOpportunity(RouteOpportunity o) {
+    if (!mounted) return;
+    _map?.moveCamera(
+      km.CameraUpdate.newCenterPosition(_ll(o.event.location), zoomLevel: 12),
+      animation: const km.CameraAnimation(600),
+    );
+    showEventDetail(context, o.event, opportunity: o);
   }
 
   Future<void> _setMode(MapMode mode) async {
     setState(() => _mode = mode);
     switch (mode) {
       case MapMode.explore:
+        await _setLayer(MapLayer.route, false);
         await _setLayer(MapLayer.plans, true);
         await _setLayer(MapLayer.recommended, true);
         await _fitAll();
       case MapMode.myMap:
+        await _setLayer(MapLayer.route, false);
         await _setLayer(MapLayer.plans, true);
         await _setLayer(MapLayer.recommended, false);
         final pts = ref.read(plansProvider).where((p) => p.location != null).map((p) => _ll(p.location!)).toList();
         await _fit(pts);
       case MapMode.route:
-        // TODO(D6): Kakao Mobility directions + koridor bo'ylab eventlar
+        // Chalkashmasligi uchun faqat yo'l va uning atrofidagi eventlar.
+        await _setLayer(MapLayer.plans, false);
+        await _setLayer(MapLayer.recommended, false);
         await _setLayer(MapLayer.route, true);
     }
   }
