@@ -9,6 +9,7 @@
 ```bash
 cp env.example.json env.json
 dart run tool/gen_web_env.dart
+dart run tool/collect_events.dart   # (선택) 실제 행사 데이터 갱신
 flutter run -d chrome --web-port=8080 --dart-define-from-file=env.json \
   --web-browser-flag="--user-data-dir=$PWD/.dart_tool/chrome-profile"   # 로그인·관심사·일정 유지
 ```

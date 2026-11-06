@@ -126,8 +126,7 @@ class _RoutePanelState extends ConsumerState<RoutePanel> {
                     FilledButton.icon(
                       onPressed: s.canSearch ? c.search : null,
                       icon: loading
-                          ? SizedBox.square(
-                              dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: p.textMuted))
+                          ? AppSpinner(color: p.textMuted)
                           : const Icon(Icons.alt_route_rounded),
                       label: Text(loading ? l10n.searching : l10n.routeFind),
                     ),

@@ -337,5 +337,61 @@
   },
   "nationwide": "Nationwide",
   "applyNow": "Apply",
-  "aiTranslated": "Translated from Korean with Gemini"
+  "aiTranslated": "Translated from Korean with Gemini",
+  "statForPlans": "My plans",
+  "statAll": "All signals",
+  "statSoon": "Due soon",
+  "homeSectionPlans": "Around your plans",
+  "homeSectionDeadlines": "Deadlines coming up",
+  "homeFilterEmpty": "Nothing here right now",
+  "dislikeConfirmTitle": "Not for you?",
+  "dislikeConfirmBody": "We'll show fewer signals like this one.",
+  "yes": "Yes",
+  "no": "No",
+  "feedbackLiked": "Thanks! You'll see more like this",
+  "feedbackDisliked": "Got it — fewer signals like this",
+  "untilDate": "Until {date}",
+  "@untilDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "openEvent": "Event details",
+  "signalWhy": "Why this signal",
+  "calendarAddFailed": "Couldn't add to calendar",
+  "interestsCount": "{count} selected",
+  "@interestsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "next": "Next",
+  "back": "Back",
+  "getStarted": "Get started",
+  "themeTitle": "Pick a look",
+  "themeSubtitle": "You can change this anytime in Profile.",
+  "themeSystemDesc": "Follows your device",
+  "themeLightDesc": "Bright and clear",
+  "themeDarkDesc": "Easy on the eyes at night",
+  "nameTitle": "What should we call you?",
+  "nameSubtitle": "We'll greet you with this on the home screen. You can change it later in Profile.",
+  "nameHint": "Your name",
+  "nameRequired": "Please enter a name",
+  "editName": "Edit name",
+  "stepOf": "Step {n} of {total}",
+  "@stepOf": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "welcomeTagline": "Signals from your plans and interests"
 }

@@ -32,3 +32,13 @@ flutter:
   assets:
     # tool/collect_events.dart yaratadi
     - assets/data/events.json
+  fonts:
+    # Pretendard 1.3.9 subset (lotin + KS X 1001 hangul), OFL — assets/fonts/OFL.txt
+    - family: LifeRadarSans
+      fonts:
+        - asset: assets/fonts/LifeRadarSans-Regular.otf
+          weight: 400
+        - asset: assets/fonts/LifeRadarSans-SemiBold.otf
+          weight: 600
+        - asset: assets/fonts/LifeRadarSans-Bold.otf
+          weight: 700

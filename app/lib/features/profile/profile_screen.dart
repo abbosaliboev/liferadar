@@ -7,7 +7,7 @@ import '../../core/theme.dart';
 import '../../core/widgets.dart';
 import '../../data/calendar_controller.dart';
 import '../../data/session.dart';
-import 'interest_summary.dart';
+import '../../data/providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -22,6 +22,7 @@ class ProfileScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
     final guest = session == null || session.isGuest;
+    final displayName = ref.watch(profileNameProvider) ?? (guest ? null : session.name);
 
     Future<void> signOut() async {
       await ref.read(sessionProvider.notifier).signOut();
@@ -40,11 +41,26 @@ class ProfileScreen extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.all(Space.lg),
                 child: Row(children: [
-                  AppAvatar(photoUrl: session?.photoUrl, name: guest ? null : session.name, size: 56),
+                  AppAvatar(photoUrl: session?.photoUrl, name: displayName, size: 56),
                   const SizedBox(width: Space.lg),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(guest ? l10n.guestName : (session.name ?? session.email ?? ''), style: t.titleMedium),
+                      Row(children: [
+                        Flexible(
+                          child: Text(
+                            displayName ?? l10n.guestName,
+                            style: t.titleMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: l10n.editName,
+                          visualDensity: VisualDensity.compact,
+                          icon: Icon(Icons.edit_outlined, size: 18, color: p.textMuted),
+                          onPressed: () => context.push('/name?edit=1'),
+                        ),
+                      ]),
                       const SizedBox(height: 2),
                       Text(
                         guest ? l10n.guestSubtitle : (session.email ?? ''),
@@ -60,14 +76,19 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
 
-          // ── Qiziqishlar ──
-          SectionHeader(
-            l10n.interestsEdit,
-            action: TextButton(onPressed: () => context.push('/interests'), child: Text(l10n.edit)),
-          ),
+          // ── Qiziqishlar: ro'yxat bu yerda ko'rinmaydi (joy egallamasin) — "Tahrirlash" ochadi ──
+          SectionHeader(l10n.interestsEdit),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-            child: const InterestSummary(),
+            child: GroupCard(children: [
+              ListTile(
+                leading: const IconTile(Icons.interests_outlined, size: 36),
+                title: Text(l10n.interestsEdit),
+                subtitle: Text(l10n.interestsCount(ref.watch(interestsProvider).length)),
+                trailing: TextButton(onPressed: () => context.push('/interests'), child: Text(l10n.edit)),
+                onTap: () => context.push('/interests'),
+              ),
+            ]),
           ),
 
           // ── Ulangan xizmatlar ──
@@ -80,7 +101,7 @@ class ProfileScreen extends ConsumerWidget {
                 title: Text(l10n.sourceCalendar),
                 subtitle: Text(cal.isConnected ? l10n.connected : l10n.notConnected),
                 trailing: cal.isBusy
-                    ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const AppSpinner(size: 20)
                     : cal.isConnected
                         ? TextButton(
                             onPressed: () => ref.read(calendarProvider.notifier).disconnect(),

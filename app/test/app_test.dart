@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:liferadar/data/providers.dart';
 import 'package:liferadar/data/sample_data.dart';
 import 'package:liferadar/features/discover/discover_screen.dart';
+import 'package:liferadar/features/home/home_screen.dart';
 import 'package:liferadar/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,12 +14,22 @@ Future<void> pumpApp(
   List<String>? interests,
   DateTime? now,
   String? session = '{"kind":"guest"}',
+  bool setupDone = true,
+  String? name = 'Tester',
+  String locale = 'en',
 }) async {
   // "Animatsiyani kamaytirish" — cheksiz animatsiyalar (radar, shimmer) to'xtaydi;
   // shu bilan birga ilova bu sozlamani hurmat qilishini ham tekshiramiz.
   tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
   addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
-  SharedPreferences.setMockInitialValues({'interests': ?interests, 'session': ?session});
+  SharedPreferences.setMockInitialValues({
+    'interests': ?interests,
+    'session': ?session,
+    'setup_done': setupDone,
+    'name:guest': ?name,
+    // Til tanlangan holat (welcome testida tanlovning o'zi tekshiriladi).
+    if (setupDone) 'locale': locale,
+  });
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(ProviderScope(
     overrides: [
@@ -39,22 +50,43 @@ void main() {
     expect(interestScore(concert, {'ai'}), 0.0);
   });
 
-  testWidgets('Kirilmagan → Login → mehmon → onboarding', (tester) async {
-    await pumpApp(tester, session: null);
-    expect(find.text('LifeRadar'), findsOneWidget);
+  testWidgets('Birinchi ishga tushirish: til → tema → login (tanlov saqlanadi)', (tester) async {
+    await pumpApp(tester, session: null, setupDone: false, name: null);
+    expect(find.text('Choose your language'), findsOneWidget);
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pick a look'), findsOneWidget);
+    await tester.tap(find.text('Dark'));
+    await tester.pumpAndSettle();
+    expect(Theme.of(tester.element(find.text('Pick a look'))).brightness, Brightness.dark); // darhol qo'llanadi
+    await tester.tap(find.text('Get started'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Look around as a guest'), findsOneWidget);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool('setup_done'), isTrue);
+    expect(prefs.getString('locale'), 'en');
+    expect(prefs.getString('theme_mode'), 'dark');
+  });
+
+  testWidgets('Login → mehmon → ism → qiziqishlar → Home ("Hi, Abbos")', (tester) async {
+    await pumpApp(tester, session: null, name: null);
     await tester.ensureVisible(find.text('Look around as a guest'));
     await tester.tap(find.text('Look around as a guest'));
     await tester.pumpAndSettle();
-    expect(find.text('What are you into?'), findsOneWidget);
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('session'), contains('guest'));
-  });
 
-  testWidgets('Birinchi ochilishda onboarding → tanlash → Home', (tester) async {
-    await pumpApp(tester);
-    expect(find.text('What are you into?'), findsOneWidget);
-    expect(find.text('Pick at least one'), findsOneWidget);
+    expect(find.text('What should we call you?'), findsOneWidget);
+    expect(find.text('Step 1 of 2'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '  Abbos ');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
 
+    expect(find.text('What are you into?'), findsOneWidget);
+    expect(find.text('Step 2 of 2'), findsOneWidget);
     await tester.tap(find.text('AI'));
     await tester.tap(find.text('Startups'));
     await tester.pumpAndSettle();
@@ -62,9 +94,16 @@ void main() {
     await tester.tap(find.text('Continue (2 selected)'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Signals for you'), findsOneWidget);
+    expect(find.text('Hi, Abbos'), findsOneWidget);
     final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('session'), contains('guest'));
+    expect(prefs.getString('name:guest'), 'Abbos');
     expect(prefs.getStringList('interests:guest'), containsAll(['ai', 'startup']));
+  });
+
+  testWidgets('Ism va qiziqish saqlangan bo\'lsa — to\'g\'ri Home', (tester) async {
+    await pumpApp(tester, interests: ['ai'], name: 'Abbos');
+    expect(find.text('Hi, Abbos'), findsOneWidget);
   });
 
   testWidgets('Qiziqishlar saqlangan bo\'lsa Home ochiladi va til almashadi', (tester) async {
@@ -109,6 +148,32 @@ void main() {
     expect(find.widgetWithText(FilledButton, 'Connect Google Calendar'), findsOneWidget);
   });
 
+  testWidgets('Home: statistika = filtr, "Due soon" faqat muddatlarni ko\'rsatadi', (tester) async {
+    await pumpApp(tester, interests: ['ai', 'startup', 'music']);
+    // Standart — "All signals" tanlangan
+    final allCell = find.bySemanticsLabel(RegExp(r'^All signals \d+'));
+    expect(tester.getSemantics(allCell), isSemantics(isSelected: true, isButton: true));
+
+    await tester.tap(find.text('Due soon'));
+    await tester.pumpAndSettle();
+    expect(find.text('Deadlines coming up'), findsOneWidget);
+    expect(find.text('Plan alert'), findsNothing);
+    expect(find.text('Deadline'), findsWidgets);
+  });
+
+  testWidgets('Ochilgan signal kartasi xiralashadi va saqlanadi', (tester) async {
+    await pumpApp(tester, interests: ['ai', 'startup', 'music']);
+    double opacityOfFirst() => tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity).first).opacity;
+    expect(opacityOfFirst(), 1);
+    await tester.tap(find.byType(InsightCard).first);
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(10, 10)); // oynani yopish
+    await tester.pumpAndSettle();
+    expect(opacityOfFirst(), lessThan(1));
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getStringList('seen:guest'), isNotEmpty);
+  });
+
   testWidgets('👎 feedback saqlanadi', (tester) async {
     await pumpApp(tester, interests: ['ai', 'startup']);
     await tester.ensureVisible(find.byIcon(Icons.thumb_down_outlined).first);
@@ -116,6 +181,17 @@ void main() {
     await tester.tap(find.byIcon(Icons.thumb_down_outlined).first);
     await tester.pumpAndSettle();
     final prefs = await SharedPreferences.getInstance();
+    // Avval tasdiqlash so'raladi — "Yo'q" bosilsa hech narsa saqlanmaydi.
+    expect(find.text('Not for you?'), findsOneWidget);
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+    expect(prefs.getStringList('insight_feedback'), isNull);
+
+    await tester.tap(find.byIcon(Icons.thumb_down_outlined).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Yes'));
+    await tester.pumpAndSettle();
     expect(prefs.getStringList('insight_feedback')!.single, endsWith('|dislike'));
+    expect(find.text('Got it — fewer signals like this'), findsOneWidget); // toast
   });
 }

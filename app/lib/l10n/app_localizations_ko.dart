@@ -571,4 +571,106 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get aiTranslated => 'Gemini로 번역됨';
+
+  @override
+  String get statForPlans => '내 일정';
+
+  @override
+  String get statAll => '전체 신호';
+
+  @override
+  String get statSoon => '마감 임박';
+
+  @override
+  String get homeSectionPlans => '내 일정 주변';
+
+  @override
+  String get homeSectionDeadlines => '곧 마감되는 신청';
+
+  @override
+  String get homeFilterEmpty => '지금은 해당 신호가 없어요';
+
+  @override
+  String get dislikeConfirmTitle => '관심 없는 신호인가요?';
+
+  @override
+  String get dislikeConfirmBody => '비슷한 신호를 덜 보여드릴게요.';
+
+  @override
+  String get yes => '예';
+
+  @override
+  String get no => '아니요';
+
+  @override
+  String get feedbackLiked => '고마워요! 비슷한 신호를 더 보여드릴게요';
+
+  @override
+  String get feedbackDisliked => '알겠어요. 비슷한 신호를 줄일게요';
+
+  @override
+  String untilDate(String date) {
+    return '$date까지';
+  }
+
+  @override
+  String get openEvent => '행사 자세히 보기';
+
+  @override
+  String get signalWhy => '이 신호가 뜬 이유';
+
+  @override
+  String get calendarAddFailed => '캘린더에 추가하지 못했어요';
+
+  @override
+  String interestsCount(int count) {
+    return '$count개 선택됨';
+  }
+
+  @override
+  String get next => '다음';
+
+  @override
+  String get back => '이전';
+
+  @override
+  String get getStarted => '시작하기';
+
+  @override
+  String get themeTitle => '화면 테마를 고르세요';
+
+  @override
+  String get themeSubtitle => '프로필에서 언제든 바꿀 수 있어요.';
+
+  @override
+  String get themeSystemDesc => '기기 설정을 따라요';
+
+  @override
+  String get themeLightDesc => '밝고 깔끔하게';
+
+  @override
+  String get themeDarkDesc => '밤에도 눈이 편하게';
+
+  @override
+  String get nameTitle => '어떻게 불러드릴까요?';
+
+  @override
+  String get nameSubtitle => '홈 화면에서 이 이름으로 인사해요.\n프로필에서 언제든 바꿀 수 있어요.';
+
+  @override
+  String get nameHint => '이름';
+
+  @override
+  String get nameRequired => '이름을 입력해 주세요';
+
+  @override
+  String get editName => '이름 수정';
+
+  @override
+  String stepOf(int n, int total) {
+    return '$n / $total 단계';
+  }
+
+  @override
+  String get welcomeTagline => '내 일정과 관심사로 찾는 신호';
 }

@@ -154,6 +154,8 @@ abstract final class AppColors {
   static const route = Color(0xFF2563EB);
 }
 
+const appFontFamily = 'LifeRadarSans';
+
 ThemeData buildTheme(Brightness brightness) {
   final p = brightness == Brightness.dark ? AppPalette.dark : AppPalette.light;
   final scheme = ColorScheme(
@@ -192,7 +194,8 @@ ThemeData buildTheme(Brightness brightness) {
     surfaceTint: Colors.transparent,
   );
 
-  final base = ThemeData(brightness: brightness, useMaterial3: true);
+  // Pretendard asosidagi shrift: koreys va lotin harflari bir xil uslubda, raqamlar aniq.
+  final base = ThemeData(brightness: brightness, useMaterial3: true, fontFamily: appFontFamily);
   final t = base.textTheme.apply(bodyColor: p.text, displayColor: p.text);
   final text = t.copyWith(
     headlineMedium: t.headlineMedium?.copyWith(fontSize: 26, fontWeight: FontWeight.w700, letterSpacing: -0.6, height: 1.25),

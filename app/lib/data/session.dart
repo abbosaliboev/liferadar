@@ -122,3 +122,56 @@ class SessionController extends Notifier<Session?> {
     await ref.read(sharedPrefsProvider).setString(_key, jsonEncode(s.toJson()));
   }
 }
+
+// ─────────────────────────── Birinchi ishga tushirish va ism ───────────────────────────
+
+/// Til va tema tanlangani (qurilma bo'yicha — akkauntdan oldin so'raladi).
+final setupDoneProvider = NotifierProvider<SetupDoneController, bool>(SetupDoneController.new);
+
+class SetupDoneController extends Notifier<bool> {
+  static const _key = 'setup_done';
+
+  @override
+  bool build() => ref.read(sharedPrefsProvider).getBool(_key) ?? false;
+
+  Future<void> complete() async {
+    state = true;
+    await ref.read(sharedPrefsProvider).setBool(_key, true);
+  }
+}
+
+/// Foydalanuvchi o'zi kiritgan ism (Home'da "Salom, …"). Akkaunt bo'yicha saqlanadi —
+/// Google'dagi ism ko'pincha boshqacha bo'ladi, shuning uchun kirgandan keyin so'raladi.
+final profileNameProvider = NotifierProvider<ProfileNameController, String?>(ProfileNameController.new);
+
+class ProfileNameController extends Notifier<String?> {
+  late String _key;
+
+  @override
+  String? build() {
+    _key = 'name:${accountScope(ref.watch(sessionProvider))}';
+    final v = ref.read(sharedPrefsProvider).getString(_key)?.trim();
+    return v == null || v.isEmpty ? null : v;
+  }
+
+  Future<void> save(String name) async {
+    final v = name.trim();
+    state = v.isEmpty ? null : v;
+    final prefs = ref.read(sharedPrefsProvider);
+    v.isEmpty ? await prefs.remove(_key) : await prefs.setString(_key, v);
+  }
+}
+
+/// Kirishdan keyingi qadam: ism → qiziqishlar → Home. Ikkalasi bo'lsa — to'g'ri Home.
+String nextAfterAuth(Ref ref) {
+  if (ref.read(profileNameProvider) == null) return '/name';
+  if (ref.read(interestsProvider).isEmpty) return '/onboarding';
+  return '/home';
+}
+
+/// Widget'lardan chaqirish uchun.
+String nextAfterAuthOf(WidgetRef ref) {
+  if (ref.read(profileNameProvider) == null) return '/name';
+  if (ref.read(interestsProvider).isEmpty) return '/onboarding';
+  return '/home';
+}

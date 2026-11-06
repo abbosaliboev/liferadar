@@ -446,3 +446,108 @@ class SmoothSize extends StatelessWidget {
     return AnimatedSize(duration: d, curve: Motion.curve, alignment: alignment, child: child);
   }
 }
+
+/// Bir qatorli matn: sig'sa — oddiy, sig'masa — o'ngdan chapga sekin aylanadi
+/// (har aylanishdan oldin qisqa pauza). "Animatsiyani kamaytirish"da — "…" bilan kesiladi.
+class MarqueeText extends StatefulWidget {
+  const MarqueeText(this.text, {super.key, this.style, this.velocity = 28, this.gap = 48});
+
+  final String text;
+  final TextStyle? style;
+
+  /// Piksel / soniya.
+  final double velocity;
+  final double gap;
+
+  @override
+  State<MarqueeText> createState() => _MarqueeTextState();
+}
+
+class _MarqueeTextState extends State<MarqueeText> with SingleTickerProviderStateMixin {
+  static const _pause = Duration(milliseconds: 1600);
+  late final AnimationController _c = AnimationController(vsync: this);
+  double _distance = 0;
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  void _run(double distance) {
+    if (distance == _distance && _c.isAnimating) return;
+    _distance = distance;
+    final move = Duration(milliseconds: (distance / widget.velocity * 1000).round());
+    _c
+      ..duration = move + _pause
+      ..repeat();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = DefaultTextStyle.of(context).style.merge(widget.style);
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    return LayoutBuilder(builder: (context, c) {
+      final tp = TextPainter(
+        text: TextSpan(text: widget.text, style: style),
+        maxLines: 1,
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout();
+      final fits = tp.width <= c.maxWidth;
+      if (fits || reduce || !c.maxWidth.isFinite) {
+        if (_c.isAnimating) _c.stop();
+        return Text(widget.text, style: style, maxLines: 1, overflow: TextOverflow.ellipsis);
+      }
+      final distance = tp.width + widget.gap;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _run(distance);
+      });
+      final pauseFraction = _pause.inMilliseconds / (_c.duration?.inMilliseconds ?? 1).clamp(1, 1 << 31);
+      final line = Text(widget.text, style: style, maxLines: 1, softWrap: false);
+      return Semantics(
+        label: widget.text,
+        child: ExcludeSemantics(
+          child: ClipRect(
+            child: SizedBox(
+              height: tp.height,
+              width: c.maxWidth,
+              child: AnimatedBuilder(
+                animation: _c,
+                builder: (context, child) {
+                  final t = _c.value <= pauseFraction ? 0.0 : (_c.value - pauseFraction) / (1 - pauseFraction);
+                  return OverflowBox(
+                    alignment: Alignment.centerLeft,
+                    maxWidth: double.infinity,
+                    child: Transform.translate(offset: Offset(-t * distance, 0), child: child),
+                  );
+                },
+                child: Row(mainAxisSize: MainAxisSize.min, children: [line, SizedBox(width: widget.gap), line]),
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// Ilova bo'ylab yagona spinner: ingichka, yumaloq uchli, brend rangida.
+class AppSpinner extends StatelessWidget {
+  const AppSpinner({super.key, this.size = 18, this.color, this.strokeWidth = 2.2});
+
+  final double size;
+  final Color? color;
+  final double strokeWidth;
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+        dimension: size,
+        child: CircularProgressIndicator(
+          strokeWidth: strokeWidth,
+          strokeCap: StrokeCap.round,
+          color: color ?? context.palette.primary,
+          backgroundColor: (color ?? context.palette.primary).withValues(alpha: 0.15),
+        ),
+      );
+}

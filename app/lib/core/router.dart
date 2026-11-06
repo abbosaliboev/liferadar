@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/providers.dart';
 import '../data/session.dart';
 import '../features/auth/login_screen.dart';
 import '../features/discover/discover_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/map/map_screen.dart';
+import '../features/onboarding/name_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/plans/plans_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/shell/app_shell.dart';
+import '../features/welcome/welcome_screen.dart';
 import 'theme.dart';
+import 'toast.dart';
+import 'widgets.dart';
 
 /// Yuqori darajadagi sahifalar uchun yumshoq fade + kichik yuqoriga siljish.
 CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) => CustomTransitionPage<void>(
@@ -32,14 +35,21 @@ CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) => Custo
       },
     );
 
-/// Kirish nuqtasi: sessiya yo'q → login, qiziqishlar yo'q → onboarding, aks holda → home.
+/// Kirish nuqtasi: birinchi ishga tushirish → til/tema; sessiya yo'q → login;
+/// ism yo'q → ism; qiziqishlar yo'q → qiziqishlar; aks holda → home.
 final routerProvider = Provider<GoRouter>((ref) {
+  final setupDone = ref.read(setupDoneProvider);
   final signedIn = ref.read(sessionProvider) != null;
-  final onboarded = ref.read(interestsProvider).isNotEmpty;
   return GoRouter(
-    initialLocation: !signedIn ? '/login' : (onboarded ? '/home' : '/onboarding'),
+    navigatorKey: Toast.navigatorKey, // toast'lar ildiz overlay'ga chiqadi
+    initialLocation: !setupDone ? '/welcome' : (!signedIn ? '/login' : nextAfterAuth(ref)),
     routes: [
+      GoRoute(path: '/welcome', pageBuilder: (_, s) => _fadePage(s, const WelcomeScreen())),
       GoRoute(path: '/login', pageBuilder: (_, s) => _fadePage(s, const LoginScreen())),
+      GoRoute(
+        path: '/name',
+        pageBuilder: (_, s) => _fadePage(s, NameScreen(editing: s.uri.queryParameters['edit'] == '1')),
+      ),
       GoRoute(path: '/onboarding', pageBuilder: (_, s) => _fadePage(s, const OnboardingScreen())),
       GoRoute(path: '/interests', builder: (_, _) => const OnboardingScreen(editing: true)),
       StatefulShellRoute(
@@ -57,6 +67,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
     ],
-    errorBuilder: (_, _) => const Scaffold(body: Center(child: CircularProgressIndicator())),
+    errorBuilder: (_, _) => const Scaffold(body: Center(child: AppSpinner(size: 28))),
   );
 });

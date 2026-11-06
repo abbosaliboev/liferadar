@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
+import '../../core/toast.dart';
+import '../../core/widgets.dart';
 import '../../data/calendar_controller.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
@@ -179,7 +181,6 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
       note: note.isEmpty ? null : note,
     );
 
-    final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     setState(() => _saving = true);
     try {
@@ -194,9 +195,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
         await plans.saveLocal(plan);
       }
       navigator.pop();
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(l10n.planSaved)));
+      Toast.show(l10n.planSaved);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -226,7 +225,6 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
     );
     if (ok != true || !mounted) return;
 
-    final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     setState(() => _saving = true);
     try {
@@ -236,9 +234,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
         await ref.read(plansProvider.notifier).removeLocal(plan.id);
       }
       navigator.pop();
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(l10n.planDeleted)));
+      Toast.show(l10n.planDeleted, type: ToastType.info);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -461,10 +457,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
                       child: FilledButton(
                         onPressed: _saving ? null : _save,
                         child: _saving
-                            ? SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: p.textMuted),
-                              )
+                            ? AppSpinner(size: 20, color: p.textMuted)
                             : Text(l10n.save),
                       ),
                     ),

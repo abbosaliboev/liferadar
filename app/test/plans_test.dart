@@ -149,14 +149,16 @@ void main() {
     expect(find.text('Dentist'), findsOneWidget);
   });
 
-  testWidgets('Profile: ko\'p qiziqish yig\'ilgan holda, "+N" bilan ochiladi', (tester) async {
+  testWidgets('Profile: qiziqishlar ro\'yxati ko\'rinmaydi, faqat soni va "Edit"', (tester) async {
     await pumpApp(tester, interests: ['ai', 'music', 'food', 'travel', 'pets', 'art', 'fitness']);
     await tester.tap(find.byIcon(Icons.person_outline_rounded).last);
     await tester.pumpAndSettle();
+    expect(find.text('7 selected'), findsOneWidget);
     expect(find.text('Pets'), findsNothing);
-    await tester.tap(find.text('+3'));
+    await tester.tap(find.text('Edit'));
     await tester.pumpAndSettle();
+    expect(find.text('What are you into?'), findsOneWidget); // tahrirlash sahifasi ochildi
+    await tester.scrollUntilVisible(find.text('Pets'), 300, scrollable: find.byType(Scrollable).last);
     expect(find.text('Pets'), findsOneWidget);
-    expect(find.text('Show less'), findsOneWidget);
   });
 }

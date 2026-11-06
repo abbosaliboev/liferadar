@@ -42,7 +42,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         return eff(a).compareTo(eff(b));
       });
     final categories = all.map((e) => e.category).toSet().toList()..sort((a, b) => a.index.compareTo(b.index));
-    final myInterests = interestOptions.where((o) => interests.contains(o.tag)).toList();
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.tabDiscover)),
@@ -54,34 +53,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             child: Text(l10n.discoverSubtitle, style: t.bodySmall),
           ),
           const SizedBox(height: Space.md),
-
-          // ── Qiziqishlar (bitta gorizontal qator — joy egallamaydi) ──
-          SizedBox(
-            height: 36,
-            child: Row(
-              children: [
-                Expanded(
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.only(left: Space.gutter),
-                    itemCount: myInterests.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 6),
-                    itemBuilder: (_, i) => Center(
-                      child: InterestChip(
-                        label: context.tr(myInterests[i].label),
-                        icon: myInterests[i].icon,
-                        hue: myInterests[i].hue,
-                        dense: true,
-                      ),
-                    ),
-                  ),
-                ),
-                TextButton(onPressed: () => context.push('/interests'), child: Text(l10n.edit)),
-                const SizedBox(width: Space.sm),
-              ],
-            ),
-          ),
-          const SizedBox(height: Space.sm),
 
           // ── Kategoriyalar ──
           SizedBox(
@@ -164,64 +135,66 @@ class EventCard extends ConsumerWidget {
     // Oylab davom etadigan ko'rgazma/kurs: o'tgan boshlanish sanasi o'rniga tugash sanasi.
     final ongoing = event.start.isBefore(today);
     final tileDate = ongoing ? event.end : event.start;
-    return Card(
-      child: InkWell(
-        onTap: () => showEventDetail(
-          context,
-          event,
-          onShowOnMap: () {
-            ref.read(mapFocusProvider.notifier).focus(event.id);
-            context.go('/map');
-          },
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(Space.lg),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              DateTile(tileDate, monthLabel: '${ongoing ? '~' : ''}${DateFormat.MMM(context.lang).format(tileDate)}'),
-              const SizedBox(width: Space.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Pill(context.categoryLabel(event.category), icon: categoryIcon(event.category), dense: true),
-                        if (ongoing) ...[
-                    const SizedBox(width: 6),
-                    Pill(l10n.ongoing, tone: Tone.info, dense: true),
-                  ],
-                  if (event.isFree == true) ...[
-                          const SizedBox(width: 6),
-                          Pill(l10n.free, tone: Tone.primary, dense: true),
-                        ],
-                        if (event.isSample) ...[const SizedBox(width: 6), const SampleBadge()],
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(context.tr(event.title), style: t.titleSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    MetaRow(Icons.place_outlined, '${event.venue} · ${event.city}'),
-                    if (matched.isNotEmpty) ...[
-                      const SizedBox(height: Space.sm),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
+    final seen = ref.watch(seenProvider).contains('event:${event.id}');
+    return AnimatedOpacity(
+      duration: Motion.of(context, Motion.normal),
+      opacity: seen ? 0.6 : 1,
+      child: Card(
+        child: InkWell(
+          onTap: () => showEventDetail(
+            context,
+            event,
+            onShowOnMap: () {
+              ref.read(mapFocusProvider.notifier).focus(event.id);
+              context.go('/map');
+            },
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(Space.lg),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DateTile(tileDate, monthLabel: '${ongoing ? '~' : ''}${DateFormat.MMM(context.lang).format(tileDate)}'),
+                const SizedBox(width: Space.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          for (final tag in matched)
-                            if (interestByTag(tag) case final o?)
-                              InterestChip(label: context.tr(o.label), icon: o.icon, hue: o.hue, dense: true)
-                            else
-                              Pill('#$tag', tone: Tone.primary, dense: true),
+                          Pill(context.categoryLabel(event.category), icon: categoryIcon(event.category), dense: true),
+                          if (ongoing) ...[const SizedBox(width: 6), Pill(l10n.ongoing, tone: Tone.info, dense: true)],
+                          if (event.isFree == true) ...[
+                            const SizedBox(width: 6),
+                            Pill(l10n.free, tone: Tone.primary, dense: true),
+                          ],
+                          if (event.isSample) ...[const SizedBox(width: 6), const SampleBadge()],
                         ],
                       ),
+                      const SizedBox(height: 6),
+                      Text(context.tr(event.title), style: t.titleSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 4),
+                      MetaRow(Icons.place_outlined, '${event.venue} · ${event.city}'),
+                      if (matched.isNotEmpty) ...[
+                        const SizedBox(height: Space.sm),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            for (final tag in matched)
+                              if (interestByTag(tag) case final o?)
+                                InterestChip(label: context.tr(o.label), icon: o.icon, hue: o.hue, dense: true)
+                              else
+                                Pill('#$tag', tone: Tone.primary, dense: true),
+                          ],
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              trailing ?? Icon(Icons.chevron_right_rounded, color: context.palette.textMuted),
-            ],
+                trailing ?? Icon(Icons.chevron_right_rounded, color: context.palette.textMuted),
+              ],
+            ),
           ),
         ),
       ),

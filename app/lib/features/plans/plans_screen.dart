@@ -173,7 +173,7 @@ class _CalendarCard extends ConsumerWidget {
             FilledButton.icon(
               onPressed: cal.isBusy ? null : c.connect,
               icon: cal.isBusy
-                  ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: p.textMuted))
+                  ? AppSpinner(color: p.textMuted)
                   : const Icon(Icons.link_rounded),
               label: Text(cal.isBusy ? l10n.calendarConnecting : l10n.connect),
             ),

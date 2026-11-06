@@ -12,6 +12,7 @@ import 'sample_data.dart';
 import 'session.dart';
 
 export 'event_feed.dart' show EventFeed;
+export 'seen.dart' show seenProvider;
 export 'interests.dart'
     show interestsProvider, interestOptions, InterestOption, InterestGroup, interestByTag, sharedPrefsProvider, accountScope;
 

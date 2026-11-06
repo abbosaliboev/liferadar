@@ -4,35 +4,46 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
+import '../../core/toast.dart';
 import '../../core/widgets.dart';
 import '../../data/calendar_controller.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../shell/app_shell.dart';
 import '../weather/weather_chip.dart';
+import 'signal_why_block.dart';
 
 Future<void> showEventDetail(
   BuildContext context,
   RadarEvent event, {
   VoidCallback? onShowOnMap,
   RouteOpportunity? opportunity,
+  Insight? insight,
 }) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => EventDetailSheet(event: event, onShowOnMap: onShowOnMap, opportunity: opportunity),
+    builder: (_) => EventDetailSheet(
+      event: event,
+      onShowOnMap: onShowOnMap,
+      opportunity: opportunity,
+      insight: insight,
+    ),
   );
 }
 
 class EventDetailSheet extends ConsumerStatefulWidget {
-  const EventDetailSheet({super.key, required this.event, this.onShowOnMap, this.opportunity});
+  const EventDetailSheet({super.key, required this.event, this.onShowOnMap, this.opportunity, this.insight});
 
   final RadarEvent event;
   final VoidCallback? onShowOnMap;
 
   /// Route rejimidan ochilganda: yo'ldan uzoqlik va qo'shimcha yo'l.
   final RouteOpportunity? opportunity;
+
+  /// Home kartasidan ochilganda: signal nega chiqqani (kartada ko'rsatilmaydigan tafsilotlar).
+  final Insight? insight;
 
   @override
   ConsumerState<EventDetailSheet> createState() => _EventDetailSheetState();
@@ -43,10 +54,22 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
 
   RadarEvent get event => widget.event;
 
+  @override
+  void initState() {
+    super.initState();
+    // Ko'rilgan deb belgilaymiz (kartalar xira bo'ladi). Build tugagach — provider'ni build ichida o'zgartirmaslik uchun.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(seenProvider.notifier).mark([
+        'event:${event.id}',
+        if (widget.insight != null) 'insight:${widget.insight!.id}',
+      ]);
+    });
+  }
+
   /// Google Calendar'ga qo'shish. Ulanmagan bo'lsa Google ruxsat oynasi ochiladi.
   Future<void> _addToCalendar() async {
     final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context);
     var title = context.tr(event.title);
     // E'lon: ko'p haftalik event emas — muddat kuni 09:00 da 1 soatlik eslatma.
     var target = event;
@@ -61,21 +84,14 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
     }
     setState(() => _adding = true);
     try {
-      final link = await ref.read(calendarProvider.notifier).addEvent(target, title: title);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.addedToCalendar),
-          action: link == null
-              ? null
-              : SnackBarAction(
-                  label: l10n.openSource,
-                  onPressed: () => launchUrl(Uri.parse(link), mode: LaunchMode.externalApplication),
-                ),
-        ),
-      );
+      await ref.read(calendarProvider.notifier).addEvent(target, title: title);
+      Toast.show(l10n.addedToCalendar);
     } catch (e) {
-      final msg = e.toString().contains('not-configured') ? l10n.calendarNotConfigured : l10n.calendarError('$e');
-      messenger.showSnackBar(SnackBar(content: Text(msg)));
+      final notConfigured = e.toString().contains('not-configured');
+      Toast.show(
+        notConfigured ? l10n.calendarNotConfigured : l10n.calendarAddFailed,
+        type: notConfigured ? ToastType.warning : ToastType.error,
+      );
     } finally {
       if (mounted) setState(() => _adding = false);
     }
@@ -93,7 +109,7 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
     final addButton = FilledButton.icon(
       onPressed: _adding ? null : _addToCalendar,
       icon: _adding
-          ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: p.textMuted))
+          ? AppSpinner(color: p.textMuted)
           : const Icon(Icons.event_available_outlined),
       label: Text(_adding ? l10n.addingToCalendar : l10n.addToCalendar),
     );
@@ -123,6 +139,10 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
                 const SizedBox(height: Space.md),
                 Text(context.tr(event.title), style: t.headlineSmall),
                 const SizedBox(height: Space.lg),
+                if (widget.insight != null) ...[
+                  SignalWhyBlock(insight: widget.insight!),
+                  const SizedBox(height: Space.lg),
+                ],
 
                 // ── Asosiy ma'lumotlar ──
                 Container(

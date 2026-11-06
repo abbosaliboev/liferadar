@@ -1135,6 +1135,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Translated from Korean with Gemini'**
   String get aiTranslated;
+
+  /// No description provided for @statForPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'My plans'**
+  String get statForPlans;
+
+  /// No description provided for @statAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All signals'**
+  String get statAll;
+
+  /// No description provided for @statSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Due soon'**
+  String get statSoon;
+
+  /// No description provided for @homeSectionPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Around your plans'**
+  String get homeSectionPlans;
+
+  /// No description provided for @homeSectionDeadlines.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadlines coming up'**
+  String get homeSectionDeadlines;
+
+  /// No description provided for @homeFilterEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here right now'**
+  String get homeFilterEmpty;
+
+  /// No description provided for @dislikeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Not for you?'**
+  String get dislikeConfirmTitle;
+
+  /// No description provided for @dislikeConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll show fewer signals like this one.'**
+  String get dislikeConfirmBody;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @feedbackLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks! You\'ll see more like this'**
+  String get feedbackLiked;
+
+  /// No description provided for @feedbackDisliked.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it — fewer signals like this'**
+  String get feedbackDisliked;
+
+  /// No description provided for @untilDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Until {date}'**
+  String untilDate(String date);
+
+  /// No description provided for @openEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Event details'**
+  String get openEvent;
+
+  /// No description provided for @signalWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Why this signal'**
+  String get signalWhy;
+
+  /// No description provided for @calendarAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add to calendar'**
+  String get calendarAddFailed;
+
+  /// No description provided for @interestsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String interestsCount(int count);
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @getStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get getStarted;
+
+  /// No description provided for @themeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a look'**
+  String get themeTitle;
+
+  /// No description provided for @themeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this anytime in Profile.'**
+  String get themeSubtitle;
+
+  /// No description provided for @themeSystemDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Follows your device'**
+  String get themeSystemDesc;
+
+  /// No description provided for @themeLightDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bright and clear'**
+  String get themeLightDesc;
+
+  /// No description provided for @themeDarkDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy on the eyes at night'**
+  String get themeDarkDesc;
+
+  /// No description provided for @nameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What should we call you?'**
+  String get nameTitle;
+
+  /// No description provided for @nameSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll greet you with this on the home screen. You can change it later in Profile.'**
+  String get nameSubtitle;
+
+  /// No description provided for @nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get nameHint;
+
+  /// No description provided for @nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get nameRequired;
+
+  /// No description provided for @editName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get editName;
+
+  /// No description provided for @stepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {n} of {total}'**
+  String stepOf(int n, int total);
+
+  /// No description provided for @welcomeTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Signals from your plans and interests'**
+  String get welcomeTagline;
 }
 
 class _AppLocalizationsDelegate

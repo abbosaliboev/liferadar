@@ -102,41 +102,57 @@ hack_idea/
 │   ├── USER_GUIDE.md         # 사용자 가이드
 │   ├── PLAN.ko.md / PLAN.uz.md   # MVP 계획
 │   └── images/               # 스크린샷
-├── .vscode/launch.json       # Chrome / Android 실행 구성
+├── .vscode/launch.json       # Chrome(프로필 유지) / Android 실행 구성
 └── app/                      # Flutter 앱
     ├── env.example.json      # 키 템플릿 (env.json은 git 제외)
-    ├── tool/gen_web_env.dart # env.json → web/kakao_config.js
-    ├── web/index.html        # Kakao JS SDK를 Flutter보다 먼저 로드
+    ├── tool/
+    │   ├── gen_web_env.dart      # env.json → web/kakao_config.js
+    │   ├── collect_events.dart   # 공공 API 수집 → Gemini 번역·태그 → assets/data/events.json
+    │   └── cache/ai_en.json      # Gemini 결과 캐시 (한국어 원문 해시 → 영어·태그)
+    ├── assets/
+    │   ├── data/events.json      # 실제 행사·축제·공고 (수집 결과, 커밋됨)
+    │   └── fonts/                # LifeRadar Sans (Pretendard 서브셋) + OFL.txt
+    ├── web/index.html        # HTML 스플래시 + Kakao JS SDK를 Flutter보다 먼저 로드
     ├── lib/
-    │   ├── main.dart                 # 앱 진입점, Kakao/Google 초기화
-    │   ├── core/                     # theme(디자인 토큰), widgets(공용 UI), router, env, l10n 확장, Kakao SDK 체크
-    │   ├── models/models.dart        # 도메인 모델 (RadarEvent, Plan, Insight, TravelRoute…)
+    │   ├── main.dart                 # 진입점: prefs + events.json 로드, Kakao/Google 초기화
+    │   ├── core/                     # theme(토큰·Hue·글꼴), widgets(공용 UI·MarqueeText·AppSpinner·Shimmer),
+    │   │                             # toast(상단 토스트), router(첫 실행 → 로그인 → 이름 → 관심사), env, l10n 확장
+    │   ├── models/models.dart        # 도메인 모델 (RadarEvent+JSON, Plan+JSON, Insight, TravelRoute…)
     │   ├── data/
-    │   │   ├── providers.dart        # Riverpod provider (이벤트, 일정, 인사이트, 날씨, API 클라이언트)
-    │   │   ├── interests.dart        # 관심사 목록 + 저장(shared_preferences)
-    │   │   ├── session.dart          # 로그인 세션(게스트/Google), 테마, 언어 (저장)
-    │   │   ├── calendar_controller.dart  # Google OAuth + 캘린더 동기화
-    │   │   └── sample_data.dart      # 샘플 행사·일정·인사이트
+    │   │   ├── providers.dart        # Riverpod: 행사(실제+샘플), 일정(기본+내 일정), 인사이트, 지도용 상위 행사, 날씨
+    │   │   ├── event_feed.dart       # assets/data/events.json 로더
+    │   │   ├── interests.dart        # 관심사 26개(그룹·색) + 계정별 저장, accountScope()
+    │   │   ├── session.dart          # 세션(게스트/Google), 테마, 언어, setup_done, 이름, nextAfterAuth()
+    │   │   ├── seen.dart             # 본 신호/행사 (카드 흐리게)
+    │   │   ├── calendar_controller.dart  # Google OAuth + 캘린더 동기화·추가·수정·삭제
+    │   │   └── sample_data.dart      # 데모용 샘플 (IT 행사, 일정)
     │   ├── services/
     │   │   ├── kakao_api.dart        # Kakao Local(검색) / Mobility(자동차 경로)
     │   │   ├── google_api.dart       # Google Routes TRANSIT, Weather 예보, polyline 디코더
-    │   │   ├── calendar_api.dart     # Google Calendar REST v3
+    │   │   ├── calendar_api.dart     # Google Calendar REST v3 (읽기·추가·PATCH·DELETE)
     │   │   ├── route_matcher.dart    # 경로 주변 이벤트 매칭 (순수 Dart, 테스트됨)
-    │   │   └── insight_engine.dart   # 홈 카드 규칙 엔진 (순수 Dart, 테스트됨)
+    │   │   ├── insight_engine.dart   # 홈 카드 규칙 엔진 (순수 Dart, 테스트됨)
+    │   │   └── sources/              # 수집용 순수 Dart (앱·도구 공용, 테스트됨)
+    │   │       ├── seoul_culture.dart    # 서울시 문화행사 파서
+    │   │       ├── tour_festival.dart    # TourAPI 축제 파서
+    │   │       ├── kstartup.dart         # K-Startup 공고 파서 (placeless)
+    │   │       ├── tagger.dart           # 키워드 → 관심사 태그, HTML·좌표 정리
+    │   │       └── ai_enrich.dart        # Gemini 프롬프트·스키마·품질 검사·적용
     │   ├── features/
+    │   │   ├── welcome/  # 첫 실행: 언어 → 테마
     │   │   ├── auth/     # 로그인 (Google 버튼: 웹=GIS 공식 버튼 / 그 외=authenticate)
-    │   │   ├── onboarding/ # 관심사 선택 (첫 실행 + 수정)
+    │   │   ├── onboarding/ # 이름(name_screen) + 관심사 선택 (첫 실행 + 수정)
     │   │   ├── profile/  # 프로필 · 설정
-    │   │   ├── shell/    # 하단 탭, 언어 버튼, 샘플 배지
-    │   │   ├── home/     # 인사이트 카드
+    │   │   ├── shell/    # 하단 탭, 샘플 배지
+    │   │   ├── home/     # 필터 + 한눈에 읽히는 신호 카드, openSignal()
     │   │   ├── map/      # Kakao 지도, 레이어, 마커 아이콘
     │   │   ├── route/    # 경로 상태(controller) + 패널 UI + 장소 검색
-    │   │   ├── plans/    # 내 일정 + 캘린더 연결 카드
-    │   │   ├── discover/ # 행사 목록
-    │   │   ├── event/    # 이벤트 상세 바텀시트 (신청, 캘린더 추가)
+    │   │   ├── plans/    # 내 일정 + 캘린더 연결 카드 + 일정 편집 시트
+    │   │   ├── discover/ # 행사 목록 (30개씩 더 보기)
+    │   │   ├── event/    # 행사 상세 시트 + SignalWhyBlock(신호 이유)
     │   │   └── weather/  # WeatherChip (일정·행사 날짜의 예보)
     │   └── l10n/         # app_en.arb, app_ko.arb (+ 생성 파일)
-    └── test/             # 단위·위젯 테스트
+    └── test/             # 단위·위젯 테스트 (57개)
 ```
 
 ---
@@ -314,6 +330,27 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 
 전환: 최상위 화면은 `_fadePage`(페이드+살짝 위로), 탭 간에는 `FadeBranchContainer`(상태 유지 + 페이드). 테스트는 `disableAnimations: true`로 실행해 모션 줄이기 경로도 함께 검증합니다.
 
+### 첫 실행 흐름과 글꼴
+
+```
+/welcome (언어 → 테마, 즉시 적용, setup_done 저장 — 기기 단위)
+  → /login (Google 또는 게스트)
+  → /name (name:<scope>, Google 이름 미리 채움)  → /onboarding (interests:<scope>)  → /home
+```
+- 다음 단계는 `nextAfterAuth()` 한 곳에서 결정합니다 (이름 → 관심사 → 홈). 둘 다 있으면 로그인 후 바로 홈.
+- **글꼴 `LifeRadarSans`**: Pretendard 1.3.9를 라틴 + KS X 1001 한글 2,350자로 서브셋(400/600/700, 약 1.35 MB). OFL의 Reserved Font Name 조항 때문에 이름을 바꿨고 `assets/fonts/OFL.txt`에 원 저작권을 둡니다. 서브셋 밖의 드문 음절은 Noto Sans KR로 자동 대체됩니다.
+- **로딩 화면**: `web/index.html`의 HTML 스플래시(브랜드 색, 다크 모드, 모션 줄이기 대응)가 `flutter-first-frame` 이벤트에서 사라집니다.
+- **스피너**는 `AppSpinner` 하나로 통일 (둥근 끝, 브랜드 색 + 연한 트랙).
+- 한국어 문장은 Flutter가 글자 단위로 줄바꿈하므로, 짧은 안내문은 `\n`으로 의미 단위 줄바꿈을 넣습니다.
+
+### 홈 카드 · 토스트 · 읽음 표시
+
+- **신호 카드 (`InsightCard`)**: 무엇(`MarqueeText` — 넘치면 가로로 흐름, 모션 줄이기에선 말줄임) · 언제 · 어디서 · 관심사 칩 최대 2개 · D-n. 본문·이유·신뢰도·출처는 카드에 없고 탭하면 `openSignal()` → 행사 시트의 `SignalWhyBlock` (행사 없는 신호는 단독 시트).
+- **필터 (`HomeFilter`)**: 상단 숫자 3개 = 내 일정 / 전체(기본, 선택 표시) / 마감 임박(마감일 순).
+- **👎 확인**: 예/아니요 다이얼로그 후 저장.
+- **토스트 (`core/toast.dart`)**: `Toast.show(msg, type:)` — `GoRouter(navigatorKey: Toast.navigatorKey)`의 루트 오버레이에 위에서 내려옴, 아이콘 없음, 탭/위로 밀어 닫기. 색은 상태별(success 초록 `#15803D`, error, warning, info), 흰 글자와 4.5:1 이상. `SnackBar`는 쓰지 않습니다.
+- **읽음 (`seenProvider`)**: `insight:<id>`, `event:<id>`를 계정별 최근 500개 저장 → 홈·발견 카드 불투명도 0.6.
+
 ## 6-1. 다국어 (i18n)
 
 - 문자열: `lib/l10n/app_en.arb` (템플릿), `app_ko.arb`
@@ -332,12 +369,17 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 
 | 테스트 파일 | 내용 |
 |---|---|
-| `app_test.dart` | 로그인 → 게스트 → 온보딩 → 홈, 관심사 저장, 프로필에서 언어 전환, 관심사별 발견 순서, 빈 상태, 피드백 저장, 키 없을 때 지도 안내 |
+| `app_test.dart` | 첫 실행(언어 → 테마 저장), 로그인 → 게스트 → 이름 → 관심사 → "Hi, Abbos", 재로그인 시 바로 홈, 프로필 언어 전환, 발견 순서, 홈 필터(마감 임박), 본 카드 흐리게, 👎 확인 다이얼로그 + 토스트, 키 없을 때 지도 안내 |
+| `plans_test.dart` | 계정별 관심사(재로그인 복원, 마이그레이션), 일정 추가·수정·삭제·저장, 샘플 대체, Calendar 요청 본문, "+ 새 일정" UI, 프로필 관심사 요약 |
+| `sources_test.dart` | 서울·TourAPI·K-Startup 파서(시간·좌표·HTML·무료), 태거 오탐 방지, JSON 왕복, 인사이트 상한·축제만 혼잡·진행 중 행사 날짜·공고는 "근처" 제외 |
+| `ai_enrich_test.dart` | Gemini 요청 스키마(태그 enum), 응답 파싱, 품질 검사(한글·가나 거부), 적용(사실 유지) |
 | `route_matcher_test.dart` | 거리 계산, 날짜/반경 필터, 서울→부산 시나리오 |
 | `google_api_test.dart` | polyline 디코딩(구글 공식 예제), 최근접 지점 |
 | `calendar_api_test.dart` | 시간/종일 일정 파싱 |
 | `weather_test.dart` | 일별 예보 파싱, 비 예보 판단 |
 | `insight_engine_test.dart` | 규칙별 카드 생성, 중복 방지, 지난 일정 제외 |
+
+테스트는 `FakeAccessibilityFeatures(disableAnimations: true)`로 돌립니다 — 무한 애니메이션(레이더, 마키, 쉬머)이 멈추고, 앱이 모션 줄이기를 지키는지도 함께 확인됩니다.
 
 **웹 E2E 확인 팁:** 에뮬레이터 대신 `flutter build web` 결과를 헤드리스 Chrome으로 열어 스크린샷을 찍습니다. 웹 전용 버그(예: polyline)는 VM 테스트로 잡히지 않으므로 **웹에서 한 번은 직접 확인**하세요.
 
@@ -382,10 +424,15 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 
 ## 10. 다음 작업 (TODO)
 
-- [ ] `eventsProvider` → TourAPI(축제) / KOPIS(공연) 실제 데이터, IT 행사는 큐레이션 JSON
-- [x] Google Weather 일별 예보 → 내 일정·이벤트 상세·홈 카드에 표시 (`WeatherChip`, 약 10일 범위)
-- [x] 인사이트 엔진: 일정 × 행사 × 날씨 × 관심사 (규칙 기반)
-- [ ] Gemini로 카드 문장 다듬기 (JSON 출력, 사실은 엔진 값 유지)
-- [x] 온보딩: 관심사 선택 → `interestsProvider` (저장·수정 가능). 목표(goal) 입력은 추후
-- [ ] Firebase: Firestore 저장, Cloud Functions로 API 키 이전, FCM 푸시
+- [x] 실제 데이터: 서울 문화행사 · TourAPI 축제 · K-Startup 공고 (`tool/collect_events.dart`)
+- [x] Gemini: 수집 단계 영어 번역 + 관심사 태그 (품질 검사·캐시)
+- [x] Google Weather 일별 예보 → 일정·행사·홈 카드 (`WeatherChip`, 약 10일 범위)
+- [x] 인사이트 엔진: 일정 × 행사 × 날씨 × 관심사 (규칙 기반, 실제 데이터용 상한)
+- [x] 첫 실행(언어·테마) → 로그인 → 이름 → 관심사, 계정별 저장
+- [x] 일정 추가·수정·삭제 (로컬 + Google 캘린더 PATCH/DELETE)
+- [ ] KOPIS 공연 데이터 (키 발급 대기)
+- [ ] 웹 배포 + Kakao/Google OAuth에 배포 도메인 등록 (심사용 링크)
+- [ ] 👍/👎 피드백을 추천 점수에 반영
+- [ ] Gemini로 카드 문장 다듬기 — 키를 숨길 서버(Cloud Functions) 필요
+- [ ] Firebase: 기기 간 동기화(Firestore), API 키 이전, FCM 푸시
 - [ ] Android: Kakao 네이티브 키, Google OAuth Android 클라이언트(SHA-1), 실기기 데모 빌드

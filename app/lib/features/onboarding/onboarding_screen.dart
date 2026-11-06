@@ -76,6 +76,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.xxl),
             children: [
+              if (!widget.editing) ...[
+                Text(l10n.stepOf(2, 2), style: t.labelMedium!.copyWith(color: p.primary)),
+                const SizedBox(height: Space.sm),
+              ],
               Text(l10n.onboardingTitle, style: t.headlineSmall),
               const SizedBox(height: Space.sm),
               Text(l10n.onboardingSubtitle, style: t.bodyMedium!.copyWith(color: p.textMuted)),

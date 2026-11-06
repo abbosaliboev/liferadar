@@ -584,4 +584,107 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiTranslated => 'Translated from Korean with Gemini';
+
+  @override
+  String get statForPlans => 'My plans';
+
+  @override
+  String get statAll => 'All signals';
+
+  @override
+  String get statSoon => 'Due soon';
+
+  @override
+  String get homeSectionPlans => 'Around your plans';
+
+  @override
+  String get homeSectionDeadlines => 'Deadlines coming up';
+
+  @override
+  String get homeFilterEmpty => 'Nothing here right now';
+
+  @override
+  String get dislikeConfirmTitle => 'Not for you?';
+
+  @override
+  String get dislikeConfirmBody => 'We\'ll show fewer signals like this one.';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get feedbackLiked => 'Thanks! You\'ll see more like this';
+
+  @override
+  String get feedbackDisliked => 'Got it — fewer signals like this';
+
+  @override
+  String untilDate(String date) {
+    return 'Until $date';
+  }
+
+  @override
+  String get openEvent => 'Event details';
+
+  @override
+  String get signalWhy => 'Why this signal';
+
+  @override
+  String get calendarAddFailed => 'Couldn\'t add to calendar';
+
+  @override
+  String interestsCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get getStarted => 'Get started';
+
+  @override
+  String get themeTitle => 'Pick a look';
+
+  @override
+  String get themeSubtitle => 'You can change this anytime in Profile.';
+
+  @override
+  String get themeSystemDesc => 'Follows your device';
+
+  @override
+  String get themeLightDesc => 'Bright and clear';
+
+  @override
+  String get themeDarkDesc => 'Easy on the eyes at night';
+
+  @override
+  String get nameTitle => 'What should we call you?';
+
+  @override
+  String get nameSubtitle =>
+      'We\'ll greet you with this on the home screen. You can change it later in Profile.';
+
+  @override
+  String get nameHint => 'Your name';
+
+  @override
+  String get nameRequired => 'Please enter a name';
+
+  @override
+  String get editName => 'Edit name';
+
+  @override
+  String stepOf(int n, int total) {
+    return 'Step $n of $total';
+  }
+
+  @override
+  String get welcomeTagline => 'Signals from your plans and interests';
 }
