@@ -210,6 +210,17 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
                   ),
                 ],
 
+                // ── Mashina tarjimasi ekanini halol ko'rsatamiz ──
+                if (!event.isSample && context.lang != 'ko' && event.title.en != event.title.ko) ...[
+                  const SizedBox(height: Space.lg),
+                  Row(
+                    children: [
+                      Icon(Icons.translate_rounded, size: 16, color: p.textMuted),
+                      const SizedBox(width: Space.sm),
+                      Expanded(child: Text(l10n.aiTranslated, style: t.bodySmall)),
+                    ],
+                  ),
+                ],
                 // ── Manba (ochiq ma'lumot litsenziyasi — atribut majburiy) ──
                 if (!event.isSample) ...[
                   const SizedBox(height: Space.lg),

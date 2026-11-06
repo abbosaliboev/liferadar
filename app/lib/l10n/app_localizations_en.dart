@@ -581,4 +581,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get applyNow => 'Apply';
+
+  @override
+  String get aiTranslated => 'Translated from Korean with Gemini';
 }

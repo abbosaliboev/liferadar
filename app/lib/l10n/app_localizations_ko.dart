@@ -568,4 +568,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get applyNow => '신청하기';
+
+  @override
+  String get aiTranslated => 'Gemini로 번역됨';
 }

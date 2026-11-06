@@ -198,8 +198,13 @@ class InsightEngine {
           kind: InsightKind.deadline,
           eventIds: [e.id],
           title: LocalizedText(
-            ko: '신청 마감 D-$left: ${e.title.ko}',
-            en: 'Registration closes in $left days: ${e.title.en}',
+            ko: '${left == 0 ? '오늘 신청 마감' : '신청 마감 D-$left'}: ${e.title.ko}',
+            en:
+                '${switch (left) {
+                  0 => 'Registration closes today',
+                  1 => 'Registration closes tomorrow',
+                  _ => 'Registration closes in $left days',
+                }}: ${e.title.en}',
           ),
           body: e.placeless
               ? LocalizedText(
@@ -218,7 +223,17 @@ class InsightEngine {
           ),
           confidence: _round(0.5 + 0.4 * _interest(e, interests)),
           signals: [
-            Signal(SignalType.deadline, LocalizedText(ko: 'D-$left', en: '$left days left')),
+            Signal(
+              SignalType.deadline,
+              LocalizedText(
+                ko: left == 0 ? 'D-DAY' : 'D-$left',
+                en: switch (left) {
+                  0 => 'Today',
+                  1 => '1 day left',
+                  _ => '$left days left',
+                },
+              ),
+            ),
             Signal(SignalType.event, LocalizedText(ko: e.venue, en: e.venue)),
           ],
           sources: [_source(e)],

@@ -1129,6 +1129,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get applyNow;
+
+  /// No description provided for @aiTranslated.
+  ///
+  /// In en, this message translates to:
+  /// **'Translated from Korean with Gemini'**
+  String get aiTranslated;
 }
 
 class _AppLocalizationsDelegate

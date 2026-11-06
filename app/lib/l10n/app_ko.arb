@@ -171,5 +171,6 @@
   "categoryStartupSupport": "창업 지원",
   "applicationPeriod": "접수 {from} – {to}",
   "nationwide": "전국",
-  "applyNow": "신청하기"
+  "applyNow": "신청하기",
+  "aiTranslated": "Gemini로 번역됨"
 }

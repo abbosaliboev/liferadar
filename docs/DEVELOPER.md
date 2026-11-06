@@ -67,6 +67,7 @@ flutter run -d chrome --web-port=8080 --dart-define-from-file=env.json \
 | `GOOGLE_API_KEY` | 대중교통 경로(Routes), Places, Weather | Google Cloud Console → 사용자 인증 정보 | Routes / Places (New) / Weather / Calendar API 사용 설정 |
 | `SEOUL_OPEN_API_KEY` | 실제 행사 수집 (`tool/collect_events.dart` 전용, 앱에는 안 들어감) | [서울 열린데이터광장](https://data.seoul.go.kr) → 회원가입 → 인증키 신청 (일반 인증키, 즉시 발급) | 없으면 `sample` 키로 5건만 수집 |
 | `DATA_GO_KR_KEY` | 전국 축제 수집 (TourAPI), 창업 공고 (K-Startup, 예정) — 수집 스크립트 전용 | [공공데이터포털](https://www.data.go.kr) → 데이터별 **활용신청** (자동승인) → 마이페이지 → 일반 인증키 **(Decoding)** | 승인 후 1–2시간 뒤 활성화. 개발계정 일 1,000건 |
+| `GEMINI_API_KEY` | 수집 데이터의 영어 번역 + 관심사 태그 (수집 스크립트 전용) | [Google AI Studio](https://aistudio.google.com/apikey) | `AQ.`로 시작하는 새 형식 키는 `?key=` 쿼리로 전달 |
 | `GOOGLE_OAUTH_WEB_CLIENT_ID` | Google 로그인 → 캘린더 접근 | Google Auth Platform → 클라이언트 → 웹 애플리케이션 | 승인된 JS 원본 `http://localhost:8080`, 대상 = 테스트 중 + **테스트 사용자 등록**, 범위 `calendar.events` |
 | `TMAP_APP_KEY` | (예비) 대중교통 | SK Open API | 무료 할당량이 매우 작아 현재 미사용 |
 
@@ -199,6 +200,10 @@ dart run tool/collect_events.dart [--days=90]
   │    └─ 공고는 장소가 없음 → placeless=true, start–end = 접수 기간, deadline = 접수 마감,
   │       location = 시·도 중심(내부용). 지도·경로·"근처" 인사이트에서 제외, 마감 알림에만 사용
   ├─ 오늘 ~ +90일 범위만, id로 중복 제거, 시작일 정렬
+  ├─ Gemini (gemini-3.5-flash-lite → 실패 시 3.1-flash-lite): 20건씩 구조화 JSON 요청
+  │    └─ title_en / description_en / tags(26개 허용 목록 enum) → AiEnrich.apply()
+  │       품질 검사: 제목에 한글·가나·한자 있으면 거부, 설명 한글 비율 >15% 거부 → 2단계에서 다른 모델로 재요청
+  │       캐시 tool/cache/ai_en.json (한국어 원문 FNV 해시) — 다음 실행은 새 행사만 번역
   └─ assets/data/events.json  (generatedAt, sources[출처·라이선스], events[])
 
 앱 시작: EventFeed.load() → eventFeedProvider → eventsProvider = 실제 + 샘플
@@ -209,6 +214,8 @@ dart run tool/collect_events.dart [--days=90]
 - **실제 결과 (2026-11-07):** 서울 347건 (교육·체험 129, 전시 91, 콘서트 56, 공연 38, 축제 33) + TourAPI 축제 110건 (전체 451건 중 범위 내, 요청 약 230회) + K-Startup 공고 195건 (접수 중 214건 중 90일 내 마감) = 652건, 약 1.2 MB.
 - **진행 중 행사:** 몇 달짜리 전시·강좌는 시작일이 과거입니다. 발견 카드는 종료일(`~12월 31`)과 `진행 중` 배지로, 인사이트 문장은 일정 날짜/오늘 기준(`_on()`)으로 표시합니다.
 - **혼잡 경고:** 실제 데이터에는 공연장 규모가 없어서, 작은 홀 공연까지 '혼잡'으로 오인하지 않도록 실제 데이터는 **축제만** 대상입니다.
+- **AI 사용 원칙:** Gemini는 **번역과 태그만** 합니다. 날짜·장소·요금 같은 사실은 API 원본 그대로이고, 앱 상세 화면(영어)에 "Gemini로 번역됨"을 표시합니다. 키는 수집 스크립트에서만 쓰여 웹 번들에 노출되지 않습니다.
+- **AI 결과 (2026-11-07):** 652건 중 651건 영어화 (나머지 1건은 원래 영어 제목), 첫 실행 약 5분, 이후 캐시로 수십 초. 행사당 평균 태그 2.2개 (키워드 태거 대비 '공연→music' 같은 오탐 감소).
 - **마감 카드:** 창업 공고는 수십 건이라 마감 인사이트는 관심사 일치 → 남은 일수 순으로 **최대 3개**. 캘린더에 추가하면 접수 기간 전체가 아니라 **마감일 09:00 알림**으로 들어갑니다.
 - **많은 행사 대응:** 발견 탭은 30개씩 "더 보기", 지도 추천 레이어는 30일 내 관심사 상위 60개(`mapEventsProvider`), 인사이트는 일정당 혼잡 1개(실제 데이터는 3 km 이내·3일 이하 공연/축제) + 기회 2개로 제한.
 - **출처 표시:** 공공누리 조건에 따라 행사 상세에 `sourceName`과 원문 링크를 표시합니다.
@@ -353,6 +360,9 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 | 실행할 때마다 다시 로그인·관심사 선택 | `flutter run -d chrome`의 임시 프로필 → `--web-browser-flag="--user-data-dir=..."` (1장 참고) |
 | 디버그에서만 화면이 깨짐 (`A circle cannot have a border radius`) | `BoxDecoration.copyWith(borderRadius: null)`은 radius를 **지우지 않음** → 새 `BoxDecoration` 작성. release에서는 assert가 꺼져 안 보이므로 디버그로도 확인 |
 | 테스트에서 `RenderAnimatedSize was mutated in its own performLayout` | 모션 줄이기에서 `AnimatedSize(duration: 0)` → `SmoothSize` 위젯 사용 |
+| Gemini `404 … no longer available to new users` | 새 계정은 구형 모델 사용 불가 → `models` 목록에서 사용 가능한 모델 선택 (현재 `gemini-3.5-flash-lite`) |
+| Gemini `503 high demand` | 상위 모델(3.8-flash 등) 혼잡. lite 모델 + 재시도/백오프 사용 |
+| 셸 `curl`로 한글 프롬프트 테스트 시 빈 응답 | 셸 인용 문제. Python/Dart로 요청하면 정상 |
 | data.go.kr `SERVICE_KEY_IS_NOT_REGISTERED_ERROR` | 해당 API에 활용신청이 안 됐거나, 승인 직후(1–2시간) 아직 동기화 전 |
 | 서울 API `INFO-100` | 인증키 오류. `sample` 키는 5건까지만 |
 | 웹에서 행사 포스터가 안 보임 | 외부 이미지 서버에 CORS 헤더가 없음 → `Image.network(webHtmlElementStrategy: fallback)`로 `<img>` 사용 |

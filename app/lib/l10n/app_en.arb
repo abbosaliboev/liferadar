@@ -336,5 +336,6 @@
     }
   },
   "nationwide": "Nationwide",
-  "applyNow": "Apply"
+  "applyNow": "Apply",
+  "aiTranslated": "Translated from Korean with Gemini"
 }
