@@ -583,6 +583,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect your calendar or add more interests — LifeRadar will connect your plans with events and weather.'**
   String get homeEmptyBody;
+
+  /// No description provided for @tabProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get tabProfile;
+
+  /// No description provided for @loginError.
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in failed. Please try again.'**
+  String get loginError;
+
+  /// No description provided for @loginBenefitPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Connects your calendar with events, weather and deadlines'**
+  String get loginBenefitPlans;
+
+  /// No description provided for @loginBenefitRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Finds opportunities along the way — KTX or car'**
+  String get loginBenefitRoute;
+
+  /// No description provided for @loginBenefitSignals.
+  ///
+  /// In en, this message translates to:
+  /// **'Explains why each signal matters, with sources'**
+  String get loginBenefitSignals;
+
+  /// No description provided for @loginNewUser.
+  ///
+  /// In en, this message translates to:
+  /// **'New here? Your Google account is all you need to sign up.'**
+  String get loginNewUser;
+
+  /// No description provided for @or.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get or;
+
+  /// No description provided for @continueAsGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Look around as a guest'**
+  String get continueAsGuest;
+
+  /// No description provided for @loginPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your calendar is connected separately, only with your consent.'**
+  String get loginPrivacy;
+
+  /// No description provided for @guestName.
+  ///
+  /// In en, this message translates to:
+  /// **'Guest'**
+  String get guestName;
+
+  /// No description provided for @guestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to use your own account'**
+  String get guestSubtitle;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signIn;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @sectionConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected services'**
+  String get sectionConnections;
+
+  /// No description provided for @connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get connected;
+
+  /// No description provided for @notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get notConnected;
+
+  /// No description provided for @connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get connect;
+
+  /// No description provided for @sectionSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get sectionSettings;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @sectionAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get sectionAbout;
+
+  /// No description provided for @privacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get privacy;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get version;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get logout;
+
+  /// No description provided for @exitGuest.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to start'**
+  String get exitGuest;
+
+  /// No description provided for @homeHello.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello'**
+  String get homeHello;
+
+  /// No description provided for @homeHelloName.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi, {name}'**
+  String homeHelloName(String name);
+
+  /// No description provided for @statPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get statPlans;
+
+  /// No description provided for @statSignals.
+  ///
+  /// In en, this message translates to:
+  /// **'Signals'**
+  String get statSignals;
+
+  /// No description provided for @statDeadlines.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadlines'**
+  String get statDeadlines;
+
+  /// No description provided for @kindPlanAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan alert'**
+  String get kindPlanAlert;
+
+  /// No description provided for @kindOpportunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Opportunity'**
+  String get kindOpportunity;
+
+  /// No description provided for @kindDeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline'**
+  String get kindDeadline;
+
+  /// No description provided for @kindRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get kindRoute;
+
+  /// No description provided for @helpful.
+  ///
+  /// In en, this message translates to:
+  /// **'Helpful'**
+  String get helpful;
+
+  /// No description provided for @notForMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Not for me'**
+  String get notForMe;
+
+  /// No description provided for @hide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hide;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @tomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get tomorrow;
+
+  /// No description provided for @upcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get upcoming;
+
+  /// No description provided for @discoverSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by how well they match your interests'**
+  String get discoverSubtitle;
+
+  /// No description provided for @matchBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Match'**
+  String get matchBadge;
+
+  /// No description provided for @eventDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get eventDetails;
+
+  /// No description provided for @openSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get openSource;
+
+  /// No description provided for @searching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching…'**
+  String get searching;
+
+  /// No description provided for @rainChance.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain'**
+  String get rainChance;
 }
 
 class _AppLocalizationsDelegate

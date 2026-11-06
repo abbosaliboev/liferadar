@@ -12,7 +12,7 @@ import '../../services/route_matcher.dart';
 import '../event/event_detail_sheet.dart';
 import '../route/route_controller.dart';
 import '../route/route_panel.dart';
-import '../shell/app_shell.dart';
+import '../../core/widgets.dart';
 import 'marker_icons.dart';
 
 enum MapMode { explore, myMap, route }
@@ -30,6 +30,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   static const _seoul = km.LatLng(37.5665, 126.9780);
 
   km.KakaoMapController? _map;
+  bool _ready = false;
   String? _mapError;
   MapMode _mode = MapMode.explore;
   final Set<MapLayer> _layers = {MapLayer.plans, MapLayer.recommended};
@@ -64,47 +65,77 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       }
     });
 
+    final p = context.palette;
+    final floating = BoxDecoration(
+      color: p.surface,
+      borderRadius: BorderRadius.circular(Radii.lg),
+      border: Border.all(color: p.border),
+      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 18, offset: const Offset(0, 6))],
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tabMap), actions: const [LanguageButton()]),
       body: Stack(children: [
         Positioned.fill(child: _buildMap(context)),
-        Positioned(
-          left: 12,
-          right: 12,
-          top: 8,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            SegmentedButton<MapMode>(
-              showSelectedIcon: false,
-              style: SegmentedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.surface,
-                visualDensity: VisualDensity.compact,
-              ),
-              segments: [
-                ButtonSegment(value: MapMode.explore, icon: const Icon(Icons.travel_explore), label: Text(l10n.modeExplore)),
-                ButtonSegment(value: MapMode.myMap, icon: const Icon(Icons.person_pin_circle_outlined), label: Text(l10n.modeMyMap)),
-                ButtonSegment(value: MapMode.route, icon: const Icon(Icons.alt_route), label: Text(l10n.modeRoute)),
-              ],
-              selected: {_mode},
-              onSelectionChanged: (s) => _setMode(s.first),
+        // Xarita tayyor bo'lguncha skeleton
+        if (!_ready && _canShowMap)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Shimmer(child: ColoredBox(color: p.skeleton, child: const SizedBox.expand())),
             ),
-            const SizedBox(height: 6),
-            Wrap(spacing: 6, children: [
-              _layerChip(MapLayer.plans, l10n.layerPlans, AppColors.plan),
-              _layerChip(MapLayer.recommended, l10n.layerRecommended, AppColors.recommended),
-              _layerChip(MapLayer.route, l10n.layerRoute, AppColors.route),
+          ),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(Space.md, Space.sm, Space.md, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: floating,
+                child: SegmentedButton<MapMode>(
+                  showSelectedIcon: false,
+                  style: SegmentedButton.styleFrom(side: BorderSide.none),
+                  segments: [
+                    ButtonSegment(value: MapMode.explore, icon: const Icon(Icons.travel_explore, size: 18), label: Text(l10n.modeExplore)),
+                    ButtonSegment(value: MapMode.myMap, icon: const Icon(Icons.person_pin_circle_outlined, size: 18), label: Text(l10n.modeMyMap)),
+                    ButtonSegment(value: MapMode.route, icon: const Icon(Icons.alt_route_rounded, size: 18), label: Text(l10n.modeRoute)),
+                  ],
+                  selected: {_mode},
+                  onSelectionChanged: (s) => _setMode(s.first),
+                ),
+              ),
+              const SizedBox(height: Space.sm),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                _layerChip(MapLayer.plans, l10n.layerPlans, AppColors.plan, floating),
+                _layerChip(MapLayer.recommended, l10n.layerRecommended, AppColors.recommended, floating),
+                _layerChip(MapLayer.route, l10n.layerRoute, AppColors.route, floating),
+              ]),
             ]),
-          ]),
+          ),
         ),
+        if (_mode != MapMode.route && _ready)
+          Positioned(
+            right: Space.lg,
+            bottom: Space.lg,
+            child: Container(
+              decoration: floating.copyWith(shape: BoxShape.circle, borderRadius: null),
+              child: IconButton(
+                tooltip: l10n.modeExplore,
+                icon: Icon(Icons.fit_screen_outlined, color: p.text),
+                onPressed: _fitAll,
+              ),
+            ),
+          ),
         if (_mode == MapMode.route)
           Positioned(
-            left: 12,
-            right: 12,
-            bottom: 12,
+            left: Space.md,
+            right: Space.md,
+            bottom: Space.md,
             child: RoutePanel(onOpportunityTap: _openOpportunity),
           ),
       ]),
     );
   }
+
+  bool get _canShowMap => Env.hasKakaoMapKey && isKakaoSdkLoaded() && _mapError == null;
 
   Widget _buildMap(BuildContext context) {
     final l10n = context.l10n;
@@ -118,18 +149,47 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  Widget _layerChip(MapLayer layer, String label, Color color) => FilterChip(
-        avatar: CircleAvatar(backgroundColor: color, radius: 6),
-        label: Text(label),
-        selected: _layers.contains(layer),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        onSelected: (on) => _setLayer(layer, on),
-      );
+  /// Layer yoqish/o'chirish — suzuvchi kichik "pill".
+  Widget _layerChip(MapLayer layer, String label, Color color, BoxDecoration floating) {
+    final p = context.palette;
+    final on = _layers.contains(layer);
+    return Semantics(
+      toggled: on,
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Radii.lg),
+          onTap: () => _setLayer(layer, !on),
+          child: AnimatedContainer(
+            duration: Motion.of(context, Motion.fast),
+            padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: Space.sm),
+            decoration: floating.copyWith(color: on ? p.surface : p.surfaceAlt),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              AnimatedContainer(
+                duration: Motion.of(context, Motion.fast),
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: on ? color : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: color, width: 2),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(label, style: context.textStyles.labelMedium!.copyWith(color: on ? p.text : p.textMuted)),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
 
   // ---------- Map logikasi ----------
 
   Future<void> _onMapReady(km.KakaoMapController controller) async {
     _map = controller;
+    if (mounted) setState(() => _ready = true);
     await _drawOverlays();
     await _fitAll();
     final pending = ref.read(mapFocusProvider);
@@ -174,6 +234,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           textStyle: const [km.PoiTextStyle(size: 12, color: Colors.black87, stroke: 2, strokeColor: Colors.white)],
         ),
         text: p.title,
+        rank: 10, // rejalar event markerlari ustida
         visible: _layers.contains(MapLayer.plans),
       ));
     }
@@ -249,6 +310,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         _ll(o.event.location),
         id: 'route-${o.event.id}',
         style: km.PoiStyle(icon: icon),
+        rank: 20,
         visible: visible,
         onClick: () => _openOpportunity(_routeOppByEventId[o.event.id] ?? o),
       ));
@@ -335,16 +397,7 @@ class _MapMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ColoredBox(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.map_outlined, size: 48),
-              const SizedBox(height: 12),
-              Text(message, textAlign: TextAlign.center),
-            ]),
-          ),
-        ),
+        color: context.palette.surfaceAlt,
+        child: Center(child: EmptyState(icon: Icons.map_outlined, title: message)),
       );
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
+import '../../core/widgets.dart';
 import '../../data/calendar_controller.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
@@ -15,131 +17,202 @@ class PlansScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final plans = [...ref.watch(plansProvider)]..sort((a, b) => a.start.compareTo(b.start));
+    final cal = ref.watch(calendarProvider);
+    final now = ref.watch(nowProvider);
+    final today = DateTime(now.year, now.month, now.day);
+    final plans = ref.watch(plansProvider).where((p) => !p.end.isBefore(today)).toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
     final insights = ref.watch(insightsProvider);
 
+    // Kun bo'yicha guruhlash
+    final groups = <DateTime, List<Plan>>{};
+    for (final p in plans) {
+      final d = p.start.isBefore(today) ? today : DateTime(p.start.year, p.start.month, p.start.day);
+      groups.putIfAbsent(d, () => []).add(p);
+    }
+
+    String dayLabel(DateTime d) {
+      final diff = d.difference(today).inDays;
+      if (diff == 0) return l10n.today;
+      if (diff == 1) return l10n.tomorrow;
+      return DateFormat.MMMMEEEEd(context.lang).format(d);
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tabPlans), actions: const [LanguageButton()]),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-        children: [
-          _CalendarCard(planCount: plans.length),
-          const SizedBox(height: 12),
-          if (plans.isEmpty) Text(l10n.plansEmpty),
-          for (final p in plans) ...[
-            _PlanTile(plan: p, insightCount: insights.where((i) => i.planId == p.id).length),
-            const SizedBox(height: 8),
-          ],
+      appBar: AppBar(
+        title: Text(l10n.tabPlans),
+        actions: [
+          if (cal.isConnected)
+            IconButton(
+              tooltip: l10n.calendarSync,
+              onPressed: cal.isBusy ? null : () => ref.read(calendarProvider.notifier).sync(),
+              icon: const Icon(Icons.sync_rounded),
+            ),
+          const SizedBox(width: Space.sm),
         ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          if (cal.isConnected) await ref.read(calendarProvider.notifier).sync();
+        },
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: Space.xxxl),
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+              child: _CalendarCard(),
+            ),
+            if (cal.isBusy)
+              const Shimmer(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(Space.gutter, Space.xxl, Space.gutter, 0),
+                  child: Column(children: [
+                    SkeletonCard(),
+                    SizedBox(height: Space.md),
+                    SkeletonCard(),
+                    SizedBox(height: Space.md),
+                    SkeletonCard(lines: 1),
+                  ]),
+                ),
+              )
+            else if (plans.isEmpty)
+              EmptyState(icon: Icons.event_available_outlined, title: l10n.upcoming, body: l10n.plansEmpty)
+            else
+              for (final entry in groups.entries) ...[
+                SectionHeader(dayLabel(entry.key)),
+                for (var i = 0; i < entry.value.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
+                    child: FadeSlideIn(
+                      index: i,
+                      child: _PlanCard(
+                        plan: entry.value[i],
+                        signals: insights.where((x) => x.planId == entry.value[i].id).length,
+                      ),
+                    ),
+                  ),
+              ],
+          ],
+        ),
       ),
     );
   }
 }
 
 class _CalendarCard extends ConsumerWidget {
-  const _CalendarCard({required this.planCount});
-  final int planCount;
+  const _CalendarCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final p = context.palette;
+    final t = context.textStyles;
     final cal = ref.watch(calendarProvider);
     final c = ref.read(calendarProvider.notifier);
-    final scheme = Theme.of(context).colorScheme;
+    final count = ref.watch(plansProvider).where((x) => x.source == 'gcal').length;
 
-    String? errorText;
-    if (cal.status == CalendarStatus.error) {
-      errorText = switch (cal.error) {
-        'not-configured' => l10n.calendarNotConfigured,
-        'expired' => l10n.calendarExpired,
-        _ => l10n.calendarError(cal.error ?? ''),
-      };
+    final error = cal.status != CalendarStatus.error
+        ? null
+        : switch (cal.error) {
+            'not-configured' => l10n.calendarNotConfigured,
+            'expired' => l10n.calendarExpired,
+            _ => l10n.calendarError(cal.error ?? ''),
+          };
+
+    if (cal.isConnected) {
+      return Card(
+        child: ListTile(
+          leading: const IconTile(Icons.calendar_month_outlined, size: 36),
+          title: Text(l10n.sourceCalendar),
+          subtitle: Text(cal.isBusy ? l10n.calendarSyncing : l10n.calendarConnectedCount(count)),
+          trailing: Pill(l10n.connected, tone: Tone.primary, dense: true),
+        ),
+      );
     }
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(Space.lg),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
-            Icon(Icons.calendar_month, color: cal.isConnected ? AppColors.plan : scheme.outline),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                switch (cal.status) {
-                  CalendarStatus.connecting => l10n.calendarConnecting,
-                  CalendarStatus.syncing => l10n.calendarSyncing,
-                  CalendarStatus.connected => l10n.calendarConnectedCount(planCount),
-                  _ => l10n.sourceCalendar,
-                },
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ),
-            if (cal.isBusy) const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+            const IconTile(Icons.calendar_month_outlined),
+            const SizedBox(width: Space.md),
+            Expanded(child: Text(l10n.connectCalendar, style: t.titleSmall)),
           ]),
-          if (errorText != null) ...[
-            const SizedBox(height: 8),
-            Text(errorText, style: TextStyle(color: scheme.error)),
+          const SizedBox(height: Space.md),
+          Text(l10n.calendarPrivacy, style: t.bodySmall),
+          if (error != null) ...[
+            const SizedBox(height: Space.sm),
+            Text(error, style: t.bodySmall!.copyWith(color: p.danger)),
           ],
-          const SizedBox(height: 10),
-          if (!cal.isConnected)
-            FilledButton.icon(
-              onPressed: cal.isBusy ? null : c.connect,
-              icon: const Icon(Icons.login),
-              label: Text(l10n.connectCalendar),
-            )
-          else
-            Row(children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: cal.isBusy ? null : c.sync,
-                  icon: const Icon(Icons.sync),
-                  label: Text(l10n.calendarSync),
-                ),
-              ),
-              const SizedBox(width: 8),
-              TextButton(onPressed: c.disconnect, child: Text(l10n.calendarDisconnect)),
-            ]),
-          const SizedBox(height: 6),
-          Text(l10n.calendarPrivacy, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: Space.lg),
+          FilledButton.icon(
+            onPressed: cal.isBusy ? null : c.connect,
+            icon: cal.isBusy
+                ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: p.textMuted))
+                : const Icon(Icons.link_rounded),
+            label: Text(cal.isBusy ? l10n.calendarConnecting : l10n.connect),
+          ),
         ]),
       ),
     );
   }
 }
 
-class _PlanTile extends StatelessWidget {
-  const _PlanTile({required this.plan, required this.insightCount});
+class _PlanCard extends StatelessWidget {
+  const _PlanCard({required this.plan, required this.signals});
   final Plan plan;
-  final int insightCount;
+  final int signals;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final p = plan;
-    final sameDay = p.start.year == p.end.year && p.start.month == p.end.month && p.start.day == p.end.day;
-    final when = sameDay
-        ? context.formatDateTime(p.start)
-        : '${context.formatDate(p.start)} – ${context.formatDate(p.end)}';
+    final p = context.palette;
+    final t = context.textStyles;
+    final allDay = plan.start.hour == 0 && plan.start.minute == 0 && plan.end.difference(plan.start).inHours >= 23;
+    final multiDay = plan.end.difference(plan.start).inDays >= 1;
+    final time = allDay
+        ? '—'
+        : DateFormat.Hm(context.lang).format(plan.start);
+
     return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: p.location == null ? Theme.of(context).colorScheme.outlineVariant : AppColors.plan,
-          foregroundColor: Colors.white,
-          child: Icon(p.location == null ? Icons.event_note : Icons.place),
-        ),
-        title: Row(children: [
-          Expanded(child: Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
-          if (p.source == 'sample') const SampleBadge(),
+      child: Padding(
+        padding: const EdgeInsets.all(Space.lg),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+            width: 52,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(time, style: t.titleSmall),
+              if (multiDay) ...[
+                const SizedBox(height: 2),
+                Text('~${DateFormat.Md(context.lang).format(plan.end)}', style: t.labelSmall),
+              ],
+            ]),
+          ),
+          Container(width: 3, height: 44, decoration: BoxDecoration(color: p.primary, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(width: Space.md),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(child: Text(plan.title, style: t.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                if (plan.source == 'sample') const SampleBadge(),
+              ]),
+              const SizedBox(height: 4),
+              MetaRow(
+                plan.location == null ? Icons.location_off_outlined : Icons.place_outlined,
+                plan.locationText.isEmpty ? l10n.noLocation : plan.locationText,
+              ),
+              if (plan.location != null) ...[
+                const SizedBox(height: 6),
+                WeatherChip(location: plan.location!, date: plan.start),
+              ],
+              if (signals > 0) ...[
+                const SizedBox(height: Space.sm),
+                Pill('${l10n.statSignals} $signals', icon: Icons.radar, tone: Tone.primary, dense: true),
+              ],
+            ]),
+          ),
         ]),
-        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('$when\n${p.locationText.isEmpty ? l10n.noLocation : p.locationText}'),
-          if (p.location != null) ...[
-            const SizedBox(height: 4),
-            WeatherChip(location: p.location!, date: p.start),
-          ],
-        ]),
-        isThreeLine: true,
-        trailing: insightCount == 0 ? null : Badge(label: Text('$insightCount'), child: const Icon(Icons.auto_awesome)),
       ),
     );
   }

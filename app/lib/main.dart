@@ -10,6 +10,7 @@ import 'core/router.dart';
 import 'core/theme.dart';
 import 'data/calendar_controller.dart';
 import 'data/providers.dart';
+import 'data/session.dart';
 import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
@@ -39,6 +40,7 @@ class LifeRadarApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: buildTheme(Brightness.light),
       darkTheme: buildTheme(Brightness.dark),
+      themeMode: ref.watch(themeModeProvider),
       locale: ref.watch(localeProvider),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [

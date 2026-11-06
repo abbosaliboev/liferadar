@@ -12,7 +12,7 @@
 3. [프로젝트 구조](#3-프로젝트-구조)
 4. [아키텍처와 데이터 흐름](#4-아키텍처와-데이터-흐름)
 5. [핵심 모듈 설명](#5-핵심-모듈-설명)
-6. [다국어 (i18n)](#6-다국어-i18n)
+6. [디자인 시스템](#6-디자인-시스템) · [다국어 (i18n)](#6-1-다국어-i18n)
 7. [테스트와 검증](#7-테스트와-검증)
 8. [알려진 함정 (Gotchas)](#8-알려진-함정-gotchas)
 9. [작업 규칙](#9-작업-규칙)
@@ -104,11 +104,12 @@ hack_idea/
     ├── web/index.html        # Kakao JS SDK를 Flutter보다 먼저 로드
     ├── lib/
     │   ├── main.dart                 # 앱 진입점, Kakao/Google 초기화
-    │   ├── core/                     # theme, router, env, l10n 확장, Kakao SDK 체크
+    │   ├── core/                     # theme(디자인 토큰), widgets(공용 UI), router, env, l10n 확장, Kakao SDK 체크
     │   ├── models/models.dart        # 도메인 모델 (RadarEvent, Plan, Insight, TravelRoute…)
     │   ├── data/
     │   │   ├── providers.dart        # Riverpod provider (이벤트, 일정, 인사이트, 날씨, API 클라이언트)
     │   │   ├── interests.dart        # 관심사 목록 + 저장(shared_preferences)
+    │   │   ├── session.dart          # 로그인 세션(게스트/Google), 테마, 언어 (저장)
     │   │   ├── calendar_controller.dart  # Google OAuth + 캘린더 동기화
     │   │   └── sample_data.dart      # 샘플 행사·일정·인사이트
     │   ├── services/
@@ -118,7 +119,9 @@ hack_idea/
     │   │   ├── route_matcher.dart    # 경로 주변 이벤트 매칭 (순수 Dart, 테스트됨)
     │   │   └── insight_engine.dart   # 홈 카드 규칙 엔진 (순수 Dart, 테스트됨)
     │   ├── features/
+    │   │   ├── auth/     # 로그인 (Google 버튼: 웹=GIS 공식 버튼 / 그 외=authenticate)
     │   │   ├── onboarding/ # 관심사 선택 (첫 실행 + 수정)
+    │   │   ├── profile/  # 프로필 · 설정
     │   │   ├── shell/    # 하단 탭, 언어 버튼, 샘플 배지
     │   │   ├── home/     # 인사이트 카드
     │   │   ├── map/      # Kakao 지도, 레이어, 마커 아이콘
@@ -230,7 +233,23 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 
 ---
 
-## 6. 다국어 (i18n)
+## 6. 디자인 시스템
+
+모든 화면은 `lib/core/theme.dart`의 토큰과 `lib/core/widgets.dart`의 공용 컴포넌트로 만듭니다. **화면 코드에 hex 색이나 임의 여백을 직접 쓰지 마세요.**
+
+| 토큰 | 내용 |
+|---|---|
+| `AppPalette` (ThemeExtension) | `background / surface / surfaceAlt / border / text / textMuted / primary / primarySoft / accent / danger / info / skeleton` — 라이트·다크 각각 정의 (본문 대비 ≥ 4.5:1). 사용: `context.palette.primary` |
+| `Space` | 4/8dp 리듬: `xs 4 · sm 8 · md 12 · lg 16 · xl 20 · xxl 24 · xxxl 32 · gutter 20` |
+| `Radii` | `sm 8 · md 12 · lg 16 · xl 24` |
+| `Motion` | `fast 150ms · normal 220ms · slow 320ms`, `Motion.of(context, d)`는 "모션 줄이기"면 0 |
+| `AppColors` | 지도 마커 전용 (일정 teal · 추천 amber · 경로 blue) |
+
+공용 컴포넌트: `Shimmer` + `SkeletonBox/SkeletonCard`(로딩), `SectionHeader`, `Pill`(Tone: neutral/primary/accent/danger/info), `MetaRow`, `DateTile`, `IconTile`, `EmptyState`, `AppAvatar`, `GroupCard`, `FadeSlideIn`(목록 등장 애니메이션).
+
+전환: 최상위 화면은 `_fadePage`(페이드+살짝 위로), 탭 간에는 `FadeBranchContainer`(상태 유지 + 페이드). 테스트는 `disableAnimations: true`로 실행해 모션 줄이기 경로도 함께 검증합니다.
+
+## 6-1. 다국어 (i18n)
 
 - 문자열: `lib/l10n/app_en.arb` (템플릿), `app_ko.arb`
 - 키를 추가하면 **두 파일 모두** 수정 후 `flutter gen-l10n`
@@ -248,7 +267,7 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 
 | 테스트 파일 | 내용 |
 |---|---|
-| `app_test.dart` | 온보딩 → 홈, 관심사 저장, 언어 전환, 관심사별 발견 순서, 키 없을 때 지도 안내 |
+| `app_test.dart` | 로그인 → 게스트 → 온보딩 → 홈, 관심사 저장, 프로필에서 언어 전환, 관심사별 발견 순서, 빈 상태, 피드백 저장, 키 없을 때 지도 안내 |
 | `route_matcher_test.dart` | 거리 계산, 날짜/반경 필터, 서울→부산 시나리오 |
 | `google_api_test.dart` | polyline 디코딩(구글 공식 예제), 최근접 지점 |
 | `calendar_api_test.dart` | 시간/종일 일정 파싱 |

@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/models.dart';
@@ -13,16 +12,6 @@ export 'interests.dart' show interestsProvider, interestOptions, InterestOption,
 final kakaoApiProvider = Provider<KakaoApi>((ref) => KakaoApi());
 final googleApiProvider = Provider<GoogleApi>((ref) => GoogleApi());
 
-/// null = qurilma tili.
-final localeProvider = NotifierProvider<LocaleController, Locale?>(LocaleController.new);
-
-class LocaleController extends Notifier<Locale?> {
-  @override
-  Locale? build() => null;
-
-  void toggle(String currentLanguageCode) =>
-      state = Locale(currentLanguageCode == 'ko' ? 'en' : 'ko');
-}
 
 
 // TODO(D3): Firestore stream'lari bilan almashtiriladi.

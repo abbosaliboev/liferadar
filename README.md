@@ -5,9 +5,10 @@
 > Personal Signal Intelligence & Context-aware Map Discovery
 
 <p align="center">
-  <img src="docs/images/home.png" width="220" alt="홈 — AI 인사이트">
-  <img src="docs/images/route-map.png" width="220" alt="경로 기반 발견 — 서울→부산 KTX">
-  <img src="docs/images/route-results.png" width="220" alt="경로 주변 기회 목록">
+  <img src="docs/images/login.png" width="200" alt="로그인">
+  <img src="docs/images/home.png" width="200" alt="홈 — 인사이트 (라이트)">
+  <img src="docs/images/home-dark.png" width="200" alt="홈 — 인사이트 (다크)">
+  <img src="docs/images/route-results.png" width="200" alt="경로 주변 기회 목록">
 </p>
 
 📖 **문서** · [사용자 가이드](docs/USER_GUIDE.md) · [개발자 가이드](docs/DEVELOPER.md) · MVP 계획 [한국어](docs/PLAN.ko.md) / [O'zbekcha](docs/PLAN.uz.md)
@@ -59,6 +60,8 @@ LifeRadar의 핵심은 세 가지 맥락을 **연결**하는 것입니다.
 
 | 기능 | 설명 | 상태 |
 |---|---|---|
+| **로그인 / 가입** | Google 계정으로 계속하기(= 가입) 또는 게스트로 둘러보기. 이름·이메일·사진만 프로필에 사용 | ✅ 동작 (웹) |
+| **프로필 · 설정** | 관심사, 연결된 서비스(캘린더), 테마(시스템/라이트/다크), 언어(시스템/한국어/English), 개인정보 안내, 로그아웃 | ✅ 동작 |
 | **온보딩 — 관심사 선택** | 처음 실행 시 관심사(AI, 스타트업, 음악·공연 등 10개)를 고르면 발견 순서·경로 추천·추천 이유에 바로 반영. 기기에 저장, 언제든 변경 | ✅ 동작 |
 | **지도 (Kakao Map)** | 내 일정 / 추천 이벤트 / 경로 기회를 레이어로 켜고 끄기 | ✅ 동작 |
 | **경로 기반 발견 (Route)** | 출발지·목적지·날짜 입력 → **KTX(대중교통)** 또는 **자동차** 경로를 그리고, 경로 15 km 이내의 같은 날 행사를 찾아 **추가 거리·시간**과 함께 추천 | ✅ 동작 (실제 경로 API) |
@@ -67,15 +70,17 @@ LifeRadar의 핵심은 세 가지 맥락을 **연결**하는 것입니다.
 | **발견 (Discover)** | 관심사와 얼마나 맞는지 순서로 행사 목록, 카테고리 필터 | ✅ 동작 |
 | **홈 — 인사이트 엔진** | 일정 × 행사 × 날씨 × 관심사를 규칙으로 연결해 카드 자동 생성: 혼잡 경고, 체류 중 기회, 비 예보, 신청 마감 D-day, 새 기회. "중요한 이유"·신뢰도·출처 표시, 👍/👎/숨기기 저장 | ✅ 동작 (행사 데이터는 샘플) |
 | **날씨 (Google Weather)** | 일정·행사 날짜와 장소의 예보(최고/최저, 강수 확률) 표시, 비 예보 강조 | ✅ 동작 (약 10일 범위) |
-| **한국어 / English** | 모든 화면 2개 언어 지원 | ✅ 동작 |
+| **한국어 / English · 라이트/다크** | 모든 화면 2개 언어, 두 테마 모두 대비 4.5:1 이상의 디자인 시스템 | ✅ 동작 |
 | AI 설명 생성 (Gemini) | 엔진이 만든 카드의 문장을 자연스럽게 다듬기 (사실은 엔진이 결정) | 🔜 다음 단계 |
 | 실제 행사 데이터 | 한국관광공사 TourAPI(축제), KOPIS(공연) 연동 | 🔜 다음 단계 |
 | 선제적 푸시 알림 | 새 인사이트가 생기면 먼저 알림 | 🔜 계획 |
 
 <p align="center">
-  <img src="docs/images/map-explore.png" width="200" alt="지도 — 탐색">
-  <img src="docs/images/event-detail.png" width="200" alt="이벤트 상세 — 가는 길에 +km/+분">
-  <img src="docs/images/plans.png" width="200" alt="내 일정 — Google 캘린더 연결">
+  <img src="docs/images/map-explore.png" width="180" alt="지도 — 탐색">
+  <img src="docs/images/event-detail.png" width="180" alt="이벤트 상세 — 가는 길에 +km/+분">
+  <img src="docs/images/discover.png" width="180" alt="발견">
+  <img src="docs/images/plans.png" width="180" alt="내 일정">
+  <img src="docs/images/profile.png" width="180" alt="프로필 — 테마·언어">
 </p>
 
 ## 6. 데모 시나리오 (약 3분)
@@ -124,7 +129,9 @@ LifeRadar는 **AI가 행사를 만들어내지 않도록** 두 단계로 설계�
 
 | 영역 | 사용 기술 |
 |---|---|
-| 앱 | **Flutter 3.41** (Web + Android), Riverpod 3, go_router, `gen_l10n` (ko/en) |
+| 앱 | **Flutter 3.41** (Web + Android), Riverpod 3, go_router, `gen_l10n` (ko/en), shared_preferences |
+| 디자인 | 자체 디자인 시스템 (Minimal/Swiss, Teal + 뉴트럴, 4/8dp 간격, 라이트/다크 토큰, 스켈레톤·페이드 전환, 모션 줄이기 지원) |
+| 로그인 | Google Identity Services (웹 공식 버튼) + 게스트 모드 |
 | 지도 | **Kakao Maps SDK** (`kakao_map_sdk` — Android 네이티브 / Web JS SDK) |
 | 경로 | **Google Routes API** (대중교통·KTX), **Kakao Mobility** (자동차 — Google은 한국 자동차 길찾기 미지원) |
 | 장소 검색·지오코딩 | **Kakao Local API** |

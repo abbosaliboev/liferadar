@@ -287,4 +287,158 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get homeEmptyBody =>
       'Connect your calendar or add more interests — LifeRadar will connect your plans with events and weather.';
+
+  @override
+  String get tabProfile => 'Profile';
+
+  @override
+  String get loginError => 'Google sign-in failed. Please try again.';
+
+  @override
+  String get loginBenefitPlans =>
+      'Connects your calendar with events, weather and deadlines';
+
+  @override
+  String get loginBenefitRoute =>
+      'Finds opportunities along the way — KTX or car';
+
+  @override
+  String get loginBenefitSignals =>
+      'Explains why each signal matters, with sources';
+
+  @override
+  String get loginNewUser =>
+      'New here? Your Google account is all you need to sign up.';
+
+  @override
+  String get or => 'or';
+
+  @override
+  String get continueAsGuest => 'Look around as a guest';
+
+  @override
+  String get loginPrivacy =>
+      'Your calendar is connected separately, only with your consent.';
+
+  @override
+  String get guestName => 'Guest';
+
+  @override
+  String get guestSubtitle => 'Sign in to use your own account';
+
+  @override
+  String get signIn => 'Sign in';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get sectionConnections => 'Connected services';
+
+  @override
+  String get connected => 'Connected';
+
+  @override
+  String get notConnected => 'Not connected';
+
+  @override
+  String get connect => 'Connect';
+
+  @override
+  String get sectionSettings => 'Settings';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get sectionAbout => 'About';
+
+  @override
+  String get privacy => 'Privacy';
+
+  @override
+  String get version => 'Version';
+
+  @override
+  String get logout => 'Sign out';
+
+  @override
+  String get exitGuest => 'Back to start';
+
+  @override
+  String get homeHello => 'Hello';
+
+  @override
+  String homeHelloName(String name) {
+    return 'Hi, $name';
+  }
+
+  @override
+  String get statPlans => 'Plans';
+
+  @override
+  String get statSignals => 'Signals';
+
+  @override
+  String get statDeadlines => 'Deadlines';
+
+  @override
+  String get kindPlanAlert => 'Plan alert';
+
+  @override
+  String get kindOpportunity => 'Opportunity';
+
+  @override
+  String get kindDeadline => 'Deadline';
+
+  @override
+  String get kindRoute => 'Route';
+
+  @override
+  String get helpful => 'Helpful';
+
+  @override
+  String get notForMe => 'Not for me';
+
+  @override
+  String get hide => 'Hide';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get tomorrow => 'Tomorrow';
+
+  @override
+  String get upcoming => 'Upcoming';
+
+  @override
+  String get discoverSubtitle => 'Sorted by how well they match your interests';
+
+  @override
+  String get matchBadge => 'Match';
+
+  @override
+  String get eventDetails => 'Details';
+
+  @override
+  String get openSource => 'Source';
+
+  @override
+  String get searching => 'Searching…';
+
+  @override
+  String get rainChance => 'Rain';
 }

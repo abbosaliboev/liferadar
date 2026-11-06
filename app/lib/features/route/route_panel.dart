@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
+import '../../core/widgets.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
 import 'route_controller.dart';
@@ -26,113 +27,163 @@ class _RoutePanelState extends ConsumerState<RoutePanel> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final p = context.palette;
+    final t = context.textStyles;
     final s = ref.watch(routeProvider);
     final c = ref.read(routeProvider.notifier);
-    final text = Theme.of(context).textTheme;
     final summary = s.route == null || s.status == RouteStatus.error ? null : _summary(context, s.route!);
+    final loading = s.status == RouteStatus.loading;
 
-    if (_collapsed && summary != null) {
-      return Card(
-        elevation: 3,
-        color: Theme.of(context).colorScheme.surface,
-        child: ListTile(
-          leading: const Icon(Icons.alt_route, color: AppColors.route),
-          title: Text(summary, style: text.titleSmall),
-          subtitle: Text(l10n.routeAlongTheWay(s.opportunities.length)),
-          trailing: const Icon(Icons.expand_less),
-          onTap: () => setState(() => _collapsed = false),
-        ),
-      );
-    }
+    final decoration = BoxDecoration(
+      color: p.surface,
+      borderRadius: BorderRadius.circular(Radii.xl),
+      border: Border.all(color: p.border),
+      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 24, offset: const Offset(0, 8))],
+    );
 
-    return Card(
-      elevation: 3,
-      color: Theme.of(context).colorScheme.surface,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.48),
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-          children: [
-            SegmentedButton<TravelMode>(
-              showSelectedIcon: false,
-              style: SegmentedButton.styleFrom(visualDensity: VisualDensity.compact),
-              segments: [
-                ButtonSegment(value: TravelMode.transit, icon: const Icon(Icons.train), label: Text(l10n.travelTransit)),
-                ButtonSegment(value: TravelMode.car, icon: const Icon(Icons.directions_car), label: Text(l10n.travelCar)),
-              ],
-              selected: {s.mode},
-              onSelectionChanged: (v) => c.setMode(v.first),
-            ),
-            const SizedBox(height: 8),
-            Row(children: [
-              Expanded(
-                child: Column(children: [
-                  _PlaceField(
-                    icon: Icons.trip_origin,
-                    label: l10n.routeFrom,
-                    place: s.origin,
-                    onPicked: c.setOrigin,
-                  ),
-                  const SizedBox(height: 6),
-                  _PlaceField(
-                    icon: Icons.place,
-                    label: l10n.routeTo,
-                    place: s.destination,
-                    onPicked: c.setDestination,
-                  ),
-                ]),
-              ),
-              IconButton(onPressed: c.swap, icon: const Icon(Icons.swap_vert)),
-            ]),
-            const SizedBox(height: 8),
-            Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-              ActionChip(
-                avatar: const Icon(Icons.calendar_today, size: 16),
-                label: Text(context.formatDate(s.date)),
-                onPressed: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: s.date,
-                    firstDate: DateTime(2026, 1, 1),
-                    lastDate: DateTime(2027, 12, 31),
-                  );
-                  if (picked != null) c.setDate(picked);
-                },
-              ),
-              TextButton(onPressed: c.useDemo, child: Text(l10n.routeDemo)),
-            ]),
-            const SizedBox(height: 4),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.route),
-              onPressed: s.canSearch ? c.search : null,
-              icon: s.status == RouteStatus.loading
-                  ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Icon(Icons.alt_route),
-              label: Text(l10n.routeFind),
-            ),
-            if (s.status == RouteStatus.error) ...[
-              const SizedBox(height: 8),
-              Text(l10n.routeError(s.error ?? ''), style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            ],
-            if (s.route != null && s.status != RouteStatus.error) ...[
-              const SizedBox(height: 10),
-              Row(children: [
-                Expanded(child: Text(summary!, style: text.titleSmall)),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.expand_more),
-                  onPressed: () => setState(() => _collapsed = true),
+    final collapsed = _collapsed && summary != null;
+
+    return AnimatedSize(
+      duration: Motion.of(context, Motion.normal),
+      curve: Motion.curve,
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        decoration: decoration,
+        clipBehavior: Clip.antiAlias,
+        child: collapsed
+            ? ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(Space.lg, Space.xs, Space.sm, Space.xs),
+                leading: const IconTile(Icons.alt_route_rounded, size: 40),
+                title: Text(summary, style: t.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text(l10n.routeAlongTheWay(s.opportunities.length)),
+                trailing: Icon(Icons.expand_less_rounded, color: p.textMuted),
+                onTap: () => setState(() => _collapsed = false),
+              )
+            : ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.52),
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.fromLTRB(Space.lg, Space.lg, Space.lg, Space.md),
+                  children: [
+                    SegmentedButton<TravelMode>(
+                      showSelectedIcon: false,
+                      segments: [
+                        ButtonSegment(
+                            value: TravelMode.transit,
+                            icon: const Icon(Icons.train_outlined, size: 18),
+                            label: Text(l10n.travelTransit)),
+                        ButtonSegment(
+                            value: TravelMode.car,
+                            icon: const Icon(Icons.directions_car_outlined, size: 18),
+                            label: Text(l10n.travelCar)),
+                      ],
+                      selected: {s.mode},
+                      onSelectionChanged: (v) => c.setMode(v.first),
+                    ),
+                    const SizedBox(height: Space.md),
+
+                    // ── Qayerdan / qayerga ──
+                    Container(
+                      decoration: BoxDecoration(color: p.surfaceAlt, borderRadius: BorderRadius.circular(Radii.lg)),
+                      child: Row(children: [
+                        const SizedBox(width: Space.md),
+                        Column(children: [
+                          Icon(Icons.trip_origin_rounded, size: 14, color: p.primary),
+                          Container(width: 2, height: 22, color: p.border),
+                          Icon(Icons.place_rounded, size: 16, color: p.accent),
+                        ]),
+                        Expanded(
+                          child: Column(children: [
+                            _PlaceField(label: l10n.routeFrom, place: s.origin, onPicked: c.setOrigin),
+                            Divider(height: 1, indent: Space.md, color: p.border),
+                            _PlaceField(label: l10n.routeTo, place: s.destination, onPicked: c.setDestination),
+                          ]),
+                        ),
+                        IconButton(
+                          tooltip: '${l10n.routeFrom} ↔ ${l10n.routeTo}',
+                          onPressed: c.swap,
+                          icon: const Icon(Icons.swap_vert_rounded),
+                        ),
+                      ]),
+                    ),
+                    const SizedBox(height: Space.md),
+                    Row(children: [
+                      ActionChip(
+                        avatar: const Icon(Icons.calendar_today_outlined),
+                        label: Text(context.formatDate(s.date)),
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: s.date,
+                            firstDate: DateTime(2026, 1, 1),
+                            lastDate: DateTime(2027, 12, 31),
+                          );
+                          if (picked != null) c.setDate(picked);
+                        },
+                      ),
+                      const Spacer(),
+                      TextButton(onPressed: c.useDemo, child: Text(l10n.routeDemo)),
+                    ]),
+                    const SizedBox(height: Space.md),
+                    FilledButton.icon(
+                      onPressed: s.canSearch ? c.search : null,
+                      icon: loading
+                          ? SizedBox.square(
+                              dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: p.textMuted))
+                          : const Icon(Icons.alt_route_rounded),
+                      label: Text(loading ? l10n.searching : l10n.routeFind),
+                    ),
+
+                    if (s.status == RouteStatus.error) ...[
+                      const SizedBox(height: Space.md),
+                      Container(
+                        padding: const EdgeInsets.all(Space.md),
+                        decoration:
+                            BoxDecoration(color: p.dangerSoft, borderRadius: BorderRadius.circular(Radii.md)),
+                        child: Text(l10n.routeError(s.error ?? ''), style: t.bodySmall!.copyWith(color: p.danger)),
+                      ),
+                    ],
+
+                    if (loading && s.route == null) ...[
+                      const SizedBox(height: Space.lg),
+                      const Shimmer(
+                        child: Column(children: [
+                          SkeletonBox(height: 16, width: 220),
+                          SizedBox(height: Space.md),
+                          SkeletonCard(lines: 1),
+                        ]),
+                      ),
+                    ],
+
+                    if (summary != null) ...[
+                      const SizedBox(height: Space.lg),
+                      Row(children: [
+                        Expanded(child: Text(summary, style: t.titleSmall)),
+                        IconButton(
+                          tooltip: l10n.routeAlongTheWay(s.opportunities.length),
+                          icon: const Icon(Icons.expand_more_rounded),
+                          onPressed: () => setState(() => _collapsed = true),
+                        ),
+                      ]),
+                      const Divider(),
+                      const SizedBox(height: Space.sm),
+                      Text(l10n.routeAlongTheWay(s.opportunities.length), style: t.labelMedium),
+                      const SizedBox(height: Space.xs),
+                      if (s.opportunities.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: Space.md),
+                          child: Text(l10n.routeNoOpportunities, style: t.bodySmall),
+                        ),
+                      for (var i = 0; i < s.opportunities.length; i++)
+                        FadeSlideIn(
+                          index: i,
+                          child: _OpportunityTile(s.opportunities[i],
+                              onTap: () => widget.onOpportunityTap(s.opportunities[i])),
+                        ),
+                    ],
+                  ],
                 ),
-              ]),
-              const Divider(),
-              Text(l10n.routeAlongTheWay(s.opportunities.length), style: text.labelLarge),
-              if (s.opportunities.isEmpty)
-                Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(l10n.routeNoOpportunities)),
-              for (final o in s.opportunities) _OpportunityTile(o, onTap: () => widget.onOpportunityTap(o)),
-            ],
-          ],
-        ),
+              ),
       ),
     );
   }
@@ -160,60 +211,71 @@ class _OpportunityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final detour = o.detourKm == null
-        ? null
-        : l10n.routeDetour(o.detourKm!.toStringAsFixed(1), o.detourMinutes!);
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-      leading: CircleAvatar(
-        radius: 18,
-        backgroundColor: AppColors.route,
-        foregroundColor: Colors.white,
-        child: Icon(categoryIcon(o.event.category), size: 18),
-      ),
-      title: Text(context.tr(o.event.title), maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text([
-        '${context.formatDateTime(o.event.start)} · ${o.event.city}',
-        detour ?? l10n.routeFromRoute(o.distanceFromRouteKm.toStringAsFixed(1)),
-      ].join('\n')),
-      isThreeLine: true,
-      trailing: const Icon(Icons.chevron_right),
+    final t = context.textStyles;
+    final detour = o.detourKm == null ? null : l10n.routeDetour(o.detourKm!.toStringAsFixed(1), o.detourMinutes!);
+    return InkWell(
+      borderRadius: BorderRadius.circular(Radii.md),
       onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: Space.sm),
+        child: Row(children: [
+          IconTile(categoryIcon(o.event.category), tone: Tone.info),
+          const SizedBox(width: Space.md),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(context.tr(o.event.title), style: t.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 2),
+              Text('${context.formatDateTime(o.event.start)} · ${o.event.city}', style: t.bodySmall),
+            ]),
+          ),
+          const SizedBox(width: Space.sm),
+          detour == null
+              ? Pill(l10n.routeFromRoute(o.distanceFromRouteKm.toStringAsFixed(1)), dense: true)
+              : Pill(detour, tone: Tone.info, dense: true),
+        ]),
+      ),
     );
   }
 }
 
 class _PlaceField extends ConsumerWidget {
-  const _PlaceField({required this.icon, required this.label, required this.place, required this.onPicked});
+  const _PlaceField({required this.label, required this.place, required this.onPicked});
 
-  final IconData icon;
   final String label;
   final Place? place;
   final void Function(Place) onPicked;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(10),
-      onTap: () async {
-        final picked = await showModalBottomSheet<Place>(
-          context: context,
-          isScrollControlled: true,
-          showDragHandle: true,
-          useSafeArea: true,
-          builder: (_) => const PlaceSearchSheet(),
-        );
-        if (picked != null) onPicked(picked);
-      },
-      child: InputDecorator(
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, size: 20),
-          labelText: label,
-          isDense: true,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+    final p = context.palette;
+    final t = context.textStyles;
+    return Semantics(
+      button: true,
+      label: label,
+      child: InkWell(
+        onTap: () async {
+          final picked = await showModalBottomSheet<Place>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (_) => const PlaceSearchSheet(),
+          );
+          if (picked != null) onPicked(picked);
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: Space.md),
+          child: Row(children: [
+            SizedBox(width: 40, child: Text(label, style: t.labelMedium)),
+            Expanded(
+              child: Text(
+                place?.name ?? '—',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: t.titleSmall!.copyWith(color: place == null ? p.textMuted : p.text),
+              ),
+            ),
+          ]),
         ),
-        child: Text(place?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
     );
   }
@@ -265,50 +327,89 @@ class _PlaceSearchSheetState extends ConsumerState<PlaceSearchSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final p = context.palette;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.7,
+        height: MediaQuery.sizeOf(context).height * 0.72,
         child: Column(children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
             child: TextField(
               autofocus: true,
               onChanged: _onChanged,
               onSubmitted: _search,
+              textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: l10n.routeSearchHint,
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _loading
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                      )
-                    : null,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixIcon: const Icon(Icons.search_rounded),
               ),
             ),
           ),
+          const SizedBox(height: Space.sm),
           if (_error != null)
-            Padding(padding: const EdgeInsets.all(16), child: Text(_error!)),
-          if (!_loading && _error == null && _query.isNotEmpty && _results.isEmpty)
-            Padding(padding: const EdgeInsets.all(16), child: Text(l10n.routeNoResults)),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _results.length,
-              itemBuilder: (_, i) {
-                final p = _results[i];
-                return ListTile(
-                  leading: const Icon(Icons.place_outlined),
-                  title: Text(p.name),
-                  subtitle: Text(p.address),
-                  onTap: () => Navigator.pop(context, p),
-                );
-              },
+            Padding(
+              padding: const EdgeInsets.all(Space.lg),
+              child: Text(_error!, style: context.textStyles.bodySmall!.copyWith(color: p.danger)),
             ),
-          ),
+          if (_loading && _results.isEmpty)
+            const Expanded(
+              child: Shimmer(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: Space.gutter, vertical: Space.sm),
+                  child: Column(children: [
+                    _SkeletonRow(),
+                    _SkeletonRow(),
+                    _SkeletonRow(),
+                    _SkeletonRow(),
+                  ]),
+                ),
+              ),
+            )
+          else if (!_loading && _error == null && _query.isNotEmpty && _results.isEmpty)
+            Expanded(child: EmptyState(icon: Icons.search_off_rounded, title: l10n.routeNoResults))
+          else
+            Expanded(
+              child: AnimatedOpacity(
+                duration: Motion.of(context, Motion.fast),
+                opacity: _loading ? 0.5 : 1,
+                child: ListView.separated(
+                  itemCount: _results.length,
+                  separatorBuilder: (_, _) => const Divider(indent: 72),
+                  itemBuilder: (_, i) {
+                    final place = _results[i];
+                    return ListTile(
+                      leading: const IconTile(Icons.place_outlined, tone: Tone.neutral),
+                      title: Text(place.name),
+                      subtitle: Text(place.address),
+                      onTap: () => Navigator.pop(context, place),
+                    );
+                  },
+                ),
+              ),
+            ),
         ]),
       ),
     );
   }
+}
+
+class _SkeletonRow extends StatelessWidget {
+  const _SkeletonRow();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+        padding: EdgeInsets.symmetric(vertical: Space.md),
+        child: Row(children: [
+          SkeletonBox(width: 40, height: 40, radius: Radii.md),
+          SizedBox(width: Space.lg),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SkeletonBox(width: 140, height: 14),
+              SizedBox(height: Space.sm),
+              SkeletonBox(height: 12),
+            ]),
+          ),
+        ]),
+      );
 }

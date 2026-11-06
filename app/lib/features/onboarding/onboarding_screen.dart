@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n_ext.dart';
+import '../../core/theme.dart';
 import '../../data/providers.dart';
-import '../shell/app_shell.dart';
 
 /// Qiziqishlarni tanlash. Birinchi ochilishda ([editing] = false) va
 /// keyin "qiziqishlarni o'zgartirish" ([editing] = true) uchun ham ishlatiladi.
@@ -35,79 +35,68 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final text = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final p = context.palette;
+    final t = context.textStyles;
 
     return Scaffold(
       appBar: AppBar(
         title: widget.editing ? Text(l10n.interestsEdit) : null,
         automaticallyImplyLeading: widget.editing,
-        actions: const [LanguageButton()],
       ),
       // Tugma doim ko'rinsin (kichik ekranlarda ham).
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FilledButton(
-                onPressed: _selected.isEmpty || _saving ? null : _save,
-                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-                child: Text(
-                  _selected.isEmpty
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(color: p.background, border: Border(top: BorderSide(color: p.border))),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.md),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _selected.isEmpty || _saving ? null : _save,
+                  child: Text(_selected.isEmpty
                       ? l10n.onboardingPickOne
                       : widget.editing
-                      ? l10n.save
-                      : l10n.onboardingContinue(_selected.length),
+                          ? l10n.save
+                          : l10n.onboardingContinue(_selected.length)),
                 ),
               ),
               if (!widget.editing) ...[
-                const SizedBox(height: 8),
-                Text(
-                  l10n.onboardingPrivacy,
-                  textAlign: TextAlign.center,
-                  style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-                ),
+                const SizedBox(height: Space.sm),
+                Text(l10n.onboardingPrivacy, textAlign: TextAlign.center, style: t.bodySmall),
               ],
-            ],
+            ]),
           ),
         ),
       ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-              children: [
-                if (!widget.editing) ...[
-                  Icon(Icons.radar, size: 48, color: scheme.primary),
-                  const SizedBox(height: 12),
-                  Text(l10n.appTitle, style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 4),
-                  Text(l10n.onboardingTagline, style: text.bodyLarge),
-                  const SizedBox(height: 28),
-                ],
-                Text(l10n.onboardingTitle, style: text.titleLarge),
-                const SizedBox(height: 4),
-                Text(l10n.onboardingSubtitle, style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final o in interestOptions)
-                      FilterChip(
-                        avatar: Icon(o.icon, size: 18),
-                        label: Text(context.tr(o.label)),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.xxl),
+            children: [
+              Text(l10n.onboardingTitle, style: t.headlineSmall),
+              const SizedBox(height: Space.sm),
+              Text(l10n.onboardingSubtitle, style: t.bodyMedium!.copyWith(color: p.textMuted)),
+              const SizedBox(height: Space.xxl),
+              LayoutBuilder(builder: (context, c) {
+                final w = (c.maxWidth - Space.md) / 2;
+                return Wrap(spacing: Space.md, runSpacing: Space.md, children: [
+                  for (final o in interestOptions)
+                    SizedBox(
+                      width: w,
+                      child: _InterestTile(
+                        icon: o.icon,
+                        label: context.tr(o.label),
                         selected: _selected.contains(o.tag),
-                        onSelected: (on) => setState(() => on ? _selected.add(o.tag) : _selected.remove(o.tag)),
+                        onTap: () => setState(
+                          () => _selected.contains(o.tag) ? _selected.remove(o.tag) : _selected.add(o.tag),
+                        ),
                       ),
-                  ],
-                ),
-              ],
-            ),
+                    ),
+                ]);
+              }),
+            ],
           ),
         ),
       ),
@@ -115,14 +104,55 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
-/// AppBar'dagi "qiziqishlarni o'zgartirish" tugmasi.
-class EditInterestsButton extends StatelessWidget {
-  const EditInterestsButton({super.key});
+class _InterestTile extends StatelessWidget {
+  const _InterestTile({required this.icon, required this.label, required this.selected, required this.onTap});
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: context.l10n.interestsEdit,
-    icon: const Icon(Icons.tune),
-    onPressed: () => context.push('/interests'),
-  );
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final d = Motion.of(context, Motion.fast);
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(Radii.lg),
+          child: AnimatedContainer(
+            duration: d,
+            curve: Motion.curve,
+            height: 64,
+            padding: const EdgeInsets.symmetric(horizontal: Space.md),
+            decoration: BoxDecoration(
+              color: selected ? p.primarySoft : p.surface,
+              borderRadius: BorderRadius.circular(Radii.lg),
+              border: Border.all(color: selected ? p.primary : p.border, width: selected ? 1.5 : 1),
+            ),
+            child: Row(children: [
+              Icon(icon, size: 22, color: selected ? p.primary : p.textMuted),
+              const SizedBox(width: Space.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textStyles.titleSmall!.copyWith(color: selected ? p.primary : p.text),
+                ),
+              ),
+              AnimatedScale(
+                duration: d,
+                scale: selected ? 1 : 0,
+                child: Icon(Icons.check_circle_rounded, size: 20, color: p.primary),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
 }

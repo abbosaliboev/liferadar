@@ -281,4 +281,153 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get homeEmptyBody => '캘린더를 연결하거나 관심사를 더 추가해 보세요. 일정과 행사·날씨를 연결해 드릴게요.';
+
+  @override
+  String get tabProfile => '프로필';
+
+  @override
+  String get loginError => 'Google 로그인에 실패했습니다. 다시 시도해 주세요.';
+
+  @override
+  String get loginBenefitPlans => '내 캘린더를 행사·날씨·마감과 연결해요';
+
+  @override
+  String get loginBenefitRoute => 'KTX나 자동차로 가는 길의 기회를 찾아요';
+
+  @override
+  String get loginBenefitSignals => '왜 중요한지 출처와 함께 설명해요';
+
+  @override
+  String get loginNewUser => '처음이신가요? Google 계정만 있으면 바로 가입돼요.';
+
+  @override
+  String get or => '또는';
+
+  @override
+  String get continueAsGuest => '게스트로 둘러보기';
+
+  @override
+  String get loginPrivacy => '캘린더는 동의하신 경우에만 별도로 연결돼요.';
+
+  @override
+  String get guestName => '게스트';
+
+  @override
+  String get guestSubtitle => '로그인하면 내 정보로 이용할 수 있어요';
+
+  @override
+  String get signIn => '로그인';
+
+  @override
+  String get edit => '수정';
+
+  @override
+  String get ok => '확인';
+
+  @override
+  String get sectionConnections => '연결된 서비스';
+
+  @override
+  String get connected => '연결됨';
+
+  @override
+  String get notConnected => '연결 안 됨';
+
+  @override
+  String get connect => '연결';
+
+  @override
+  String get sectionSettings => '설정';
+
+  @override
+  String get theme => '테마';
+
+  @override
+  String get themeSystem => '시스템';
+
+  @override
+  String get themeLight => '라이트';
+
+  @override
+  String get themeDark => '다크';
+
+  @override
+  String get sectionAbout => '정보';
+
+  @override
+  String get privacy => '개인정보 보호';
+
+  @override
+  String get version => '버전';
+
+  @override
+  String get logout => '로그아웃';
+
+  @override
+  String get exitGuest => '처음 화면으로';
+
+  @override
+  String get homeHello => '안녕하세요';
+
+  @override
+  String homeHelloName(String name) {
+    return '$name님, 안녕하세요';
+  }
+
+  @override
+  String get statPlans => '일정';
+
+  @override
+  String get statSignals => '신호';
+
+  @override
+  String get statDeadlines => '마감 임박';
+
+  @override
+  String get kindPlanAlert => '일정 알림';
+
+  @override
+  String get kindOpportunity => '기회';
+
+  @override
+  String get kindDeadline => '마감';
+
+  @override
+  String get kindRoute => '경로';
+
+  @override
+  String get helpful => '유용해요';
+
+  @override
+  String get notForMe => '관심 없어요';
+
+  @override
+  String get hide => '숨기기';
+
+  @override
+  String get today => '오늘';
+
+  @override
+  String get tomorrow => '내일';
+
+  @override
+  String get upcoming => '다가오는 일정';
+
+  @override
+  String get discoverSubtitle => '관심사와 잘 맞는 순서로 보여드려요';
+
+  @override
+  String get matchBadge => '일치';
+
+  @override
+  String get eventDetails => '상세 정보';
+
+  @override
+  String get openSource => '출처';
+
+  @override
+  String get searching => '검색 중…';
+
+  @override
+  String get rainChance => '강수';
 }
