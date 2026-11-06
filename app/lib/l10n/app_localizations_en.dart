@@ -251,4 +251,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weatherLater => 'Forecast appears ~10 days before';
+
+  @override
+  String get onboardingTagline =>
+      'Finds the opportunities around your plans — before you search.';
+
+  @override
+  String get onboardingTitle => 'What are you into?';
+
+  @override
+  String get onboardingSubtitle =>
+      'Pick a few. LifeRadar ranks events and route suggestions by these.';
+
+  @override
+  String get onboardingPickOne => 'Pick at least one';
+
+  @override
+  String onboardingContinue(int count) {
+    return 'Continue ($count selected)';
+  }
+
+  @override
+  String get onboardingPrivacy =>
+      'Saved only on this device. You can change it anytime.';
+
+  @override
+  String get interestsEdit => 'My interests';
+
+  @override
+  String get save => 'Save';
 }

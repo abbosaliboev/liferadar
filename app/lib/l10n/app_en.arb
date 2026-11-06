@@ -176,5 +176,20 @@
   "sourceCalendar": "Google Calendar",
   "addedToCalendar": "Added to Google Calendar",
   "addingToCalendar": "Adding…",
-  "weatherLater": "Forecast appears ~10 days before"
+  "weatherLater": "Forecast appears ~10 days before",
+  "onboardingTagline": "Finds the opportunities around your plans — before you search.",
+  "onboardingTitle": "What are you into?",
+  "onboardingSubtitle": "Pick a few. LifeRadar ranks events and route suggestions by these.",
+  "onboardingPickOne": "Pick at least one",
+  "onboardingContinue": "Continue ({count} selected)",
+  "@onboardingContinue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingPrivacy": "Saved only on this device. You can change it anytime.",
+  "interestsEdit": "My interests",
+  "save": "Save"
 }

@@ -6,6 +6,8 @@ import '../services/google_api.dart';
 import '../services/kakao_api.dart';
 import 'sample_data.dart';
 
+export 'interests.dart' show interestsProvider, interestOptions, InterestOption, sharedPrefsProvider;
+
 final kakaoApiProvider = Provider<KakaoApi>((ref) => KakaoApi());
 final googleApiProvider = Provider<GoogleApi>((ref) => GoogleApi());
 
@@ -20,8 +22,6 @@ class LocaleController extends Notifier<Locale?> {
       state = Locale(currentLanguageCode == 'ko' ? 'en' : 'ko');
 }
 
-/// Onboarding (D2/D3) tayyor bo'lgunga qadar qiziqishlar shu yerda.
-final interestsProvider = Provider<Set<String>>((ref) => {'ai', 'startup', 'developer'});
 
 // TODO(D3): Firestore stream'lari bilan almashtiriladi.
 final eventsProvider = Provider<List<RadarEvent>>((ref) => sampleEvents);

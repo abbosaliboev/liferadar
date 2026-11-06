@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/env.dart';
 import 'core/router.dart';
@@ -21,7 +22,11 @@ Future<void> main() async {
   }
   // GIS SDK'ni fonda yuklaymiz — ilova ochilishini kutdirmaymiz.
   initGoogleSignIn().catchError((Object e) => debugPrint('Google Sign-In init failed: $e'));
-  runApp(const ProviderScope(child: LifeRadarApp()));
+  final prefs = await SharedPreferences.getInstance();
+  runApp(ProviderScope(
+    overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+    child: const LifeRadarApp(),
+  ));
 }
 
 class LifeRadarApp extends ConsumerWidget {
@@ -42,7 +47,7 @@ class LifeRadarApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      routerConfig: appRouter,
+      routerConfig: ref.watch(routerProvider),
     );
   }
 }

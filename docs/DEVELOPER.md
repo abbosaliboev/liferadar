@@ -107,7 +107,8 @@ hack_idea/
     │   ├── core/                     # theme, router, env, l10n 확장, Kakao SDK 체크
     │   ├── models/models.dart        # 도메인 모델 (RadarEvent, Plan, Insight, TravelRoute…)
     │   ├── data/
-    │   │   ├── providers.dart        # Riverpod provider (이벤트, 일정, 인사이트, API 클라이언트)
+    │   │   ├── providers.dart        # Riverpod provider (이벤트, 일정, 인사이트, 날씨, API 클라이언트)
+    │   │   ├── interests.dart        # 관심사 목록 + 저장(shared_preferences)
     │   │   ├── calendar_controller.dart  # Google OAuth + 캘린더 동기화
     │   │   └── sample_data.dart      # 샘플 행사·일정·인사이트
     │   ├── services/
@@ -116,6 +117,7 @@ hack_idea/
     │   │   ├── calendar_api.dart     # Google Calendar REST v3
     │   │   └── route_matcher.dart    # 경로 주변 이벤트 매칭 (순수 Dart, 테스트됨)
     │   ├── features/
+    │   │   ├── onboarding/ # 관심사 선택 (첫 실행 + 수정)
     │   │   ├── shell/    # 하단 탭, 언어 버튼, 샘플 배지
     │   │   ├── home/     # 인사이트 카드
     │   │   ├── map/      # Kakao 지도, 레이어, 마커 아이콘
@@ -142,7 +144,7 @@ hack_idea/
 | `eventsProvider` | 행사 목록 (현재 샘플 → TourAPI/KOPIS로 교체 예정) |
 | `plansProvider` | 내 일정 — 캘린더 연결 전 샘플, 연결 후 실제 일정 |
 | `insightsProvider` | 홈 카드 + 피드백 상태 |
-| `interestsProvider` | 관심사 태그 (온보딩 전 고정값 `ai, startup, developer`) |
+| `interestsProvider` | 관심사 태그 — 온보딩에서 선택, `shared_preferences`에 저장 (비어 있으면 온보딩부터 시작) |
 | `routeProvider` | 경로 탐색 입력·결과·기회 목록 |
 | `calendarProvider` | 캘린더 연결 상태 |
 | `mapFocusProvider` | 홈/발견에서 "지도에서 보기" 요청 |
@@ -229,7 +231,7 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 
 | 테스트 파일 | 내용 |
 |---|---|
-| `app_test.dart` | 홈 렌더링, 언어 전환, 키 없을 때 지도 안내 |
+| `app_test.dart` | 온보딩 → 홈, 관심사 저장, 언어 전환, 관심사별 발견 순서, 키 없을 때 지도 안내 |
 | `route_matcher_test.dart` | 거리 계산, 날짜/반경 필터, 서울→부산 시나리오 |
 | `google_api_test.dart` | polyline 디코딩(구글 공식 예제), 최근접 지점 |
 | `calendar_api_test.dart` | 시간/종일 일정 파싱 |
@@ -252,6 +254,7 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 | `access_denied` | 해당 Gmail이 테스트 사용자에 없음 |
 | 새로고침 후 캘린더 연결이 풀림 | 토큰을 메모리에만 저장(의도된 동작). 다시 연결 |
 | Kakao 네이티브 지도가 에뮬레이터에서 안 보임 | x86 미지원. ARM 실기기 사용 |
+| 웹 release 빌드만 흰 화면 + `MissingPluginException(getAll … shared_preferences)` | 플러그인 추가 후 `.dart_tool`의 오래된 빌드 캐시가 재사용되어 플러그인이 등록되지 않음 → `flutter clean && flutter pub get` 후 다시 빌드 |
 | `Route` 이름 충돌 | Flutter의 `Route`와 Kakao의 `Route` → `import ... as km` 사용 |
 
 ---
@@ -271,6 +274,6 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 - [ ] `eventsProvider` → TourAPI(축제) / KOPIS(공연) 실제 데이터, IT 행사는 큐레이션 JSON
 - [x] Google Weather 일별 예보 → 내 일정·이벤트 상세·홈 카드에 표시 (`WeatherChip`, 약 10일 범위)
 - [ ] 인사이트 생성: 일정 × 행사 × 날씨 매칭 → Gemini 설명 (JSON 출력, 출처 포함)
-- [ ] 온보딩: 관심사·목표 선택 → `interestsProvider`
+- [x] 온보딩: 관심사 선택 → `interestsProvider` (저장·수정 가능). 목표(goal) 입력은 추후
 - [ ] Firebase: Firestore 저장, Cloud Functions로 API 키 이전, FCM 푸시
 - [ ] Android: Kakao 네이티브 키, Google OAuth Android 클라이언트(SHA-1), 실기기 데모 빌드

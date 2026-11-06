@@ -249,4 +249,30 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get weatherLater => '예보는 약 10일 전부터 제공';
+
+  @override
+  String get onboardingTagline => '검색하기 전에, 내 일정 주변의 기회를 먼저 찾아드려요.';
+
+  @override
+  String get onboardingTitle => '어떤 분야에 관심 있으세요?';
+
+  @override
+  String get onboardingSubtitle => '몇 개만 골라 주세요. 행사와 경로 추천 순서에 반영돼요.';
+
+  @override
+  String get onboardingPickOne => '하나 이상 선택해 주세요';
+
+  @override
+  String onboardingContinue(int count) {
+    return '계속 ($count개 선택)';
+  }
+
+  @override
+  String get onboardingPrivacy => '이 기기에만 저장되며 언제든 바꿀 수 있어요.';
+
+  @override
+  String get interestsEdit => '내 관심사';
+
+  @override
+  String get save => '저장';
 }

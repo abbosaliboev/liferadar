@@ -523,6 +523,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Forecast appears ~10 days before'**
   String get weatherLater;
+
+  /// No description provided for @onboardingTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Finds the opportunities around your plans — before you search.'**
+  String get onboardingTagline;
+
+  /// No description provided for @onboardingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you into?'**
+  String get onboardingTitle;
+
+  /// No description provided for @onboardingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a few. LifeRadar ranks events and route suggestions by these.'**
+  String get onboardingSubtitle;
+
+  /// No description provided for @onboardingPickOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one'**
+  String get onboardingPickOne;
+
+  /// No description provided for @onboardingContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue ({count} selected)'**
+  String onboardingContinue(int count);
+
+  /// No description provided for @onboardingPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved only on this device. You can change it anytime.'**
+  String get onboardingPrivacy;
+
+  /// No description provided for @interestsEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'My interests'**
+  String get interestsEdit;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
 }
 
 class _AppLocalizationsDelegate

@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../event/event_detail_sheet.dart';
+import '../onboarding/onboarding_screen.dart';
 import '../shell/app_shell.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
@@ -35,7 +36,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
       ..sort((a, b) => a.index.compareTo(b.index));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tabDiscover), actions: const [LanguageButton()]),
+      appBar: AppBar(title: Text(l10n.tabDiscover), actions: const [EditInterestsButton(), LanguageButton()]),
       body: Column(children: [
         SizedBox(
           height: 48,

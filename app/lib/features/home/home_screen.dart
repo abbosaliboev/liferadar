@@ -6,6 +6,7 @@ import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
+import '../onboarding/onboarding_screen.dart';
 import '../shell/app_shell.dart';
 import '../weather/weather_chip.dart';
 
@@ -19,7 +20,7 @@ class HomeScreen extends ConsumerWidget {
         ref.watch(insightsProvider).where((i) => i.feedback != InsightFeedback.hidden).toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.appTitle), actions: const [LanguageButton()]),
+      appBar: AppBar(title: Text(l10n.appTitle), actions: const [EditInterestsButton(), LanguageButton()]),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         itemCount: insights.length + 1,
