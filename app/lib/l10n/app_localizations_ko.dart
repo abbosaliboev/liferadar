@@ -246,4 +246,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get addingToCalendar => '추가 중…';
+
+  @override
+  String get weatherLater => '예보는 약 10일 전부터 제공';
 }

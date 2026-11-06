@@ -63,6 +63,43 @@ class GoogleApi {
     );
   }
 
+  /// Kunlik prognoz (bugundan boshlab ~10 kun). [lang]: 'ko' yoki 'en'.
+  Future<List<DailyWeather>> dailyForecast(GeoPoint p, {String lang = 'ko'}) async {
+    if (_key.isEmpty) throw const GoogleApiException('GOOGLE_API_KEY missing');
+    final uri = Uri.https('weather.googleapis.com', '/v1/forecast/days:lookup', {
+      'key': _key,
+      'location.latitude': '${p.lat}',
+      'location.longitude': '${p.lng}',
+      'days': '10',
+      'pageSize': '10',
+      'languageCode': lang,
+    });
+    final res = await _client.get(uri);
+    if (res.statusCode != 200) throw GoogleApiException('HTTP ${res.statusCode}: ${res.body}');
+    return parseForecast(jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>);
+  }
+
+  static List<DailyWeather> parseForecast(Map<String, dynamic> json) {
+    int? deg(dynamic t) => (t?['degrees'] as num?)?.round();
+    return [
+      for (final d in (json['forecastDays'] as List? ?? const []))
+        () {
+          final date = d['displayDate'] as Map<String, dynamic>;
+          // Kunduzgi prognoz bo'lsa o'shani, bo'lmasa butun kunlikni olamiz.
+          final f = (d['daytimeForecast'] ?? d['fullDayForecast'] ?? const {}) as Map<String, dynamic>;
+          final cond = f['weatherCondition'] as Map<String, dynamic>? ?? const {};
+          return DailyWeather(
+            date: DateTime(date['year'] as int, date['month'] as int, date['day'] as int),
+            condition: (cond['description']?['text'] as String?) ?? '',
+            type: (cond['type'] as String?) ?? 'UNKNOWN',
+            maxC: deg(d['maxTemperature']),
+            minC: deg(d['minTemperature']),
+            rainChance: (f['precipitation']?['probability']?['percent'] as num?)?.round(),
+          );
+        }(),
+    ];
+  }
+
   /// Google Encoded Polyline Algorithm.
   static List<GeoPoint> decodePolyline(String s) {
     final pts = <GeoPoint>[];

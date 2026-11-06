@@ -112,7 +112,7 @@ hack_idea/
     │   │   └── sample_data.dart      # 샘플 행사·일정·인사이트
     │   ├── services/
     │   │   ├── kakao_api.dart        # Kakao Local(검색) / Mobility(자동차 경로)
-    │   │   ├── google_api.dart       # Google Routes TRANSIT + polyline 디코더
+    │   │   ├── google_api.dart       # Google Routes TRANSIT, Weather 예보, polyline 디코더
     │   │   ├── calendar_api.dart     # Google Calendar REST v3
     │   │   └── route_matcher.dart    # 경로 주변 이벤트 매칭 (순수 Dart, 테스트됨)
     │   ├── features/
@@ -122,7 +122,8 @@ hack_idea/
     │   │   ├── route/    # 경로 상태(controller) + 패널 UI + 장소 검색
     │   │   ├── plans/    # 내 일정 + 캘린더 연결 카드
     │   │   ├── discover/ # 행사 목록
-    │   │   └── event/    # 이벤트 상세 바텀시트 (신청, 캘린더 추가)
+    │   │   ├── event/    # 이벤트 상세 바텀시트 (신청, 캘린더 추가)
+    │   │   └── weather/  # WeatherChip (일정·행사 날짜의 예보)
     │   └── l10n/         # app_en.arb, app_ko.arb (+ 생성 파일)
     └── test/             # 단위·위젯 테스트
 ```
@@ -145,6 +146,7 @@ hack_idea/
 | `routeProvider` | 경로 탐색 입력·결과·기회 목록 |
 | `calendarProvider` | 캘린더 연결 상태 |
 | `mapFocusProvider` | 홈/발견에서 "지도에서 보기" 요청 |
+| `forecastProvider` | 위치(약 1 km 반올림)·언어별 10일 예보 캐시 |
 
 ### 경로 기반 발견 흐름
 
@@ -231,6 +233,7 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 | `route_matcher_test.dart` | 거리 계산, 날짜/반경 필터, 서울→부산 시나리오 |
 | `google_api_test.dart` | polyline 디코딩(구글 공식 예제), 최근접 지점 |
 | `calendar_api_test.dart` | 시간/종일 일정 파싱 |
+| `weather_test.dart` | 일별 예보 파싱, 비 예보 판단 |
 
 **웹 E2E 확인 팁:** 에뮬레이터 대신 `flutter build web` 결과를 헤드리스 Chrome으로 열어 스크린샷을 찍습니다. 웹 전용 버그(예: polyline)는 VM 테스트로 잡히지 않으므로 **웹에서 한 번은 직접 확인**하세요.
 
@@ -266,7 +269,7 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 ## 10. 다음 작업 (TODO)
 
 - [ ] `eventsProvider` → TourAPI(축제) / KOPIS(공연) 실제 데이터, IT 행사는 큐레이션 JSON
-- [ ] Google Weather 일별 예보를 일정 날짜와 연결 (예보는 약 10일 범위)
+- [x] Google Weather 일별 예보 → 내 일정·이벤트 상세·홈 카드에 표시 (`WeatherChip`, 약 10일 범위)
 - [ ] 인사이트 생성: 일정 × 행사 × 날씨 매칭 → Gemini 설명 (JSON 출력, 출처 포함)
 - [ ] 온보딩: 관심사·목표 선택 → `interestsProvider`
 - [ ] Firebase: Firestore 저장, Cloud Functions로 API 키 이전, FCM 푸시

@@ -7,6 +7,7 @@ import '../../data/calendar_controller.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../shell/app_shell.dart';
+import '../weather/weather_chip.dart';
 
 class PlansScreen extends ConsumerWidget {
   const PlansScreen({super.key});
@@ -130,7 +131,13 @@ class _PlanTile extends StatelessWidget {
           Expanded(child: Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
           if (p.source == 'sample') const SampleBadge(),
         ]),
-        subtitle: Text('$when\n${p.locationText.isEmpty ? l10n.noLocation : p.locationText}'),
+        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('$when\n${p.locationText.isEmpty ? l10n.noLocation : p.locationText}'),
+          if (p.location != null) ...[
+            const SizedBox(height: 4),
+            WeatherChip(location: p.location!, date: p.start),
+          ],
+        ]),
         isThreeLine: true,
         trailing: insightCount == 0 ? null : Badge(label: Text('$insightCount'), child: const Icon(Icons.auto_awesome)),
       ),

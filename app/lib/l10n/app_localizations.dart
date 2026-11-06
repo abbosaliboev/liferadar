@@ -517,6 +517,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Adding…'**
   String get addingToCalendar;
+
+  /// No description provided for @weatherLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast appears ~10 days before'**
+  String get weatherLater;
 }
 
 class _AppLocalizationsDelegate

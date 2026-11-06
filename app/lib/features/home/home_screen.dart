@@ -7,6 +7,7 @@ import '../../core/theme.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../shell/app_shell.dart';
+import '../weather/weather_chip.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -49,6 +50,9 @@ class InsightCard extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final controller = ref.read(insightsProvider.notifier);
+    final plan = insight.planId == null
+        ? null
+        : ref.watch(plansProvider).where((p) => p.id == insight.planId).firstOrNull;
 
     void feedback(InsightFeedback f) {
       controller.setFeedback(insight.id, f);
@@ -78,6 +82,11 @@ class InsightCard extends ConsumerWidget {
             for (final s in insight.signals)
               Chip(avatar: Icon(signalIcon(s.type), size: 16), label: Text(context.tr(s.summary))),
           ]),
+          // Reja joyi va sanasi bo'yicha jonli ob-havo (Google Weather).
+          if (plan?.location != null) ...[
+            const SizedBox(height: 8),
+            WeatherChip(location: plan!.location!, date: plan.start),
+          ],
           const SizedBox(height: 10),
           Container(
             width: double.infinity,

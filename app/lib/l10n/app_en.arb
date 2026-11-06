@@ -175,5 +175,6 @@
   "noLocation": "No location",
   "sourceCalendar": "Google Calendar",
   "addedToCalendar": "Added to Google Calendar",
-  "addingToCalendar": "Adding…"
+  "addingToCalendar": "Adding…",
+  "weatherLater": "Forecast appears ~10 days before"
 }

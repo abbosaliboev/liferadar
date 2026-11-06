@@ -187,3 +187,30 @@ class RouteOpportunity {
         detourMinutes: minutes,
       );
 }
+
+/// Kunlik ob-havo prognozi (Google Weather, ~10 kun oldinga).
+class DailyWeather {
+  const DailyWeather({
+    required this.date,
+    required this.condition,
+    required this.type,
+    this.maxC,
+    this.minC,
+    this.rainChance,
+  });
+
+  final DateTime date;
+
+  /// Inson o'qiydigan holat ("구름 없음", "Sunny") — so'ralgan tilda.
+  final String condition;
+
+  /// Google WeatherCondition.type: CLEAR, CLOUDY, RAIN, SNOW, ...
+  final String type;
+  final int? maxC;
+  final int? minC;
+
+  /// Yog'ingarchilik ehtimoli, %.
+  final int? rainChance;
+
+  bool get likelyRain => (rainChance ?? 0) >= 60;
+}

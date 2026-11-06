@@ -69,5 +69,6 @@
   "noLocation": "장소 없음",
   "sourceCalendar": "Google 캘린더",
   "addedToCalendar": "Google 캘린더에 추가했습니다",
-  "addingToCalendar": "추가 중…"
+  "addingToCalendar": "추가 중…",
+  "weatherLater": "예보는 약 10일 전부터 제공"
 }

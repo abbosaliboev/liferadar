@@ -248,4 +248,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addingToCalendar => 'Adding…';
+
+  @override
+  String get weatherLater => 'Forecast appears ~10 days before';
 }

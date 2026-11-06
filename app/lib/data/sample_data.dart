@@ -148,7 +148,6 @@ final sampleInsights = <Insight>[
     signals: [
       Signal(SignalType.event, LocalizedText(ko: '대형 콘서트 (아시아드)', en: 'Large concert (Asiad)')),
       Signal(SignalType.traffic, LocalizedText(ko: '혼잡 예상', en: 'Crowds expected')),
-      Signal(SignalType.weather, LocalizedText(ko: '날씨 확인 예정', en: 'Weather check pending')),
     ],
     sources: [SourceLink('Sample data', null)],
   ),

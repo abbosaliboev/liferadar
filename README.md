@@ -65,6 +65,7 @@ LifeRadar의 핵심은 세 가지 맥락을 **연결**하는 것입니다.
 | **캘린더에 추가** | 마음에 드는 행사를 버튼 하나로 내 Google 캘린더에 등록 | ✅ 동작 (웹) |
 | **발견 (Discover)** | 관심사와 얼마나 맞는지 순서로 행사 목록, 카테고리 필터 | ✅ 동작 |
 | **홈 — AI 인사이트** | 일정 + 행사 + 날씨를 연결한 카드, "중요한 이유", 신뢰도, 출처, 👍/👎 피드백 | 🟡 UI 완성, 현재 샘플 데이터 |
+| **날씨 (Google Weather)** | 일정·행사 날짜와 장소의 예보(최고/최저, 강수 확률) 표시, 비 예보 강조 | ✅ 동작 (약 10일 범위) |
 | **한국어 / English** | 모든 화면 2개 언어 지원 | ✅ 동작 |
 | AI 설명 생성 (Gemini) | 연결된 정보를 바탕으로 "왜 중요한지"를 자연어로 설명 | 🔜 다음 단계 |
 | 실제 행사 데이터 | 한국관광공사 TourAPI(축제), KOPIS(공연) 연동 | 🔜 다음 단계 |
@@ -126,7 +127,7 @@ LifeRadar는 **AI가 행사를 만들어내지 않도록** 두 단계로 설계�
 | 경로 | **Google Routes API** (대중교통·KTX), **Kakao Mobility** (자동차 — Google은 한국 자동차 길찾기 미지원) |
 | 장소 검색·지오코딩 | **Kakao Local API** |
 | 일정 | **Google Calendar API** + Google Identity Services (OAuth) |
-| 날씨 (연동 예정) | Google Weather API |
+| 날씨 | **Google Weather API** (일별 예보) |
 | AI (예정) | Gemini |
 | 백엔드 (예정) | Firebase (Auth, Firestore, Cloud Functions, FCM) |
 
@@ -145,6 +146,7 @@ flowchart LR
   App -->|KTX·대중교통 경로| GROUTES["Google Routes"]
   CAL -->|OAuth · 일정 읽기/추가| GCAL["Google Calendar"]
   App -->|지도 타일| KMAP["Kakao Maps SDK"]
+  App -->|일별 예보| GWEATHER["Google Weather"]
   App -. 다음 단계 .-> FB["Firebase + Gemini<br/>(인사이트 생성 · 푸시 · 키 보관)"]
 ```
 
@@ -154,7 +156,7 @@ flowchart LR
 
 솔직하게 정리한 현재 상태입니다.
 
-- ✅ 지도, 경로 기반 발견(실제 KTX/자동차 경로), Google 캘린더 읽기/추가가 **실제 API로 동작**합니다.
+- ✅ 지도, 경로 기반 발견(실제 KTX/자동차 경로), Google 캘린더 읽기/추가, 날씨 예보가 **실제 API로 동작**합니다.
 - 🟡 **행사 데이터와 홈 인사이트는 샘플**입니다 (장소 좌표는 실제 — BEXCO, COEX, 대전컨벤션센터 등). 앱에서 `샘플 데이터` 배지로 구분됩니다.
 - 🟡 Google 로그인은 현재 **웹에서만** 설정되어 있습니다 (Android OAuth 클라이언트는 다음 단계).
 - 🟡 API 키가 아직 앱(클라이언트) 쪽에 있습니다 → Cloud Functions로 이전 예정.
@@ -164,7 +166,7 @@ flowchart LR
 
 | 시점 | 내용 |
 |---|---|
-| ~11/10 | 실제 행사 데이터(TourAPI·KOPIS), Google Weather 연동 |
+| ~11/10 | 실제 행사 데이터(TourAPI·KOPIS) |
 | ~11/12 | Gemini 인사이트 생성(캘린더 일정 × 행사 × 날씨), 피드백 반영 |
 | ~11/13 | Firebase로 키 이전, 푸시 알림, Android 데모 빌드 |
 | 11/14 | **해커톤 제출** |

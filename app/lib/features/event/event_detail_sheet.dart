@@ -8,6 +8,7 @@ import '../../data/calendar_controller.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../shell/app_shell.dart';
+import '../weather/weather_chip.dart';
 
 Future<void> showEventDetail(
   BuildContext context,
@@ -62,6 +63,10 @@ class EventDetailSheet extends ConsumerWidget {
           _InfoRow(Icons.schedule, '${context.formatDateTime(event.start)} – ${context.formatDateTime(event.end)}'),
           _InfoRow(Icons.place_outlined, '${event.venue} · ${event.city}'),
           if (event.deadline != null) _InfoRow(Icons.timer_outlined, '⏰ ${context.formatDate(event.deadline!)}'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: WeatherChip(location: event.location, date: event.start),
+          ),
           if (opportunity != null)
             _InfoRow(
               Icons.alt_route,

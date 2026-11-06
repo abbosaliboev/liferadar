@@ -75,3 +75,14 @@ double interestScore(RadarEvent event, Set<String> interests) {
   final hits = event.tags.where(interests.contains).length;
   return hits / event.tags.length;
 }
+
+/// Prognoz kaliti: koordinata ~1 km aniqlikkacha yaxlitlanadi (yaqin joylar bitta so'rovni ulashadi).
+typedef ForecastKey = ({double lat, double lng, String lang});
+
+ForecastKey forecastKey(GeoPoint p, String lang) =>
+    (lat: (p.lat * 100).round() / 100, lng: (p.lng * 100).round() / 100, lang: lang);
+
+/// 10 kunlik prognoz — Riverpod keshlaydi (bir joy uchun bitta so'rov).
+final forecastProvider = FutureProvider.family<List<DailyWeather>, ForecastKey>((ref, k) {
+  return ref.read(googleApiProvider).dailyForecast(GeoPoint(k.lat, k.lng), lang: k.lang);
+});
