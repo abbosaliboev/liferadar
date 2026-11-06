@@ -571,6 +571,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get save;
+
+  /// No description provided for @homeEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No signals yet'**
+  String get homeEmptyTitle;
+
+  /// No description provided for @homeEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your calendar or add more interests — LifeRadar will connect your plans with events and weather.'**
+  String get homeEmptyBody;
 }
 
 class _AppLocalizationsDelegate

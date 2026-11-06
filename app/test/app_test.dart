@@ -6,11 +6,14 @@ import 'package:liferadar/data/sample_data.dart';
 import 'package:liferadar/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<void> pumpApp(WidgetTester tester, {List<String>? interests}) async {
+Future<void> pumpApp(WidgetTester tester, {List<String>? interests, DateTime? now}) async {
   SharedPreferences.setMockInitialValues({'interests': ?interests});
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(ProviderScope(
-    overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+    overrides: [
+      sharedPrefsProvider.overrideWithValue(prefs),
+      nowProvider.overrideWithValue(now ?? DateTime(2026, 11, 6, 10)),
+    ],
     child: const LifeRadarApp(),
   ));
   await tester.pumpAndSettle();
@@ -45,12 +48,13 @@ void main() {
     await pumpApp(tester, interests: ['ai']);
 
     expect(find.text('Signals for you'), findsOneWidget);
-    expect(find.text('Busan trip on Nov 20'), findsOneWidget);
+    // InsightEngine: Busan safari + Asiad konserti → birinchi karta
+    expect(find.textContaining('Large concert in Busan'), findsWidgets);
 
     await tester.tap(find.text('한국어'));
     await tester.pumpAndSettle();
     expect(find.text('나를 위한 신호'), findsOneWidget);
-    expect(find.text('11월 20일 부산 방문'), findsOneWidget);
+    expect(find.textContaining('부산 대형 콘서트'), findsWidgets);
   });
 
   testWidgets('Discover qiziqishga mos eventni birinchi qo\'yadi', (tester) async {
@@ -67,5 +71,19 @@ void main() {
     await tester.tap(find.byIcon(Icons.map_outlined).last);
     await tester.pumpAndSettle();
     expect(find.textContaining('Kakao Map key is missing'), findsOneWidget);
+  });
+
+  testWidgets('Signal yo\'q bo\'lsa Home yo\'naltiruvchi karta ko\'rsatadi', (tester) async {
+    await pumpApp(tester, interests: ['ai'], now: DateTime(2027, 1, 15));
+    expect(find.text('No signals yet'), findsOneWidget);
+    expect(find.text('Connect Google Calendar'), findsOneWidget);
+  });
+
+  testWidgets('👎 feedback saqlanadi', (tester) async {
+    await pumpApp(tester, interests: ['ai', 'startup']);
+    await tester.tap(find.byIcon(Icons.thumb_down_outlined).first);
+    await tester.pumpAndSettle();
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getStringList('insight_feedback')!.single, endsWith('|dislike'));
   });
 }

@@ -275,4 +275,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get save => '저장';
+
+  @override
+  String get homeEmptyTitle => '아직 신호가 없어요';
+
+  @override
+  String get homeEmptyBody => '캘린더를 연결하거나 관심사를 더 추가해 보세요. 일정과 행사·날씨를 연결해 드릴게요.';
 }

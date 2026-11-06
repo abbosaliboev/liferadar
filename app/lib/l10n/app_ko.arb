@@ -78,5 +78,7 @@
   "onboardingContinue": "계속 ({count}개 선택)",
   "onboardingPrivacy": "이 기기에만 저장되며 언제든 바꿀 수 있어요.",
   "interestsEdit": "내 관심사",
-  "save": "저장"
+  "save": "저장",
+  "homeEmptyTitle": "아직 신호가 없어요",
+  "homeEmptyBody": "캘린더를 연결하거나 관심사를 더 추가해 보세요. 일정과 행사·날씨를 연결해 드릴게요."
 }

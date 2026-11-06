@@ -280,4 +280,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get save => 'Save';
+
+  @override
+  String get homeEmptyTitle => 'No signals yet';
+
+  @override
+  String get homeEmptyBody =>
+      'Connect your calendar or add more interests — LifeRadar will connect your plans with events and weather.';
 }

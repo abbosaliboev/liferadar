@@ -191,5 +191,7 @@
   },
   "onboardingPrivacy": "Saved only on this device. You can change it anytime.",
   "interestsEdit": "My interests",
-  "save": "Save"
+  "save": "Save",
+  "homeEmptyTitle": "No signals yet",
+  "homeEmptyBody": "Connect your calendar or add more interests — LifeRadar will connect your plans with events and weather."
 }

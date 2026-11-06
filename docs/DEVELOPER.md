@@ -115,7 +115,8 @@ hack_idea/
     │   │   ├── kakao_api.dart        # Kakao Local(검색) / Mobility(자동차 경로)
     │   │   ├── google_api.dart       # Google Routes TRANSIT, Weather 예보, polyline 디코더
     │   │   ├── calendar_api.dart     # Google Calendar REST v3
-    │   │   └── route_matcher.dart    # 경로 주변 이벤트 매칭 (순수 Dart, 테스트됨)
+    │   │   ├── route_matcher.dart    # 경로 주변 이벤트 매칭 (순수 Dart, 테스트됨)
+    │   │   └── insight_engine.dart   # 홈 카드 규칙 엔진 (순수 Dart, 테스트됨)
     │   ├── features/
     │   │   ├── onboarding/ # 관심사 선택 (첫 실행 + 수정)
     │   │   ├── shell/    # 하단 탭, 언어 버튼, 샘플 배지
@@ -143,7 +144,9 @@ hack_idea/
 |---|---|
 | `eventsProvider` | 행사 목록 (현재 샘플 → TourAPI/KOPIS로 교체 예정) |
 | `plansProvider` | 내 일정 — 캘린더 연결 전 샘플, 연결 후 실제 일정 |
-| `insightsProvider` | 홈 카드 + 피드백 상태 |
+| `insightsProvider` | `InsightEngine` 결과 (일정·행사·관심사·예보가 바뀌면 자동 재계산) + 피드백 |
+| `insightFeedbackProvider` | 카드 id → 👍/👎/숨기기 (shared_preferences 저장) |
+| `nowProvider` | "오늘" — 테스트에서 고정 날짜로 override |
 | `interestsProvider` | 관심사 태그 — 온보딩에서 선택, `shared_preferences`에 저장 (비어 있으면 온보딩부터 시작) |
 | `routeProvider` | 경로 탐색 입력·결과·기회 목록 |
 | `calendarProvider` | 캘린더 연결 상태 |
@@ -194,6 +197,20 @@ RouteMatcher.match()
 - `haversineKm`, `distanceToPolylineKm` (등장방형 근사 — 한국 범위에서 충분히 정확), `nearestPointOnPolyline`, `sample`
 - 반경·샘플 간격은 생성자 파라미터 (`corridorKm = 15`, `sampleKm = 1.0`)
 
+### `services/insight_engine.dart`
+홈 카드를 만드는 **결정적 규칙 엔진** (AI 아님). 카드 id가 규칙+대상으로 고정되어 재계산해도 피드백이 유지됩니다.
+
+| 규칙 | 조건 | 카드 id |
+|---|---|---|
+| 혼잡 경고 | 일정 기간 + 일정 장소 15 km 이내의 공연/축제 | `crowd:<planId>:<eventId>` |
+| 체류 중 기회 | 일정 기간 + 15 km 이내 + 관심사 일치 | `nearby:<planId>:<eventId>` |
+| 비 예보 | 일정 당일 강수 확률 ≥ 60% | `rain:<planId>:<y-m-d>` |
+| 신청 마감 | 관심사 일치 + 마감 14일 이내 | `deadline:<eventId>` |
+| 새 기회 | 위에서 쓰지 않은, 45일 이내 관심사 일치 상위 2개 | `opportunity:<eventId>` |
+
+정렬: 일정 경고 → 마감 → 기회, 같은 그룹은 신뢰도 순. 👎 카드는 맨 아래, 숨긴 카드는 표시 안 함.
+Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실(날짜·거리·행사)은 엔진 값을 그대로 씁니다.
+
 ### `services/google_api.dart`
 - Routes API `computeRoutes` (TRANSIT). 필요한 필드만 `X-Goog-FieldMask`로 요청합니다.
 - `decodePolyline` — Google Encoded Polyline. **웹 호환을 위해 `~x` 대신 `-(x + 1)`** 을 씁니다 ([8장](#8-알려진-함정-gotchas)).
@@ -236,6 +253,7 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 | `google_api_test.dart` | polyline 디코딩(구글 공식 예제), 최근접 지점 |
 | `calendar_api_test.dart` | 시간/종일 일정 파싱 |
 | `weather_test.dart` | 일별 예보 파싱, 비 예보 판단 |
+| `insight_engine_test.dart` | 규칙별 카드 생성, 중복 방지, 지난 일정 제외 |
 
 **웹 E2E 확인 팁:** 에뮬레이터 대신 `flutter build web` 결과를 헤드리스 Chrome으로 열어 스크린샷을 찍습니다. 웹 전용 버그(예: polyline)는 VM 테스트로 잡히지 않으므로 **웹에서 한 번은 직접 확인**하세요.
 
@@ -273,7 +291,8 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 
 - [ ] `eventsProvider` → TourAPI(축제) / KOPIS(공연) 실제 데이터, IT 행사는 큐레이션 JSON
 - [x] Google Weather 일별 예보 → 내 일정·이벤트 상세·홈 카드에 표시 (`WeatherChip`, 약 10일 범위)
-- [ ] 인사이트 생성: 일정 × 행사 × 날씨 매칭 → Gemini 설명 (JSON 출력, 출처 포함)
+- [x] 인사이트 엔진: 일정 × 행사 × 날씨 × 관심사 (규칙 기반)
+- [ ] Gemini로 카드 문장 다듬기 (JSON 출력, 사실은 엔진 값 유지)
 - [x] 온보딩: 관심사 선택 → `interestsProvider` (저장·수정 가능). 목표(goal) 입력은 추후
 - [ ] Firebase: Firestore 저장, Cloud Functions로 API 키 이전, FCM 푸시
 - [ ] Android: Kakao 네이티브 키, Google OAuth Android 클라이언트(SHA-1), 실기기 데모 빌드

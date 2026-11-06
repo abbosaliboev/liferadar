@@ -23,7 +23,7 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.appTitle), actions: const [EditInterestsButton(), LanguageButton()]),
       body: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-        itemCount: insights.length + 1,
+        itemCount: insights.isEmpty ? 2 : insights.length + 1,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, i) {
           if (i == 0) {
@@ -33,8 +33,44 @@ class HomeScreen extends ConsumerWidget {
               Text(l10n.homeSubtitle, style: text.bodyMedium),
             ]);
           }
+          if (insights.isEmpty) return const _EmptySignals();
           return InsightCard(insight: insights[i - 1]);
         },
+      ),
+    );
+  }
+}
+
+/// Hali hech qanday signal yo'q: kalendarni ulash yoki qiziqishlarni kengaytirishga yo'naltiramiz.
+class _EmptySignals extends StatelessWidget {
+  const _EmptySignals();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(children: [
+          Icon(Icons.radar, size: 40, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(height: 10),
+          Text(l10n.homeEmptyTitle, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+          const SizedBox(height: 6),
+          Text(l10n.homeEmptyBody, textAlign: TextAlign.center),
+          const SizedBox(height: 14),
+          Wrap(spacing: 8, runSpacing: 8, alignment: WrapAlignment.center, children: [
+            FilledButton.icon(
+              onPressed: () => context.go('/plans'),
+              icon: const Icon(Icons.calendar_month),
+              label: Text(l10n.connectCalendar),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/interests'),
+              icon: const Icon(Icons.tune),
+              label: Text(l10n.interestsEdit),
+            ),
+          ]),
+        ]),
       ),
     );
   }
@@ -50,13 +86,13 @@ class InsightCard extends ConsumerWidget {
     final l10n = context.l10n;
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final controller = ref.read(insightsProvider.notifier);
+    final controller = ref.read(insightFeedbackProvider.notifier);
     final plan = insight.planId == null
         ? null
         : ref.watch(plansProvider).where((p) => p.id == insight.planId).firstOrNull;
 
     void feedback(InsightFeedback f) {
-      controller.setFeedback(insight.id, f);
+      controller.set(insight.id, f);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.feedbackThanks)));
     }
 
