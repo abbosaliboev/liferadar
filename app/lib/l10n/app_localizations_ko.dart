@@ -430,4 +430,142 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get rainChance => '강수';
+
+  @override
+  String get showLess => '접기';
+
+  @override
+  String get planNew => '새 일정';
+
+  @override
+  String get planEdit => '일정 수정';
+
+  @override
+  String get planTitle => '제목';
+
+  @override
+  String get planTitleHint => '예: 부산 출장';
+
+  @override
+  String get planTitleRequired => '제목을 입력하세요';
+
+  @override
+  String get planDate => '날짜';
+
+  @override
+  String get planStart => '시작';
+
+  @override
+  String get planEnd => '종료';
+
+  @override
+  String get planAllDay => '하루 종일';
+
+  @override
+  String get planLocation => '장소';
+
+  @override
+  String get planLocationAdd => '장소 추가';
+
+  @override
+  String get planLocationRemove => '장소 삭제';
+
+  @override
+  String get planNote => '메모';
+
+  @override
+  String get planNoteHint => '기억할 내용';
+
+  @override
+  String get planSaveToCalendar => 'Google 캘린더에도 저장';
+
+  @override
+  String get planCalendarSynced => '변경 사항은 Google 캘린더에도 저장돼요.';
+
+  @override
+  String get planSampleHint => '샘플 일정이에요. 저장하면 내 일정이 돼요.';
+
+  @override
+  String get planDelete => '일정 삭제';
+
+  @override
+  String planDeleteConfirm(String title) {
+    return '\"$title\" 일정을 삭제할까요?';
+  }
+
+  @override
+  String get planSaved => '일정을 저장했어요';
+
+  @override
+  String get planDeleted => '일정을 삭제했어요';
+
+  @override
+  String get planEndBeforeStart => '종료 시간은 시작 시간 이후여야 해요';
+
+  @override
+  String planSaveError(String message) {
+    return '저장하지 못했어요: $message';
+  }
+
+  @override
+  String get cancel => '취소';
+
+  @override
+  String get delete => '삭제';
+
+  @override
+  String get openInCalendar => 'Google 캘린더에서 열기';
+
+  @override
+  String get plansEmptyAdd => '첫 일정을 추가하거나 Google 캘린더를 연결해 가져오세요.';
+
+  @override
+  String interestsSelectedCount(int count) {
+    return '$count개 선택';
+  }
+
+  @override
+  String get categoryPerformance => '공연';
+
+  @override
+  String get categoryExhibition => '전시';
+
+  @override
+  String get categoryClasses => '교육·체험';
+
+  @override
+  String get free => '무료';
+
+  @override
+  String dataSource(String name) {
+    return '출처: $name';
+  }
+
+  @override
+  String get showMore => '더 보기';
+
+  @override
+  String eventsUpdated(String date) {
+    return '실제 행사 데이터 $date 업데이트';
+  }
+
+  @override
+  String get realData => '실제 데이터';
+
+  @override
+  String get ongoing => '진행 중';
+
+  @override
+  String get categoryStartupSupport => '창업 지원';
+
+  @override
+  String applicationPeriod(String from, String to) {
+    return '접수 $from – $to';
+  }
+
+  @override
+  String get nationwide => '전국';
+
+  @override
+  String get applyNow => '신청하기';
 }

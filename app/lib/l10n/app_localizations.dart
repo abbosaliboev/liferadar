@@ -877,6 +877,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rain'**
   String get rainChance;
+
+  /// No description provided for @showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get showLess;
+
+  /// No description provided for @planNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New plan'**
+  String get planNew;
+
+  /// No description provided for @planEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit plan'**
+  String get planEdit;
+
+  /// No description provided for @planTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get planTitle;
+
+  /// No description provided for @planTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Busan business trip'**
+  String get planTitleHint;
+
+  /// No description provided for @planTitleRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a title'**
+  String get planTitleRequired;
+
+  /// No description provided for @planDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get planDate;
+
+  /// No description provided for @planStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get planStart;
+
+  /// No description provided for @planEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get planEnd;
+
+  /// No description provided for @planAllDay.
+  ///
+  /// In en, this message translates to:
+  /// **'All day'**
+  String get planAllDay;
+
+  /// No description provided for @planLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get planLocation;
+
+  /// No description provided for @planLocationAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a place'**
+  String get planLocationAdd;
+
+  /// No description provided for @planLocationRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove place'**
+  String get planLocationRemove;
+
+  /// No description provided for @planNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get planNote;
+
+  /// No description provided for @planNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything to remember'**
+  String get planNoteHint;
+
+  /// No description provided for @planSaveToCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Also save to Google Calendar'**
+  String get planSaveToCalendar;
+
+  /// No description provided for @planCalendarSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes are saved to your Google Calendar too.'**
+  String get planCalendarSynced;
+
+  /// No description provided for @planSampleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample plan — saving makes it your own plan.'**
+  String get planSampleHint;
+
+  /// No description provided for @planDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete plan'**
+  String get planDelete;
+
+  /// No description provided for @planDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{title}\"?'**
+  String planDeleteConfirm(String title);
+
+  /// No description provided for @planSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan saved'**
+  String get planSaved;
+
+  /// No description provided for @planDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan deleted'**
+  String get planDeleted;
+
+  /// No description provided for @planEndBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'End time must be after the start'**
+  String get planEndBeforeStart;
+
+  /// No description provided for @planSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save: {message}'**
+  String planSaveError(String message);
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @openInCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Google Calendar'**
+  String get openInCalendar;
+
+  /// No description provided for @plansEmptyAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first plan, or connect Google Calendar to import them.'**
+  String get plansEmptyAdd;
+
+  /// No description provided for @interestsSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String interestsSelectedCount(int count);
+
+  /// No description provided for @categoryPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows'**
+  String get categoryPerformance;
+
+  /// No description provided for @categoryExhibition.
+  ///
+  /// In en, this message translates to:
+  /// **'Exhibition'**
+  String get categoryExhibition;
+
+  /// No description provided for @categoryClasses.
+  ///
+  /// In en, this message translates to:
+  /// **'Classes'**
+  String get categoryClasses;
+
+  /// No description provided for @free.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get free;
+
+  /// No description provided for @dataSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Data: {name}'**
+  String dataSource(String name);
+
+  /// No description provided for @showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more'**
+  String get showMore;
+
+  /// No description provided for @eventsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Real events updated {date}'**
+  String eventsUpdated(String date);
+
+  /// No description provided for @realData.
+  ///
+  /// In en, this message translates to:
+  /// **'Live data'**
+  String get realData;
+
+  /// No description provided for @ongoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get ongoing;
+
+  /// No description provided for @categoryStartupSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Startup programs'**
+  String get categoryStartupSupport;
+
+  /// No description provided for @applicationPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Applications {from} – {to}'**
+  String applicationPeriod(String from, String to);
+
+  /// No description provided for @nationwide.
+  ///
+  /// In en, this message translates to:
+  /// **'Nationwide'**
+  String get nationwide;
+
+  /// No description provided for @applyNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get applyNow;
 }
 
 class _AppLocalizationsDelegate

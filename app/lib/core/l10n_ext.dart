@@ -20,5 +20,9 @@ extension L10nX on BuildContext {
         EventCategory.meetup => l10n.categoryMeetup,
         EventCategory.job => l10n.categoryJob,
         EventCategory.scholarship => l10n.categoryScholarship,
+        EventCategory.performance => l10n.categoryPerformance,
+        EventCategory.exhibition => l10n.categoryExhibition,
+        EventCategory.classes => l10n.categoryClasses,
+        EventCategory.startupSupport => l10n.categoryStartupSupport,
       };
 }

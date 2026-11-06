@@ -249,5 +249,92 @@
   "eventDetails": "Details",
   "openSource": "Source",
   "searching": "Searching…",
-  "rainChance": "Rain"
+  "rainChance": "Rain",
+  "showLess": "Show less",
+  "planNew": "New plan",
+  "planEdit": "Edit plan",
+  "planTitle": "Title",
+  "planTitleHint": "e.g. Busan business trip",
+  "planTitleRequired": "Enter a title",
+  "planDate": "Date",
+  "planStart": "Starts",
+  "planEnd": "Ends",
+  "planAllDay": "All day",
+  "planLocation": "Location",
+  "planLocationAdd": "Add a place",
+  "planLocationRemove": "Remove place",
+  "planNote": "Note",
+  "planNoteHint": "Anything to remember",
+  "planSaveToCalendar": "Also save to Google Calendar",
+  "planCalendarSynced": "Changes are saved to your Google Calendar too.",
+  "planSampleHint": "Sample plan — saving makes it your own plan.",
+  "planDelete": "Delete plan",
+  "planDeleteConfirm": "Delete \"{title}\"?",
+  "@planDeleteConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "planSaved": "Plan saved",
+  "planDeleted": "Plan deleted",
+  "planEndBeforeStart": "End time must be after the start",
+  "planSaveError": "Couldn't save: {message}",
+  "@planSaveError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "openInCalendar": "Open in Google Calendar",
+  "plansEmptyAdd": "Add your first plan, or connect Google Calendar to import them.",
+  "interestsSelectedCount": "{count} selected",
+  "@interestsSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryPerformance": "Shows",
+  "categoryExhibition": "Exhibition",
+  "categoryClasses": "Classes",
+  "free": "Free",
+  "dataSource": "Data: {name}",
+  "@dataSource": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "showMore": "Show more",
+  "eventsUpdated": "Real events updated {date}",
+  "@eventsUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "realData": "Live data",
+  "ongoing": "Ongoing",
+  "categoryStartupSupport": "Startup programs",
+  "applicationPeriod": "Applications {from} – {to}",
+  "@applicationPeriod": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "nationwide": "Nationwide",
+  "applyNow": "Apply"
 }

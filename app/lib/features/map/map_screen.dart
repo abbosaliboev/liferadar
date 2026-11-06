@@ -116,7 +116,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             right: Space.lg,
             bottom: Space.lg,
             child: Container(
-              decoration: floating.copyWith(shape: BoxShape.circle, borderRadius: null),
+              // copyWith(borderRadius: null) radiusni o'chirmaydi → circle + radius assertion.
+              decoration: BoxDecoration(
+                color: floating.color,
+                shape: BoxShape.circle,
+                border: floating.border,
+                boxShadow: floating.boxShadow,
+              ),
               child: IconButton(
                 tooltip: l10n.modeExplore,
                 icon: Icon(Icons.fit_screen_outlined, color: p.text),
@@ -199,7 +205,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Future<void> _drawOverlays() async {
     final map = _map;
     if (map == null) return;
-    final events = ref.read(eventsProvider);
+    final events = ref.read(mapEventsProvider);
 
     await _drawPlans(ref.read(plansProvider));
 
@@ -356,7 +362,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Future<void> _fitAll() async {
     final pts = [
       ...ref.read(plansProvider).where((p) => p.location != null).map((p) => _ll(p.location!)),
-      ...ref.read(eventsProvider).map((e) => _ll(e.location)),
+      ...ref.read(mapEventsProvider).map((e) => _ll(e.location)),
     ];
     await _fit(pts);
   }

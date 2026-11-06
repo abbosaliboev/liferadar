@@ -392,6 +392,10 @@ IconData categoryIcon(EventCategory c) => switch (c) {
       EventCategory.meetup => Icons.groups_outlined,
       EventCategory.job => Icons.work_outline,
       EventCategory.scholarship => Icons.school_outlined,
+      EventCategory.performance => Icons.theater_comedy_outlined,
+      EventCategory.exhibition => Icons.museum_outlined,
+      EventCategory.classes => Icons.draw_outlined,
+      EventCategory.startupSupport => Icons.rocket_launch_outlined,
     };
 
 IconData signalIcon(SignalType t) => switch (t) {
@@ -400,3 +404,31 @@ IconData signalIcon(SignalType t) => switch (t) {
       SignalType.traffic => Icons.directions_transit_outlined,
       SignalType.deadline => Icons.schedule_outlined,
     };
+
+// ─────────────────────────── Qiziqish ranglari ───────────────────────────
+
+/// Qiziqishlar uchun rangli, lekin sokin ranglar to'plami.
+/// Light: matn 700, fon 100. Dark: matn 300, fon shu rangning 16% shaffofi.
+/// Har ikkala rejimda matn/fon kontrasti ≥ 4.5:1.
+enum Hue {
+  teal(Color(0xFF0F766E), Color(0xFFCCFBF1), Color(0xFF5EEAD4)),
+  cyan(Color(0xFF0E7490), Color(0xFFCFFAFE), Color(0xFF67E8F9)),
+  sky(Color(0xFF0369A1), Color(0xFFE0F2FE), Color(0xFF7DD3FC)),
+  blue(Color(0xFF1D4ED8), Color(0xFFDBEAFE), Color(0xFF93C5FD)),
+  indigo(Color(0xFF4338CA), Color(0xFFE0E7FF), Color(0xFFA5B4FC)),
+  violet(Color(0xFF6D28D9), Color(0xFFEDE9FE), Color(0xFFC4B5FD)),
+  pink(Color(0xFFBE185D), Color(0xFFFCE7F3), Color(0xFFF9A8D4)),
+  rose(Color(0xFFBE123C), Color(0xFFFFE4E6), Color(0xFFFDA4AF)),
+  orange(Color(0xFFC2410C), Color(0xFFFFEDD5), Color(0xFFFDBA74)),
+  amber(Color(0xFFB45309), Color(0xFFFEF3C7), Color(0xFFFCD34D)),
+  lime(Color(0xFF4D7C0F), Color(0xFFECFCCB), Color(0xFFBEF264)),
+  green(Color(0xFF15803D), Color(0xFFDCFCE7), Color(0xFF86EFAC));
+
+  const Hue(this._fgLight, this._bgLight, this._fgDark);
+  final Color _fgLight, _bgLight, _fgDark;
+
+  /// (matn/ikonka rangi, fon rangi)
+  (Color fg, Color bg) of(BuildContext context) => Theme.of(context).brightness == Brightness.dark
+      ? (_fgDark, _fgDark.withValues(alpha: 0.16))
+      : (_fgLight, _bgLight);
+}

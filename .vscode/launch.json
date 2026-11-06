@@ -8,7 +8,11 @@
       "cwd": "app",
       "program": "lib/main.dart",
       "deviceId": "chrome",
-      "toolArgs": ["--dart-define-from-file=env.json", "--web-port=8080"]
+      "toolArgs": [
+        "--dart-define-from-file=env.json",
+        "--web-port=8080",
+        "--web-browser-flag=--user-data-dir=${workspaceFolder}/app/.dart_tool/chrome-profile"
+      ]
     },
     {
       "name": "LifeRadar (Android)",

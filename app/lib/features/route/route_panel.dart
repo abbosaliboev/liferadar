@@ -43,9 +43,7 @@ class _RoutePanelState extends ConsumerState<RoutePanel> {
 
     final collapsed = _collapsed && summary != null;
 
-    return AnimatedSize(
-      duration: Motion.of(context, Motion.normal),
-      curve: Motion.curve,
+    return SmoothSize(
       alignment: Alignment.bottomCenter,
       child: Container(
         decoration: decoration,

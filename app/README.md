@@ -9,5 +9,6 @@
 ```bash
 cp env.example.json env.json
 dart run tool/gen_web_env.dart
-flutter run -d chrome --web-port=8080 --dart-define-from-file=env.json
+flutter run -d chrome --web-port=8080 --dart-define-from-file=env.json \
+  --web-browser-flag="--user-data-dir=$PWD/.dart_tool/chrome-profile"   # 로그인·관심사·일정 유지
 ```

@@ -6,8 +6,8 @@ import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
 import '../../core/widgets.dart';
 import '../../data/calendar_controller.dart';
-import '../../data/providers.dart';
 import '../../data/session.dart';
+import 'interest_summary.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -18,7 +18,6 @@ class ProfileScreen extends ConsumerWidget {
     final p = context.palette;
     final t = context.textStyles;
     final session = ref.watch(sessionProvider);
-    final interests = ref.watch(interestsProvider);
     final cal = ref.watch(calendarProvider);
     final themeMode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeProvider);
@@ -68,11 +67,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-            child: Wrap(spacing: Space.sm, runSpacing: Space.sm, children: [
-              for (final o in interestOptions.where((o) => interests.contains(o.tag)))
-                Pill(context.tr(o.label), icon: o.icon, tone: Tone.primary),
-              if (interests.isEmpty) Text(l10n.onboardingPickOne, style: t.bodySmall),
-            ]),
+            child: const InterestSummary(),
           ),
 
           // ── Ulangan xizmatlar ──

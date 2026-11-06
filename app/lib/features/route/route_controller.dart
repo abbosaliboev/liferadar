@@ -103,7 +103,7 @@ class RouteController extends Notifier<RouteState> {
       final dayEnd = dayStart.add(const Duration(days: 1)).subtract(const Duration(seconds: 1));
       var opps = _matcher.match(
         route: route.points,
-        events: ref.read(eventsProvider),
+        events: ref.read(eventsProvider).where((e) => !e.placeless).toList(), // e'lonlar "yo'lda" emas
         interests: ref.read(interestsProvider),
         tripStart: dayStart,
         tripEnd: dayEnd,

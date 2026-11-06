@@ -23,9 +23,12 @@ Future<void> main() async {
   }
   // GIS SDK'ni fonda yuklaymiz — ilova ochilishini kutdirmaymiz.
   initGoogleSignIn().catchError((Object e) => debugPrint('Google Sign-In init failed: $e'));
-  final prefs = await SharedPreferences.getInstance();
+  final (prefs, feed) = await (SharedPreferences.getInstance(), EventFeed.load()).wait;
   runApp(ProviderScope(
-    overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+    overrides: [
+      sharedPrefsProvider.overrideWithValue(prefs),
+      eventFeedProvider.overrideWithValue(feed),
+    ],
     child: const LifeRadarApp(),
   ));
 }

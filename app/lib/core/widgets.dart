@@ -17,12 +17,14 @@ class Shimmer extends StatefulWidget {
 }
 
 class _ShimmerState extends State<Shimmer> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1300))
-    ..repeat();
+  // Lazily yaratiladi: reduced-motion'da umuman kerak emas.
+  AnimationController? _ctrl;
+  AnimationController get _c =>
+      _ctrl ??= AnimationController(vsync: this, duration: const Duration(milliseconds: 1300))..repeat();
 
   @override
   void dispose() {
-    _c.dispose();
+    _ctrl?.dispose();
     super.dispose();
   }
 
@@ -357,4 +359,90 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
           builder: (_, child) => Transform.translate(offset: Offset(0, 8 * (1 - _a.value)), child: child),
         ),
       );
+}
+
+/// Rangli qiziqish chip'i. [onTap] berilsa — tanlanadigan (onboarding), aks holda — statik belgi.
+class InterestChip extends StatelessWidget {
+  const InterestChip({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.hue,
+    this.selected = true,
+    this.onTap,
+    this.dense = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final Hue hue;
+  final bool selected;
+  final VoidCallback? onTap;
+  final bool dense;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final (fg, bg) = hue.of(context);
+    final d = Motion.of(context, Motion.fast);
+    final radius = BorderRadius.circular(Radii.xl);
+    final chip = AnimatedContainer(
+      duration: d,
+      curve: Motion.curve,
+      padding: EdgeInsets.symmetric(horizontal: dense ? Space.sm + 2 : Space.md, vertical: dense ? 5 : Space.sm + 2),
+      decoration: BoxDecoration(
+        color: selected ? bg : p.surface,
+        borderRadius: radius,
+        border: Border.all(color: selected ? fg.withValues(alpha: 0.55) : p.border, width: selected && onTap != null ? 1.5 : 1),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        ExcludeSemantics(child: Icon(icon, size: dense ? 14 : 18, color: fg)),
+        SizedBox(width: dense ? 5 : Space.sm),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: (dense ? context.textStyles.labelMedium : context.textStyles.titleSmall)!
+                .copyWith(color: selected ? fg : p.text),
+          ),
+        ),
+        if (onTap != null)
+          SmoothSize(
+            duration: Motion.fast,
+            child: selected
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Icon(Icons.check_rounded, size: 18, color: fg),
+                  )
+                : const SizedBox.shrink(),
+          ),
+      ]),
+    );
+    if (onTap == null) return chip;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(onTap: onTap, borderRadius: radius, child: chip),
+      ),
+    );
+  }
+}
+
+/// AnimatedSize, lekin "animatsiyani kamaytirish" yoqilganda animatsiyasiz.
+/// (AnimatedSize'ga Duration.zero berilsa Flutter layout assertion beradi.)
+class SmoothSize extends StatelessWidget {
+  const SmoothSize({super.key, required this.child, this.duration = Motion.normal, this.alignment = Alignment.center});
+  final Widget child;
+  final Duration duration;
+  final AlignmentGeometry alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final d = Motion.of(context, duration);
+    if (d == Duration.zero) return child;
+    return AnimatedSize(duration: d, curve: Motion.curve, alignment: alignment, child: child);
+  }
 }

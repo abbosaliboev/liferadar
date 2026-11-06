@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
+import '../../core/widgets.dart';
 import '../../data/providers.dart';
 
 /// Qiziqishlarni tanlash. Birinchi ochilishda ([editing] = false) va
@@ -79,77 +80,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               const SizedBox(height: Space.sm),
               Text(l10n.onboardingSubtitle, style: t.bodyMedium!.copyWith(color: p.textMuted)),
               const SizedBox(height: Space.xxl),
-              LayoutBuilder(builder: (context, c) {
-                final w = (c.maxWidth - Space.md) / 2;
-                return Wrap(spacing: Space.md, runSpacing: Space.md, children: [
-                  for (final o in interestOptions)
-                    SizedBox(
-                      width: w,
-                      child: _InterestTile(
-                        icon: o.icon,
-                        label: context.tr(o.label),
-                        selected: _selected.contains(o.tag),
-                        onTap: () => setState(
-                          () => _selected.contains(o.tag) ? _selected.remove(o.tag) : _selected.add(o.tag),
-                        ),
+              for (final g in InterestGroup.values) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: Space.md),
+                  child: Text(context.tr(g.label), style: t.labelLarge!.copyWith(color: p.textMuted)),
+                ),
+                Wrap(spacing: Space.sm, runSpacing: Space.sm, children: [
+                  for (final o in interestOptions.where((o) => o.group == g))
+                    InterestChip(
+                      label: context.tr(o.label),
+                      icon: o.icon,
+                      hue: o.hue,
+                      selected: _selected.contains(o.tag),
+                      onTap: () => setState(
+                        () => _selected.contains(o.tag) ? _selected.remove(o.tag) : _selected.add(o.tag),
                       ),
                     ),
-                ]);
-              }),
+                ]),
+                const SizedBox(height: Space.xxl),
+              ],
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InterestTile extends StatelessWidget {
-  const _InterestTile({required this.icon, required this.label, required this.selected, required this.onTap});
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-    final d = Motion.of(context, Motion.fast);
-    return Semantics(
-      selected: selected,
-      button: true,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(Radii.lg),
-          child: AnimatedContainer(
-            duration: d,
-            curve: Motion.curve,
-            height: 64,
-            padding: const EdgeInsets.symmetric(horizontal: Space.md),
-            decoration: BoxDecoration(
-              color: selected ? p.primarySoft : p.surface,
-              borderRadius: BorderRadius.circular(Radii.lg),
-              border: Border.all(color: selected ? p.primary : p.border, width: selected ? 1.5 : 1),
-            ),
-            child: Row(children: [
-              Icon(icon, size: 22, color: selected ? p.primary : p.textMuted),
-              const SizedBox(width: Space.sm),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textStyles.titleSmall!.copyWith(color: selected ? p.primary : p.text),
-                ),
-              ),
-              AnimatedScale(
-                duration: d,
-                scale: selected ? 1 : 0,
-                child: Icon(Icons.check_circle_rounded, size: 20, color: p.primary),
-              ),
-            ]),
           ),
         ),
       ),

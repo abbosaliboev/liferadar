@@ -10,6 +10,7 @@ import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../shell/app_shell.dart';
 import '../weather/weather_chip.dart';
+import 'plan_editor_sheet.dart';
 
 class PlansScreen extends ConsumerWidget {
   const PlansScreen({super.key});
@@ -51,12 +52,18 @@ class PlansScreen extends ConsumerWidget {
           const SizedBox(width: Space.sm),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showPlanEditor(context),
+        icon: const Icon(Icons.add_rounded),
+        label: Text(l10n.planNew),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           if (cal.isConnected) await ref.read(calendarProvider.notifier).sync();
         },
         child: ListView(
-          padding: const EdgeInsets.only(bottom: Space.xxxl),
+          // FAB oxirgi kartani yopmasin.
+          padding: const EdgeInsets.only(bottom: 96),
           children: [
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: Space.gutter),
@@ -66,17 +73,30 @@ class PlansScreen extends ConsumerWidget {
               const Shimmer(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(Space.gutter, Space.xxl, Space.gutter, 0),
-                  child: Column(children: [
-                    SkeletonCard(),
-                    SizedBox(height: Space.md),
-                    SkeletonCard(),
-                    SizedBox(height: Space.md),
-                    SkeletonCard(lines: 1),
-                  ]),
+                  child: Column(
+                    children: [
+                      SkeletonCard(),
+                      SizedBox(height: Space.md),
+                      SkeletonCard(),
+                      SizedBox(height: Space.md),
+                      SkeletonCard(lines: 1),
+                    ],
+                  ),
                 ),
               )
             else if (plans.isEmpty)
-              EmptyState(icon: Icons.event_available_outlined, title: l10n.upcoming, body: l10n.plansEmpty)
+              EmptyState(
+                icon: Icons.event_available_outlined,
+                title: l10n.upcoming,
+                body: l10n.plansEmptyAdd,
+                actions: [
+                  FilledButton.icon(
+                    onPressed: () => showPlanEditor(context),
+                    icon: const Icon(Icons.add_rounded),
+                    label: Text(l10n.planNew),
+                  ),
+                ],
+              )
             else
               for (final entry in groups.entries) ...[
                 SectionHeader(dayLabel(entry.key)),
@@ -133,27 +153,32 @@ class _CalendarCard extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(Space.lg),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(children: [
-            const IconTile(Icons.calendar_month_outlined),
-            const SizedBox(width: Space.md),
-            Expanded(child: Text(l10n.connectCalendar, style: t.titleSmall)),
-          ]),
-          const SizedBox(height: Space.md),
-          Text(l10n.calendarPrivacy, style: t.bodySmall),
-          if (error != null) ...[
-            const SizedBox(height: Space.sm),
-            Text(error, style: t.bodySmall!.copyWith(color: p.danger)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const IconTile(Icons.calendar_month_outlined),
+                const SizedBox(width: Space.md),
+                Expanded(child: Text(l10n.connectCalendar, style: t.titleSmall)),
+              ],
+            ),
+            const SizedBox(height: Space.md),
+            Text(l10n.calendarPrivacy, style: t.bodySmall),
+            if (error != null) ...[
+              const SizedBox(height: Space.sm),
+              Text(error, style: t.bodySmall!.copyWith(color: p.danger)),
+            ],
+            const SizedBox(height: Space.lg),
+            FilledButton.icon(
+              onPressed: cal.isBusy ? null : c.connect,
+              icon: cal.isBusy
+                  ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: p.textMuted))
+                  : const Icon(Icons.link_rounded),
+              label: Text(cal.isBusy ? l10n.calendarConnecting : l10n.connect),
+            ),
           ],
-          const SizedBox(height: Space.lg),
-          FilledButton.icon(
-            onPressed: cal.isBusy ? null : c.connect,
-            icon: cal.isBusy
-                ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2, color: p.textMuted))
-                : const Icon(Icons.link_rounded),
-            label: Text(cal.isBusy ? l10n.calendarConnecting : l10n.connect),
-          ),
-        ]),
+        ),
       ),
     );
   }
@@ -169,50 +194,73 @@ class _PlanCard extends StatelessWidget {
     final l10n = context.l10n;
     final p = context.palette;
     final t = context.textStyles;
-    final allDay = plan.start.hour == 0 && plan.start.minute == 0 && plan.end.difference(plan.start).inHours >= 23;
+    final allDay = plan.isAllDay;
     final multiDay = plan.end.difference(plan.start).inDays >= 1;
-    final time = allDay
-        ? '—'
-        : DateFormat.Hm(context.lang).format(plan.start);
+    final time = allDay ? '—' : DateFormat.Hm(context.lang).format(plan.start);
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Space.lg),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(
-            width: 52,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(time, style: t.titleSmall),
-              if (multiDay) ...[
-                const SizedBox(height: 2),
-                Text('~${DateFormat.Md(context.lang).format(plan.end)}', style: t.labelSmall),
-              ],
-            ]),
-          ),
-          Container(width: 3, height: 44, decoration: BoxDecoration(color: p.primary, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: Space.md),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(child: Text(plan.title, style: t.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                if (plan.source == 'sample') const SampleBadge(),
-              ]),
-              const SizedBox(height: 4),
-              MetaRow(
-                plan.location == null ? Icons.location_off_outlined : Icons.place_outlined,
-                plan.locationText.isEmpty ? l10n.noLocation : plan.locationText,
+      child: InkWell(
+        onTap: () => showPlanEditor(context, plan: plan),
+        child: Padding(
+          padding: const EdgeInsets.all(Space.lg),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 52,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(time, style: t.titleSmall),
+                    if (multiDay) ...[
+                      const SizedBox(height: 2),
+                      Text('~${DateFormat.Md(context.lang).format(plan.end)}', style: t.labelSmall),
+                    ],
+                  ],
+                ),
               ),
-              if (plan.location != null) ...[
-                const SizedBox(height: 6),
-                WeatherChip(location: plan.location!, date: plan.start),
-              ],
-              if (signals > 0) ...[
-                const SizedBox(height: Space.sm),
-                Pill('${l10n.statSignals} $signals', icon: Icons.radar, tone: Tone.primary, dense: true),
-              ],
-            ]),
+              Container(
+                width: 3,
+                height: 44,
+                decoration: BoxDecoration(color: p.primary, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(width: Space.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(plan.title, style: t.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                        if (plan.source == 'sample') const SampleBadge(),
+                        if (plan.source == 'gcal')
+                          Tooltip(
+                            message: l10n.sourceCalendar,
+                            child: Icon(Icons.calendar_month_outlined, size: 16, color: p.textMuted),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    MetaRow(
+                      plan.location == null ? Icons.location_off_outlined : Icons.place_outlined,
+                      plan.locationText.isEmpty ? l10n.noLocation : plan.locationText,
+                    ),
+                    if (plan.location != null) ...[
+                      const SizedBox(height: 6),
+                      WeatherChip(location: plan.location!, date: plan.start),
+                    ],
+                    if (signals > 0) ...[
+                      const SizedBox(height: Space.sm),
+                      Pill('${l10n.statSignals} $signals', icon: Icons.radar, tone: Tone.primary, dense: true),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-        ]),
+        ),
       ),
     );
   }

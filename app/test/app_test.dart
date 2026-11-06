@@ -64,7 +64,7 @@ void main() {
 
     expect(find.text('Signals for you'), findsOneWidget);
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getStringList('interests'), containsAll(['ai', 'startup']));
+    expect(prefs.getStringList('interests:guest'), containsAll(['ai', 'startup']));
   });
 
   testWidgets('Qiziqishlar saqlangan bo\'lsa Home ochiladi va til almashadi', (tester) async {

@@ -13,6 +13,53 @@ const _haeundae = GeoPoint(35.1587, 129.1604);
 const _gangnam = GeoPoint(37.4979, 127.0276);
 
 final sampleEvents = <RadarEvent>[
+  // ── Texnologiyadan tashqari qiziqishlar uchun (ovqat, sport, o'yin, san'at) ──
+  RadarEvent(
+    id: 'ev-seoul-food-fest',
+    title: const LocalizedText(ko: '서울 푸드 페스티벌 (샘플)', en: 'Seoul Food Festival (sample)'),
+    description: const LocalizedText(
+      ko: '전국 맛집과 푸드트럭이 모이는 주말 축제. 가족 단위 방문객 환영.',
+      en: 'A weekend festival of local restaurants and food trucks. Families welcome.',
+    ),
+    category: EventCategory.festival,
+    tags: const ['food', 'culture', 'family'],
+    start: DateTime(2026, 11, 14, 11),
+    end: DateTime(2026, 11, 14, 20),
+    venue: 'COEX 야외광장',
+    city: 'Seoul',
+    location: _coex,
+  ),
+  RadarEvent(
+    id: 'ev-gangnam-run',
+    title: const LocalizedText(ko: '강남 나이트 런 5K (샘플)', en: 'Gangnam Night Run 5K (sample)'),
+    description: const LocalizedText(
+      ko: '퇴근 후 함께 달리는 5km 러닝 모임. 초보자도 참여 가능.',
+      en: 'An after-work 5 km group run. Beginners welcome.',
+    ),
+    category: EventCategory.meetup,
+    tags: const ['fitness', 'sports', 'outdoor'],
+    start: DateTime(2026, 11, 13, 19, 30),
+    end: DateTime(2026, 11, 13, 21),
+    venue: '강남역 11번 출구',
+    city: 'Seoul',
+    location: _gangnam,
+    deadline: DateTime(2026, 11, 12),
+  ),
+  RadarEvent(
+    id: 'ev-pangyo-game-art',
+    title: const LocalizedText(ko: '판교 게임 아트 전시 (샘플)', en: 'Pangyo Game Art Exhibition (sample)'),
+    description: const LocalizedText(
+      ko: '국내 게임사의 콘셉트 아트와 인디 게임 시연을 한곳에서.',
+      en: 'Concept art from Korean game studios and indie game demos in one place.',
+    ),
+    category: EventCategory.festival,
+    tags: const ['gaming', 'art', 'design'],
+    start: DateTime(2026, 11, 22, 10),
+    end: DateTime(2026, 11, 22, 18),
+    venue: '판교 테크노밸리',
+    city: 'Seongnam',
+    location: _pangyo,
+  ),
   RadarEvent(
     id: 'ev-busan-concert',
     title: const LocalizedText(ko: '부산 대형 콘서트 (샘플)', en: 'Large concert in Busan (sample)'),

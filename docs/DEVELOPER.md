@@ -43,11 +43,13 @@ flutter pub get
 cp env.example.json env.json          # 키 입력 (2장 참고)
 dart run tool/gen_web_env.dart        # web/kakao_config.js 생성 (Kakao 지도 JS SDK 로더)
 
-flutter run -d chrome --web-port=8080 --dart-define-from-file=env.json
+flutter run -d chrome --web-port=8080 --dart-define-from-file=env.json \
+  --web-browser-flag="--user-data-dir=$PWD/.dart_tool/chrome-profile"   # 로그인·관심사·일정 유지
 ```
 
 - **포트는 반드시 8080** — Kakao JavaScript SDK 도메인과 Google OAuth origin이 `http://localhost:8080`으로 등록되어 있습니다.
 - VS Code: 실행 구성 **"LifeRadar (Chrome)"** 을 선택하면 위 옵션이 자동으로 들어갑니다 (`.vscode/launch.json`).
+- **`--user-data-dir` 플래그**: 없으면 `flutter run`이 매번 **새 임시 Chrome 프로필**로 열어 localStorage(로그인, 관심사, 내가 만든 일정)가 실행할 때마다 사라집니다. `.dart_tool/chrome-profile`은 git에 올라가지 않습니다.
 - `Address already in use` 오류 → 8080을 다른 프로세스가 쓰고 있습니다: `lsof -nP -iTCP:8080 -sTCP:LISTEN`
 
 ---
@@ -63,6 +65,8 @@ flutter run -d chrome --web-port=8080 --dart-define-from-file=env.json
 | `KAKAO_NATIVE_APP_KEY` | Android 지도 표시 | 같은 앱 → 네이티브 앱 키 | Android 패키지 `com.liferadar.liferadar` + 키 해시 등록 |
 | `KAKAO_REST_API_KEY` | 장소 검색, 자동차 경로 | 같은 앱 → REST API 키 | — |
 | `GOOGLE_API_KEY` | 대중교통 경로(Routes), Places, Weather | Google Cloud Console → 사용자 인증 정보 | Routes / Places (New) / Weather / Calendar API 사용 설정 |
+| `SEOUL_OPEN_API_KEY` | 실제 행사 수집 (`tool/collect_events.dart` 전용, 앱에는 안 들어감) | [서울 열린데이터광장](https://data.seoul.go.kr) → 회원가입 → 인증키 신청 (일반 인증키, 즉시 발급) | 없으면 `sample` 키로 5건만 수집 |
+| `DATA_GO_KR_KEY` | 전국 축제 수집 (TourAPI), 창업 공고 (K-Startup, 예정) — 수집 스크립트 전용 | [공공데이터포털](https://www.data.go.kr) → 데이터별 **활용신청** (자동승인) → 마이페이지 → 일반 인증키 **(Decoding)** | 승인 후 1–2시간 뒤 활성화. 개발계정 일 1,000건 |
 | `GOOGLE_OAUTH_WEB_CLIENT_ID` | Google 로그인 → 캘린더 접근 | Google Auth Platform → 클라이언트 → 웹 애플리케이션 | 승인된 JS 원본 `http://localhost:8080`, 대상 = 테스트 중 + **테스트 사용자 등록**, 범위 `calendar.events` |
 | `TMAP_APP_KEY` | (예비) 대중교통 | SK Open API | 무료 할당량이 매우 작아 현재 미사용 |
 
@@ -146,11 +150,12 @@ hack_idea/
 | Provider | 내용 |
 |---|---|
 | `eventsProvider` | 행사 목록 (현재 샘플 → TourAPI/KOPIS로 교체 예정) |
-| `plansProvider` | 내 일정 — 캘린더 연결 전 샘플, 연결 후 실제 일정 |
+| `plansProvider` | 내 일정 = 기본 소스(캘린더 연결 전 샘플, 연결 후 실제 일정) + 앱에서 직접 만든 일정(`local`, 계정별 저장). 같은 id면 직접 만든 일정이 우선 (수정한 샘플) |
 | `insightsProvider` | `InsightEngine` 결과 (일정·행사·관심사·예보가 바뀌면 자동 재계산) + 피드백 |
 | `insightFeedbackProvider` | 카드 id → 👍/👎/숨기기 (shared_preferences 저장) |
 | `nowProvider` | "오늘" — 테스트에서 고정 날짜로 override |
-| `interestsProvider` | 관심사 태그 — 온보딩에서 선택, `shared_preferences`에 저장 (비어 있으면 온보딩부터 시작) |
+| `interestsProvider` | 관심사 태그 — 온보딩에서 선택, **계정별**로 `shared_preferences`에 저장 (비어 있으면 온보딩부터 시작) |
+| `sessionProvider` | 게스트 / Google 프로필 (이름·이메일·사진만, 토큰 저장 안 함) |
 | `routeProvider` | 경로 탐색 입력·결과·기회 목록 |
 | `calendarProvider` | 캘린더 연결 상태 |
 | `mapFocusProvider` | 홈/발견에서 "지도에서 보기" 요청 |
@@ -179,6 +184,59 @@ RouteMatcher.match()
   ▼
 지도: 초록 경로선 + 출발/도착 + 기회 마커,  패널: "+7.1 km · +17분"
 ```
+
+### 실제 행사 데이터 파이프라인
+
+```
+dart run tool/collect_events.dart [--days=90]
+  ├─ 서울 열린데이터광장 culturalEventInfo (1,000건/페이지)
+  │    └─ SeoulCulture.parse(): 분류 → 카테고리, 키워드 → 관심사 태그(tagger.dart),
+  │       PRO_TIME 자유 텍스트 → 시작/종료 시각, 좌표 검증(lat/lng 뒤바뀜 보정)
+  ├─ TourAPI searchFestival2 (오늘-60일부터, 100건/페이지)
+  │    └─ 범위 안 축제만 detailCommon2(개요·홈페이지) + detailIntro2(시간·장소·요금·프로그램)
+  │       4개씩 병렬, 실패해도 목록 정보로 유지. HTML(<br>, <a href>) 정리, 주소 → "부산 해운대구"
+  ├─ K-Startup getAnnouncementInformation01 (cond[rcrt_prgs_yn::EQ]=Y, 500건/페이지)
+  │    └─ 공고는 장소가 없음 → placeless=true, start–end = 접수 기간, deadline = 접수 마감,
+  │       location = 시·도 중심(내부용). 지도·경로·"근처" 인사이트에서 제외, 마감 알림에만 사용
+  ├─ 오늘 ~ +90일 범위만, id로 중복 제거, 시작일 정렬
+  └─ assets/data/events.json  (generatedAt, sources[출처·라이선스], events[])
+
+앱 시작: EventFeed.load() → eventFeedProvider → eventsProvider = 실제 + 샘플
+```
+
+- **왜 앱에서 직접 호출하지 않나:** 키가 웹 번들에 노출되고, 서울 API는 `http://…:8088`이라 https 배포에서 혼합 콘텐츠로 막히며, CORS도 보장되지 않습니다. 수집 스크립트가 미리 모아 asset으로 넣습니다.
+- **데이터 갱신:** 스크립트를 다시 실행하고 `assets/data/events.json`을 커밋합니다.
+- **실제 결과 (2026-11-07):** 서울 347건 (교육·체험 129, 전시 91, 콘서트 56, 공연 38, 축제 33) + TourAPI 축제 110건 (전체 451건 중 범위 내, 요청 약 230회) + K-Startup 공고 195건 (접수 중 214건 중 90일 내 마감) = 652건, 약 1.2 MB.
+- **진행 중 행사:** 몇 달짜리 전시·강좌는 시작일이 과거입니다. 발견 카드는 종료일(`~12월 31`)과 `진행 중` 배지로, 인사이트 문장은 일정 날짜/오늘 기준(`_on()`)으로 표시합니다.
+- **혼잡 경고:** 실제 데이터에는 공연장 규모가 없어서, 작은 홀 공연까지 '혼잡'으로 오인하지 않도록 실제 데이터는 **축제만** 대상입니다.
+- **마감 카드:** 창업 공고는 수십 건이라 마감 인사이트는 관심사 일치 → 남은 일수 순으로 **최대 3개**. 캘린더에 추가하면 접수 기간 전체가 아니라 **마감일 09:00 알림**으로 들어갑니다.
+- **많은 행사 대응:** 발견 탭은 30개씩 "더 보기", 지도 추천 레이어는 30일 내 관심사 상위 60개(`mapEventsProvider`), 인사이트는 일정당 혼잡 1개(실제 데이터는 3 km 이내·3일 이하 공연/축제) + 기회 2개로 제한.
+- **출처 표시:** 공공누리 조건에 따라 행사 상세에 `sourceName`과 원문 링크를 표시합니다.
+- **사용하지 않는 소스:** [Dev-Event](https://github.com/brave-people/Dev-Event)는 `USAGE_POLICY.md`에서 스크래핑·크롤링, 2차 서비스, 추천 시스템 활용을 금지합니다. 이용약관이 수집을 막는 사이트는 크롤링하지 않습니다.
+- **새 소스 추가:** `lib/services/sources/<name>.dart`에 `parse(row) → RadarEvent?`(순수 Dart) + 테스트, `collect_events.dart`에 수집 루프 추가.
+
+### 계정별 로컬 저장
+
+로그아웃 후 같은 Google 계정으로 다시 들어오면 관심사와 일정이 그대로 돌아오고, 다른 사람(게스트·다른 계정)과 섞이지 않도록 키에 계정 범위를 붙입니다.
+
+| 키 | 내용 |
+|---|---|
+| `session` | 현재 세션 JSON |
+| `interests:<scope>` | 관심사 태그 목록 |
+| `plans:<scope>` | 앱에서 만든 일정 (JSON 배열) |
+
+`<scope>` = `guest` 또는 `g:<이메일 소문자>` (`accountScope()`). 예전 버전의 `interests` 키는 처음 읽을 때 한 번 옮겨집니다.
+기기 간 동기화는 아직 없습니다 (Firebase 도입 시 같은 구조로 옮길 예정).
+
+### 일정 추가·수정 흐름
+
+| 일정 출처 | 수정/삭제 |
+|---|---|
+| `local` (앱에서 만듦) | 기기에 저장. 편집 화면에서 "Google 캘린더에도 저장"을 켜면 캘린더 이벤트로 옮겨짐 |
+| `gcal` | Calendar API `PATCH` / `DELETE` → 다시 동기화 (`CalendarApi.planBody`) |
+| `sample` | 저장하면 같은 id의 `local` 일정이 샘플을 대체. 삭제 불가 |
+
+종일 일정은 `date`, 시간 일정은 UTC `dateTime`으로 보냅니다. `PATCH`에서는 반대쪽 필드를 `null`로 보내 종일↔시간 전환이 가능합니다.
 
 ### 캘린더 흐름
 
@@ -223,8 +281,8 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 - `directions` — 자동차 경로. `withGeometry: false`이면 요약만 받아 detour 계산에 사용
 
 ### `data/calendar_controller.dart`
-- `connect / sync / addEvent / disconnect`
-- 토큰 만료(401) 시 `addEvent`는 한 번 재인증을 시도하고, `sync`는 "다시 연결" 상태로 전환
+- `connect / sync / addEvent / savePlan / deletePlan / disconnect`
+- 토큰 만료(401) 시 `addEvent`·`savePlan`·`deletePlan`은 한 번 재인증을 시도하고, `sync`는 "다시 연결" 상태로 전환
 
 ### `features/map/map_screen.dart`
 - 레이어별로 `Poi` 목록을 들고 있다가 `show()/hide()` 로 토글
@@ -292,6 +350,12 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 | 새로고침 후 캘린더 연결이 풀림 | 토큰을 메모리에만 저장(의도된 동작). 다시 연결 |
 | Kakao 네이티브 지도가 에뮬레이터에서 안 보임 | x86 미지원. ARM 실기기 사용 |
 | 웹 release 빌드만 흰 화면 + `MissingPluginException(getAll … shared_preferences)` | 플러그인 추가 후 `.dart_tool`의 오래된 빌드 캐시가 재사용되어 플러그인이 등록되지 않음 → `flutter clean && flutter pub get` 후 다시 빌드 |
+| 실행할 때마다 다시 로그인·관심사 선택 | `flutter run -d chrome`의 임시 프로필 → `--web-browser-flag="--user-data-dir=..."` (1장 참고) |
+| 디버그에서만 화면이 깨짐 (`A circle cannot have a border radius`) | `BoxDecoration.copyWith(borderRadius: null)`은 radius를 **지우지 않음** → 새 `BoxDecoration` 작성. release에서는 assert가 꺼져 안 보이므로 디버그로도 확인 |
+| 테스트에서 `RenderAnimatedSize was mutated in its own performLayout` | 모션 줄이기에서 `AnimatedSize(duration: 0)` → `SmoothSize` 위젯 사용 |
+| data.go.kr `SERVICE_KEY_IS_NOT_REGISTERED_ERROR` | 해당 API에 활용신청이 안 됐거나, 승인 직후(1–2시간) 아직 동기화 전 |
+| 서울 API `INFO-100` | 인증키 오류. `sample` 키는 5건까지만 |
+| 웹에서 행사 포스터가 안 보임 | 외부 이미지 서버에 CORS 헤더가 없음 → `Image.network(webHtmlElementStrategy: fallback)`로 `<img>` 사용 |
 | `Route` 이름 충돌 | Flutter의 `Route`와 Kakao의 `Route` → `import ... as km` 사용 |
 
 ---

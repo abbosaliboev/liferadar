@@ -47,19 +47,32 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
   Future<void> _addToCalendar() async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
-    final title = context.tr(event.title);
+    var title = context.tr(event.title);
+    // E'lon: ko'p haftalik event emas — muddat kuni 09:00 da 1 soatlik eslatma.
+    var target = event;
+    if (event.placeless && event.deadline != null) {
+      final d = event.deadline!;
+      target = RadarEvent.fromJson({
+        ...event.toJson(),
+        'start': DateTime(d.year, d.month, d.day, 9).toIso8601String(),
+        'end': DateTime(d.year, d.month, d.day, 10).toIso8601String(),
+      });
+      title = '${l10n.kindDeadline}: $title';
+    }
     setState(() => _adding = true);
     try {
-      final link = await ref.read(calendarProvider.notifier).addEvent(event, title: title);
-      messenger.showSnackBar(SnackBar(
-        content: Text(l10n.addedToCalendar),
-        action: link == null
-            ? null
-            : SnackBarAction(
-                label: l10n.openSource,
-                onPressed: () => launchUrl(Uri.parse(link), mode: LaunchMode.externalApplication),
-              ),
-      ));
+      final link = await ref.read(calendarProvider.notifier).addEvent(target, title: title);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.addedToCalendar),
+          action: link == null
+              ? null
+              : SnackBarAction(
+                  label: l10n.openSource,
+                  onPressed: () => launchUrl(Uri.parse(link), mode: LaunchMode.externalApplication),
+                ),
+        ),
+      );
     } catch (e) {
       final msg = e.toString().contains('not-configured') ? l10n.calendarNotConfigured : l10n.calendarError('$e');
       messenger.showSnackBar(SnackBar(content: Text(msg)));
@@ -90,109 +103,177 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
       initialChildSize: 0.62,
       minChildSize: 0.4,
       maxChildSize: 0.92,
-      builder: (context, controller) => Column(children: [
-        Expanded(
-          child: ListView(
-            controller: controller,
-            padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xl),
-            children: [
-              Row(children: [
-                IconTile(categoryIcon(event.category), size: 44),
-                const SizedBox(width: Space.md),
-                Pill(context.categoryLabel(event.category)),
-                const Spacer(),
-                if (event.isSample) const SampleBadge(),
-              ]),
-              const SizedBox(height: Space.md),
-              Text(context.tr(event.title), style: t.headlineSmall),
-              const SizedBox(height: Space.lg),
-
-              // ── Asosiy ma'lumotlar ──
-              Container(
-                padding: const EdgeInsets.all(Space.lg),
-                decoration: BoxDecoration(color: p.surfaceAlt, borderRadius: BorderRadius.circular(Radii.lg)),
-                child: Column(children: [
-                  _Info(Icons.schedule_outlined,
-                      '${context.formatDateTime(event.start)} – ${context.formatDateTime(event.end)}'),
-                  _Info(Icons.place_outlined, '${event.venue} · ${event.city}'),
-                  if (event.deadline != null)
-                    _Info(Icons.hourglass_bottom_rounded, '${l10n.kindDeadline} · ${context.formatDate(event.deadline!)}',
-                        color: p.accent),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: Space.xs),
-                    child: Row(children: [
-                      const SizedBox(width: 26),
-                      Expanded(child: WeatherChip(location: event.location, date: event.start)),
-                    ]),
-                  ),
-                  if (o != null)
-                    _Info(
-                      Icons.alt_route_rounded,
-                      '${l10n.onYourWay} · ${o.detourKm != null ? l10n.routeDetour(o.detourKm!.toStringAsFixed(1), o.detourMinutes!) : l10n.routeFromRoute(o.distanceFromRouteKm.toStringAsFixed(1))}',
-                      color: p.primary,
-                    ),
-                ]),
-              ),
-              const SizedBox(height: Space.lg),
-              Text(context.tr(event.description), style: t.bodyLarge),
-
-              if (matched.isNotEmpty) ...[
-                const SizedBox(height: Space.lg),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(Space.md),
-                  decoration: BoxDecoration(
-                    color: p.primarySoft,
-                    borderRadius: BorderRadius.circular(Radii.md),
-                  ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(l10n.whyForYou, style: t.labelMedium!.copyWith(color: p.primary)),
-                    const SizedBox(height: Space.xs),
-                    Text(l10n.matchesInterests(matched.map((x) => '#$x').join(' ')), style: t.bodyMedium),
-                  ]),
+      builder: (context, controller) => Column(
+        children: [
+          Expanded(
+            child: ListView(
+              controller: controller,
+              padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xl),
+              children: [
+                if (event.imageUrl != null) ...[_Poster(event.imageUrl!), const SizedBox(height: Space.lg)],
+                Row(
+                  children: [
+                    IconTile(categoryIcon(event.category), size: 44),
+                    const SizedBox(width: Space.md),
+                    Pill(context.categoryLabel(event.category)),
+                    const Spacer(),
+                    if (event.isSample) const SampleBadge(),
+                  ],
                 ),
-              ],
-            ],
-          ),
-        ),
+                const SizedBox(height: Space.md),
+                Text(context.tr(event.title), style: t.headlineSmall),
+                const SizedBox(height: Space.lg),
 
-        // ── Harakatlar (doim ko'rinadi) ──
-        DecoratedBox(
-          decoration: BoxDecoration(color: p.surface, border: Border(top: BorderSide(color: p.border))),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.md),
-              child: Row(children: [
-                if (widget.onShowOnMap != null) ...[
-                  SizedBox(
-                    width: 52,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        widget.onShowOnMap!();
-                      },
-                      child: Tooltip(message: l10n.showOnMap, child: const Icon(Icons.map_outlined)),
+                // ── Asosiy ma'lumotlar ──
+                Container(
+                  padding: const EdgeInsets.all(Space.lg),
+                  decoration: BoxDecoration(color: p.surfaceAlt, borderRadius: BorderRadius.circular(Radii.lg)),
+                  child: Column(
+                    children: [
+                      // E'lon (manzilsiz): vaqt o'rniga qabul muddati, joy o'rniga tashkilot · hudud.
+                      if (event.placeless) ...[
+                        _Info(
+                          Icons.event_available_outlined,
+                          l10n.applicationPeriod(context.formatDate(event.start), context.formatDate(event.end)),
+                        ),
+                        _Info(
+                          Icons.apartment_outlined,
+                          [
+                            if (event.venue.isNotEmpty) event.venue,
+                            event.city == '전국' ? l10n.nationwide : event.city,
+                          ].join(' · '),
+                        ),
+                      ] else ...[
+                        _Info(
+                          Icons.schedule_outlined,
+                          '${context.formatDateTime(event.start)} – ${context.formatDateTime(event.end)}',
+                        ),
+                        _Info(Icons.place_outlined, '${event.venue} · ${event.city}'),
+                      ],
+                      if (event.isFree == true || event.price != null)
+                        _Info(
+                          Icons.confirmation_number_outlined,
+                          event.isFree == true ? l10n.free : event.price!,
+                          color: event.isFree == true ? p.primary : null,
+                        ),
+                      if (event.deadline != null)
+                        _Info(
+                          Icons.hourglass_bottom_rounded,
+                          '${l10n.kindDeadline} · ${context.formatDate(event.deadline!)}',
+                          color: p.accent,
+                        ),
+                      if (!event.placeless)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: Space.xs),
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 26),
+                              Expanded(
+                                child: WeatherChip(location: event.location, date: event.start),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (o != null)
+                        _Info(
+                          Icons.alt_route_rounded,
+                          '${l10n.onYourWay} · ${o.detourKm != null ? l10n.routeDetour(o.detourKm!.toStringAsFixed(1), o.detourMinutes!) : l10n.routeFromRoute(o.distanceFromRouteKm.toStringAsFixed(1))}',
+                          color: p.primary,
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: Space.lg),
+                Text(context.tr(event.description), style: t.bodyLarge),
+
+                if (matched.isNotEmpty) ...[
+                  const SizedBox(height: Space.lg),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(Space.md),
+                    decoration: BoxDecoration(color: p.primarySoft, borderRadius: BorderRadius.circular(Radii.md)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.whyForYou, style: t.labelMedium!.copyWith(color: p.primary)),
+                        const SizedBox(height: Space.xs),
+                        Text(
+                          l10n.matchesInterests(
+                            matched
+                                .map((x) => interestByTag(x) == null ? '#$x' : context.tr(interestByTag(x)!.label))
+                                .join(', '),
+                          ),
+                          style: t.bodyMedium,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: Space.sm),
                 ],
-                if (event.registerUrl != null) ...[
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => launchUrl(Uri.parse(event.registerUrl!), mode: LaunchMode.externalApplication),
-                      child: Text(l10n.register),
-                    ),
+
+                // ── Manba (ochiq ma'lumot litsenziyasi — atribut majburiy) ──
+                if (!event.isSample) ...[
+                  const SizedBox(height: Space.lg),
+                  Row(
+                    children: [
+                      Icon(Icons.verified_outlined, size: 16, color: p.textMuted),
+                      const SizedBox(width: Space.sm),
+                      Expanded(child: Text(l10n.dataSource(event.sourceName ?? event.source), style: t.bodySmall)),
+                      if (event.url != null)
+                        TextButton(
+                          onPressed: () => launchUrl(Uri.parse(event.url!), mode: LaunchMode.externalApplication),
+                          child: Text(l10n.openSource),
+                        ),
+                    ],
                   ),
-                  const SizedBox(width: Space.sm),
                 ],
-                Expanded(flex: 2, child: addButton),
-              ]),
+              ],
             ),
           ),
-        ),
-      ]),
+
+          // ── Harakatlar (doim ko'rinadi) ──
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: p.surface,
+              border: Border(top: BorderSide(color: p.border)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.md),
+                child: Row(
+                  children: [
+                    if (widget.onShowOnMap != null && !event.placeless) ...[
+                      SizedBox(
+                        width: 52,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            widget.onShowOnMap!();
+                          },
+                          child: Tooltip(message: l10n.showOnMap, child: const Icon(Icons.map_outlined)),
+                        ),
+                      ),
+                      const SizedBox(width: Space.sm),
+                    ],
+                    if (event.registerUrl != null) ...[
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () =>
+                              launchUrl(Uri.parse(event.registerUrl!), mode: LaunchMode.externalApplication),
+                          child: Text(event.placeless ? l10n.applyNow : l10n.register),
+                        ),
+                      ),
+                      const SizedBox(width: Space.sm),
+                    ],
+                    Expanded(flex: 2, child: addButton),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -208,19 +289,50 @@ class _Info extends StatelessWidget {
     final p = context.palette;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.xs),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        ExcludeSemantics(child: Icon(icon, size: 18, color: color ?? p.textMuted)),
-        const SizedBox(width: Space.sm),
-        Expanded(
-          child: Text(
-            text,
-            style: context.textStyles.bodyMedium!.copyWith(
-              color: color ?? p.text,
-              fontWeight: color != null ? FontWeight.w600 : null,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ExcludeSemantics(child: Icon(icon, size: 18, color: color ?? p.textMuted)),
+          const SizedBox(width: Space.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: context.textStyles.bodyMedium!.copyWith(
+                color: color ?? p.text,
+                fontWeight: color != null ? FontWeight.w600 : null,
+              ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Event posteri. Web'da boshqa domendagi rasm CORS'siz bo'lishi mumkin — HTML <img> ga qaytamiz.
+class _Poster extends StatelessWidget {
+  const _Poster(this.url);
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(Radii.lg),
+      child: Container(
+        height: 200,
+        color: p.surfaceAlt,
+        alignment: Alignment.center,
+        child: Image.network(
+          url,
+          fit: BoxFit.contain,
+          height: 200,
+          webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
+          errorBuilder: (_, _, _) => Icon(Icons.image_not_supported_outlined, color: p.textMuted),
+          loadingBuilder: (context, child, progress) =>
+              progress == null ? child : const Shimmer(child: SkeletonBox(height: 200)),
         ),
-      ]),
+      ),
     );
   }
 }

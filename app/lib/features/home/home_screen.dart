@@ -267,7 +267,7 @@ class InsightCard extends ConsumerWidget {
                 icon: const Icon(Icons.thumb_down_outlined, size: 20),
                 onPressed: () => send(InsightFeedback.dislike),
               ),
-              if (event != null)
+              if (event != null && !event.placeless)
                 IconButton(tooltip: l10n.showOnMap, icon: const Icon(Icons.map_outlined, size: 20), onPressed: openMap),
             ]),
           ]),

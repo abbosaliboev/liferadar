@@ -1,32 +1,107 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/models.dart';
 import '../services/google_api.dart';
 import '../services/insight_engine.dart';
 import '../services/kakao_api.dart';
+import 'event_feed.dart';
 import 'interests.dart';
 import 'sample_data.dart';
+import 'session.dart';
 
-export 'interests.dart' show interestsProvider, interestOptions, InterestOption, sharedPrefsProvider;
+export 'event_feed.dart' show EventFeed;
+export 'interests.dart'
+    show interestsProvider, interestOptions, InterestOption, InterestGroup, interestByTag, sharedPrefsProvider, accountScope;
 
 final kakaoApiProvider = Provider<KakaoApi>((ref) => KakaoApi());
 final googleApiProvider = Provider<GoogleApi>((ref) => GoogleApi());
 
 
 
-// TODO(D3): Firestore stream'lari bilan almashtiriladi.
-final eventsProvider = Provider<List<RadarEvent>>((ref) => sampleEvents);
+/// Haqiqiy eventlar — main()'da asset'dan yuklanib override qilinadi (testlarda bo'sh).
+final eventFeedProvider = Provider<EventFeed>((ref) => EventFeed.empty);
 
-/// Rejalar: Google Calendar ulanmaguncha sample, ulangandan keyin haqiqiy kalendar.
+/// Barcha eventlar: haqiqiy (ochiq API) + demo stsenariy uchun sample'lar ("Sample" belgisi bilan).
+final eventsProvider = Provider<List<RadarEvent>>((ref) => [...ref.watch(eventFeedProvider).events, ...sampleEvents]);
+
+/// Rejalar = asosiy manba (Google Calendar ulanmaguncha sample, keyin kalendar)
+/// + ilovada qo'lda qo'shilgan rejalar (qurilmada, akkaunt bo'yicha saqlanadi).
+/// Bir xil id'li o'z reja asosiy manbadagini almashtiradi (masalan, tahrirlangan sample).
 final plansProvider = NotifierProvider<PlansController, List<Plan>>(PlansController.new);
 
 class PlansController extends Notifier<List<Plan>> {
-  @override
-  List<Plan> build() => samplePlans;
+  List<Plan> _base = samplePlans;
+  List<Plan> _own = const [];
+  late String _key;
 
-  void setPlans(List<Plan> plans) => state = plans;
-  void resetToSample() => state = samplePlans;
+  @override
+  List<Plan> build() {
+    _key = 'plans:${accountScope(ref.watch(sessionProvider))}';
+    _base = samplePlans;
+    _own = _load();
+    return _merge();
+  }
+
+  List<Plan> _load() {
+    final raw = ref.read(sharedPrefsProvider).getString(_key);
+    if (raw == null) return const [];
+    try {
+      return [for (final j in jsonDecode(raw) as List) Plan.fromJson(j as Map<String, dynamic>)];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  List<Plan> _merge() {
+    final ownIds = {for (final p in _own) p.id};
+    return [..._base.where((p) => !ownIds.contains(p.id)), ..._own]..sort((a, b) => a.start.compareTo(b.start));
+  }
+
+  Future<void> _persist() async {
+    state = _merge();
+    await ref.read(sharedPrefsProvider).setString(_key, jsonEncode([for (final p in _own) p.toJson()]));
+  }
+
+  void setPlans(List<Plan> plans) {
+    _base = plans;
+    state = _merge();
+  }
+
+  void resetToSample() => setPlans(samplePlans);
+
+  /// Ilovadagi o'z rejani qo'shadi yoki yangilaydi (source = 'local').
+  Future<void> saveLocal(Plan plan) async {
+    final p = plan.copyWith(source: 'local');
+    _own = [..._own.where((x) => x.id != p.id), p];
+    await _persist();
+  }
+
+  Future<void> removeLocal(String id) async {
+    _own = _own.where((x) => x.id != id).toList();
+    await _persist();
+  }
 }
+
+/// Xaritadagi "Recommended" qatlami: 30 kun ichidagi, qiziqishga eng mos [mapEventLimit] ta event.
+/// Sample'lar demo stsenariy uchun doim qoladi.
+const mapEventLimit = 60;
+final mapEventsProvider = Provider<List<RadarEvent>>((ref) {
+  final now = ref.watch(nowProvider);
+  final today = DateTime(now.year, now.month, now.day);
+  final horizon = today.add(const Duration(days: 30));
+  final interests = ref.watch(interestsProvider);
+  final all = ref.watch(eventsProvider);
+  final real = all
+      .where((e) => !e.isSample && !e.placeless && !e.end.isBefore(today) && e.start.isBefore(horizon))
+      .toList()
+    ..sort((a, b) {
+      final s = interestScore(b, interests).compareTo(interestScore(a, interests));
+      return s != 0 ? s : a.start.compareTo(b.start);
+    });
+  return [...all.where((e) => e.isSample), ...real.take(mapEventLimit)];
+});
 
 final eventByIdProvider = Provider.family<RadarEvent?, String>((ref, id) {
   for (final e in ref.watch(eventsProvider)) {

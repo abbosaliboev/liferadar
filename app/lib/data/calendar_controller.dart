@@ -93,6 +93,28 @@ class CalendarController extends Notifier<CalendarState> {
     }
   }
 
+  /// Rejani Google Calendar'ga yozadi (yangi yoki mavjud eventni tahrirlash), so'ng sinxronlaydi.
+  Future<void> savePlan(Plan plan) => _withApi((api) => api.savePlan(plan, eventId: plan.calendarEventId));
+
+  /// Kalendardagi rejani o'chiradi.
+  Future<void> deletePlan(Plan plan) async {
+    final id = plan.calendarEventId;
+    if (id != null) await _withApi((api) => api.delete(id));
+  }
+
+  /// Token bo'lmasa ruxsat so'raydi; muddati o'tgan bo'lsa bir marta qayta urinadi. Keyin sinxron.
+  Future<void> _withApi(Future<void> Function(CalendarApi api) action) async {
+    if (!isGoogleSignInConfigured) throw const CalendarApiException('not-configured');
+    if (_token == null) await _authorize();
+    try {
+      await action(CalendarApi(_token!));
+    } on CalendarAuthExpired {
+      await _authorize();
+      await action(CalendarApi(_token!));
+    }
+    await sync();
+  }
+
   Future<void> disconnect() async {
     final token = _token;
     _token = null;
@@ -116,6 +138,8 @@ class CalendarController extends Notifier<CalendarState> {
       city: place == null ? '' : place.address.split(' ').first,
       location: place?.location,
       source: 'gcal',
+      note: e.description?.isEmpty == true ? null : e.description,
+      htmlLink: e.htmlLink,
     );
   }
 

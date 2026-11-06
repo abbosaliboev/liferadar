@@ -441,4 +441,144 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rainChance => 'Rain';
+
+  @override
+  String get showLess => 'Show less';
+
+  @override
+  String get planNew => 'New plan';
+
+  @override
+  String get planEdit => 'Edit plan';
+
+  @override
+  String get planTitle => 'Title';
+
+  @override
+  String get planTitleHint => 'e.g. Busan business trip';
+
+  @override
+  String get planTitleRequired => 'Enter a title';
+
+  @override
+  String get planDate => 'Date';
+
+  @override
+  String get planStart => 'Starts';
+
+  @override
+  String get planEnd => 'Ends';
+
+  @override
+  String get planAllDay => 'All day';
+
+  @override
+  String get planLocation => 'Location';
+
+  @override
+  String get planLocationAdd => 'Add a place';
+
+  @override
+  String get planLocationRemove => 'Remove place';
+
+  @override
+  String get planNote => 'Note';
+
+  @override
+  String get planNoteHint => 'Anything to remember';
+
+  @override
+  String get planSaveToCalendar => 'Also save to Google Calendar';
+
+  @override
+  String get planCalendarSynced =>
+      'Changes are saved to your Google Calendar too.';
+
+  @override
+  String get planSampleHint => 'Sample plan — saving makes it your own plan.';
+
+  @override
+  String get planDelete => 'Delete plan';
+
+  @override
+  String planDeleteConfirm(String title) {
+    return 'Delete \"$title\"?';
+  }
+
+  @override
+  String get planSaved => 'Plan saved';
+
+  @override
+  String get planDeleted => 'Plan deleted';
+
+  @override
+  String get planEndBeforeStart => 'End time must be after the start';
+
+  @override
+  String planSaveError(String message) {
+    return 'Couldn\'t save: $message';
+  }
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get openInCalendar => 'Open in Google Calendar';
+
+  @override
+  String get plansEmptyAdd =>
+      'Add your first plan, or connect Google Calendar to import them.';
+
+  @override
+  String interestsSelectedCount(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get categoryPerformance => 'Shows';
+
+  @override
+  String get categoryExhibition => 'Exhibition';
+
+  @override
+  String get categoryClasses => 'Classes';
+
+  @override
+  String get free => 'Free';
+
+  @override
+  String dataSource(String name) {
+    return 'Data: $name';
+  }
+
+  @override
+  String get showMore => 'Show more';
+
+  @override
+  String eventsUpdated(String date) {
+    return 'Real events updated $date';
+  }
+
+  @override
+  String get realData => 'Live data';
+
+  @override
+  String get ongoing => 'Ongoing';
+
+  @override
+  String get categoryStartupSupport => 'Startup programs';
+
+  @override
+  String applicationPeriod(String from, String to) {
+    return 'Applications $from – $to';
+  }
+
+  @override
+  String get nationwide => 'Nationwide';
+
+  @override
+  String get applyNow => 'Apply';
 }

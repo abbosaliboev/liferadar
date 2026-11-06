@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import '../models/models.dart';
 
 /// Google Calendar REST API (v3) — foydalanuvchining OAuth access token'i bilan.
-/// Scope: https://www.googleapis.com/auth/calendar.events (o'qish + qo'shish).
+/// Scope: https://www.googleapis.com/auth/calendar.events (o'qish, qo'shish, tahrirlash, o'chirish).
 class CalendarApi {
   CalendarApi(this._accessToken, {http.Client? client}) : _client = client ?? http.Client();
 
@@ -63,6 +63,41 @@ class CalendarApi {
     return (jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>)['htmlLink'] as String?;
   }
 
+  /// Foydalanuvchi rejasini kalendarga yozadi: [eventId] bo'lmasa — yangi, bo'lsa — tahrirlash.
+  Future<CalendarEvent> savePlan(Plan p, {String? eventId}) async {
+    final body = jsonEncode(planBody(p, patch: eventId != null));
+    final res = eventId == null
+        ? await _client.post(Uri.parse(_base), headers: _headers, body: body)
+        : await _client.patch(Uri.parse('$_base/${Uri.encodeComponent(eventId)}'), headers: _headers, body: body);
+    _check(res);
+    return CalendarEvent.fromJson(jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>);
+  }
+
+  Future<void> delete(String eventId) async {
+    final res = await _client.delete(Uri.parse('$_base/${Uri.encodeComponent(eventId)}'), headers: _headers);
+    // 410 = allaqachon o'chirilgan — xato emas.
+    if (res.statusCode == 410 || res.statusCode == 404) return;
+    _check(res);
+  }
+
+  /// Reja → Calendar API event tanasi. Butun kunlik reja 'date', aks holda UTC 'dateTime'.
+  /// PATCH'da qarama-qarshi maydon null bilan tozalanadi (masalan, vaqtli → butun kunlik).
+  static Map<String, dynamic> planBody(Plan p, {bool patch = false}) {
+    String day(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+    return {
+      'summary': p.title,
+      'location': p.locationText,
+      'description': p.note ?? '',
+      if (p.isAllDay) ...{
+        'start': {'date': day(p.start), if (patch) 'dateTime': null},
+        'end': {'date': day(p.end), if (patch) 'dateTime': null},
+      } else ...{
+        'start': {'dateTime': p.start.toUtc().toIso8601String(), if (patch) 'date': null},
+        'end': {'dateTime': p.end.toUtc().toIso8601String(), if (patch) 'date': null},
+      },
+    };
+  }
+
   /// Event vaqtlari Koreya vaqtida saqlangan — timezone bilan "yerli" ISO yuboramiz.
   static String _local(DateTime d) => DateTime(d.year, d.month, d.day, d.hour, d.minute)
       .toIso8601String()
@@ -83,6 +118,8 @@ class CalendarEvent {
     required this.start,
     required this.end,
     this.location,
+    this.description,
+    this.htmlLink,
   });
 
   factory CalendarEvent.fromJson(Map<String, dynamic> j) {
@@ -99,6 +136,8 @@ class CalendarEvent {
       start: parse(j['start'] as Map<String, dynamic>?),
       end: parse(j['end'] as Map<String, dynamic>?),
       location: (j['location'] as String?)?.trim(),
+      description: (j['description'] as String?)?.trim(),
+      htmlLink: j['htmlLink'] as String?,
     );
   }
 
@@ -107,6 +146,8 @@ class CalendarEvent {
   final DateTime start;
   final DateTime end;
   final String? location;
+  final String? description;
+  final String? htmlLink;
 }
 
 class CalendarApiException implements Exception {
