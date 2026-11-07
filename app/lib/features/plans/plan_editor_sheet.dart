@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/calendar_link.dart';
 import '../../core/errors.dart';
 import '../../core/confirm.dart';
 import '../../core/l10n_ext.dart';
@@ -395,7 +395,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
                       action: _plan!.htmlLink == null
                           ? null
                           : TextButton(
-                              onPressed: () => launchUrl(Uri.parse(_plan!.htmlLink!)),
+                              onPressed: () => openCalendar(htmlLink: _plan!.htmlLink, at: _plan!.start),
                               child: Text(l10n.openInCalendar),
                             ),
                     )

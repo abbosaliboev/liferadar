@@ -15,6 +15,7 @@
   "errNoRoute": "두 장소 사이의 경로를 찾지 못했어요.",
   "errGeneric": "문제가 발생했어요. 다시 시도해 주세요.",
   "eventsUpdated": "실제 공공데이터 · 행사 {count}개 · {date} 업데이트",
+  "notifyDeniedApp": "알림이 꺼져 있어요. 설정에서 LifeRadar 알림을 켠 뒤 다시 시도해 주세요.",
   "sources": "출처",
   "confidence": "신뢰도 {percent}%",
   "showOnMap": "지도에서 보기",

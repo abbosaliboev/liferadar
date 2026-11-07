@@ -49,5 +49,11 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
         </intent>
+        <!-- Kalendar linklari brauzer emas, Google Calendar ilovasida ochilsin (core/calendar_link.dart) -->
+        <package android:name="com.google.android.calendar" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" />
+        </intent>
     </queries>
 </manifest>

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/calendar_link.dart';
 import '../../core/errors.dart';
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
@@ -233,10 +233,7 @@ class _CalendarCard extends ConsumerWidget {
                 if (cal.isBusy) Padding(padding: const EdgeInsets.all(Space.md), child: AppSpinner(size: 16)),
                 IconButton(
                   tooltip: l10n.calendarOpenGoogle,
-                  onPressed: () => launchUrl(
-                    Uri.parse('https://calendar.google.com/calendar/r/month'),
-                    mode: LaunchMode.externalApplication,
-                  ),
+                  onPressed: () => openCalendar(),
                   icon: Icon(Icons.open_in_new_rounded, size: 18, color: p.primary),
                 ),
               ],

@@ -188,6 +188,12 @@ abstract class AppLocalizations {
   /// **'Real public data · {count} events · updated {date}'**
   String eventsUpdated(int count, String date);
 
+  /// No description provided for @notifyDeniedApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked. Turn on notifications for LifeRadar in Settings, then try again.'**
+  String get notifyDeniedApp;
+
   /// No description provided for @sources.
   ///
   /// In en, this message translates to:
