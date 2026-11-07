@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "LifeRadar (Chrome)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "app",
+      "program": "lib/main.dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--dart-define-from-file=env.json",
+        "--web-port=8080",
+        "--web-browser-flag=--user-data-dir=${workspaceFolder}/app/.dart_tool/chrome-profile"
+      ]
+    },
+    {
+      "name": "LifeRadar (Android)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "app",
+      "program": "lib/main.dart",
+      "toolArgs": ["--dart-define-from-file=env.json"]
+    }
+  ]
+}
