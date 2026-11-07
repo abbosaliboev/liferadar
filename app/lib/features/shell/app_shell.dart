@@ -127,11 +127,10 @@ class GlassTabBar extends StatelessWidget {
                   height: height,
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    color: (dark ? const Color(0xFF1B2327) : Colors.white).withValues(alpha: dark ? 0.72 : 0.78),
+                    color: (dark ? const Color(0xFF1B2327) : Colors.white).withValues(alpha: dark ? 0.60 : 0.68),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: (dark ? Colors.white : Colors.black).withValues(alpha: dark ? 0.10 : 0.06),
-                    ),
+                    // Shisha qirrasi — yorug' ingichka chiziq.
+                    border: Border.all(color: Colors.white.withValues(alpha: dark ? 0.12 : 0.7)),
                   ),
                   child: Stack(
                     children: [

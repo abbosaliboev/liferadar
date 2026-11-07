@@ -372,8 +372,10 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 ### 홈 카드 · 토스트 · 읽음 표시
 
 - **신호 카드 (`InsightCard`)**: 무엇(`MarqueeText` — 넘치면 가로로 흐름, 모션 줄이기에선 말줄임) · 언제 · 어디서 · 관심사 칩 최대 2개 · D-n. 본문·이유·신뢰도·출처는 카드에 없고 탭하면 `openSignal()` → 행사 시트의 `SignalWhyBlock` (행사 없는 신호는 단독 시트).
+- **유리 컴포넌트 (`GlassSurface`, `GlassSegmented`, `core/widgets.dart`)**: 블러 + 반투명(라이트 0.62 / 다크 0.55) + 밝은 얇은 테두리 + 그림자. 홈 필터, 지도 모드 전환·레이어 칩·원형 버튼에 공통 사용.
+- **지도 다크 모드**: Kakao JS 지도에는 다크 테마가 없어서, 다크일 때 `<html class="lr-dark-map">`(`core/map_theme/`)을 켜고 `web/index.html` CSS로 **타일 이미지(`mts.kakaocdn.net`)에만** `invert + hue-rotate` 필터를 적용합니다. 마커(data: 이미지)와 컨테이너는 필터하지 않고 배경색만 바꿉니다(컨테이너에 필터를 걸면 마커까지 어두워짐). Android 네이티브는 아직 라이트.
 - **하단 탭 (`GlassTabBar`, `shell/app_shell.dart`)**: iOS "liquid glass" 스타일의 떠 있는 캡슐(블러 22, 반투명, 그림자). 선택 탭은 안쪽 캡슐이 `easeOutBack`으로 미끄러지고 아이콘이 살짝 커짐. 홈 탭에는 아직 열어 보지 않은 신호 수 빨간 배지(9+). `Scaffold(extendBody: true)` — 콘텐츠가 탭 아래로 지나가므로 각 화면 스크롤 하단 여백에 `MediaQuery.paddingOf(context).bottom`을 더합니다.
-- **필터 (`HomeFilter`, `_FilterHeader`)**: 상단 숫자 3개 = 내 일정 / 전체(기본) / 마감 임박(마감일 순). `SliverPersistentHeader(pinned)` — 맨 위에선 큰 숫자 카드, 스크롤하면 `shrinkOffset`에 따라 하단 탭과 같은 **유리 캡슐**(아이콘 + 라벨 + 아이콘 모서리 배지, 마감 임박은 빨강; 스크롤하면 아이콘이 접히고 배지가 라벨 옆으로)로 변하며 고정. 선택 표시는 미끄러지는 인디케이터(`AnimatedAlign`).
+- **필터 (`HomeFilter`, `_FilterHeader`)**: 상단 숫자 3개 = 내 일정 / 전체(기본) / 마감 임박(마감일 순). `SliverPersistentHeader(pinned)` — 맨 위에선 큰 숫자 카드, 스크롤하면 `shrinkOffset`에 따라 하단 탭과 같은 **유리 캡슐**(아이콘 + 라벨 + 아이콘 모서리 배지, 마감 임박은 빨강). 스크롤해도 거의 줄어들지 않고(104→92), 위에서 14px 띄워 고정되며 더 투명해져 뒤 카드가 비침로 변하며 고정. 선택 표시는 미끄러지는 인디케이터(`AnimatedAlign`).
 - **좌우 스와이프**: 목록을 옆으로 밀면(속도 > 250) 이전/다음 필터, 카드는 같은 방향으로 슬라이드 전환 + 햅틱.
 - **👎 확인**: 예/아니요 다이얼로그 후 저장.
 - **토스트 (`core/toast.dart`)**: `Toast.show(msg, type:)` — `GoRouter(navigatorKey: Toast.navigatorKey)`의 루트 오버레이에 위에서 내려옴, 아이콘 없음, 탭/위로 밀어 닫기. 색은 상태별(success 초록 `#15803D`, error, warning, info), 흰 글자와 4.5:1 이상. `SnackBar`는 쓰지 않습니다.

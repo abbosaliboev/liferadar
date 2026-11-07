@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -227,8 +225,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-/// Qadalgan filtr — pastki navigatsiya bilan bir xil "liquid glass" kapsula.
-/// [k] = 0 (tepada): ikonka + yorliq, son ikonka burchagida; 1 (aylantirilganda): ixcham — faqat yorliq + son.
+/// Qadalgan filtr — pastki navigatsiya bilan bir xil "liquid glass" kapsula: ikonka + yorliq,
+/// son ikonka burchagida ("Due soon" — qizil). Aylantirilganda deyarli kichraymaydi — faqat biroz
+/// ixchamlashadi va shaffofroq bo'ladi (orqadagi kartalar xira ko'rinib turadi).
 class _FilterHeader extends SliverPersistentHeaderDelegate {
   _FilterHeader({required this.selected, required this.counts, required this.onSelect, required this.labels});
 
@@ -237,8 +236,8 @@ class _FilterHeader extends SliverPersistentHeaderDelegate {
   final ValueChanged<HomeFilter> onSelect;
   final (String, String, String) labels;
 
-  static const _max = 100.0;
-  static const _min = 62.0;
+  static const _max = 104.0;
+  static const _min = 92.0;
 
   @override
   double get maxExtent => _max;
@@ -262,21 +261,23 @@ class _FilterHeader extends SliverPersistentHeaderDelegate {
 
     Widget badge(HomeFilter f, int n, bool on) {
       final urgent = f == HomeFilter.deadlines && n > 0;
-      final bg = urgent ? red : (on ? p.primary : p.textMuted.withValues(alpha: 0.22));
-      final fg = urgent || on ? Colors.white : p.textMuted;
       return Container(
         constraints: const BoxConstraints(minWidth: 18),
         height: 18,
         padding: const EdgeInsets.symmetric(horizontal: 5),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: bg,
+          color: urgent ? red : (on ? p.primary : p.textMuted.withValues(alpha: 0.28)),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: p.surface.withValues(alpha: 1 - k), width: 1.5),
         ),
         child: Text(
           '$n',
-          style: TextStyle(color: fg, fontSize: 10.5, fontWeight: FontWeight.w700, height: 1.1),
+          style: TextStyle(
+            color: urgent || on ? Colors.white : p.text,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            height: 1.1,
+          ),
         ),
       );
     }
@@ -297,52 +298,24 @@ class _FilterHeader extends SliverPersistentHeaderDelegate {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Ikonka (+ burchagida son) — aylantirilganda yig'iladi.
-                  ClipRect(
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      heightFactor: 1 - k,
-                      child: Opacity(
-                        opacity: (1 - k * 1.6).clamp(0.0, 1.0),
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 4, top: 4),
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              AnimatedScale(
-                                duration: d,
-                                curve: Curves.easeOutBack,
-                                scale: on ? 1.12 : 1,
-                                child: Icon(on ? iconOn : icon, size: 23, color: color),
-                              ),
-                              Positioned(right: -14, top: -7, child: badge(f, n, on)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+                  Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      Flexible(
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: t.labelMedium!.copyWith(
-                            color: color,
-                            fontWeight: on ? FontWeight.w700 : FontWeight.w600,
-                          ),
-                        ),
+                      AnimatedScale(
+                        duration: d,
+                        curve: Curves.easeOutBack,
+                        scale: on ? 1.12 : 1,
+                        child: Icon(on ? iconOn : icon, size: 22, color: color),
                       ),
-                      // Ixcham holatda son yorliq yonida.
-                      if (k > 0.02)
-                        Opacity(
-                          opacity: ((k - 0.35) / 0.65).clamp(0.0, 1.0),
-                          child: Padding(padding: const EdgeInsets.only(left: 5), child: badge(f, n, on)),
-                        ),
+                      Positioned(right: -14, top: -7, child: badge(f, n, on)),
                     ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: t.labelMedium!.copyWith(color: color, fontWeight: on ? FontWeight.w700 : FontWeight.w600),
                   ),
                 ],
               ),
@@ -354,67 +327,37 @@ class _FilterHeader extends SliverPersistentHeaderDelegate {
 
     final n = HomeFilter.values.length;
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        lerp(Space.gutter, Space.gutter + 12),
-        lerp(Space.md, Space.sm),
-        lerp(Space.gutter, Space.gutter + 12),
-        6,
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: (dark ? 0.30 : 0.06) + (dark ? 0.15 : 0.08) * k),
-              blurRadius: 18 + 10 * k,
-              offset: const Offset(0, 8),
+      // Qadalganda ham ekran chetiga yopishmaydi (tepada ~14 px), yonlardan biroz ichkariga kiradi.
+      padding: EdgeInsets.fromLTRB(lerp(Space.gutter, Space.gutter + 8), 14, lerp(Space.gutter, Space.gutter + 8), 10),
+      child: GlassSurface(
+        opacity: lerp(dark ? 0.62 : 0.80, dark ? 0.48 : 0.55),
+        blur: 20,
+        padding: const EdgeInsets.all(5),
+        child: Stack(
+          children: [
+            AnimatedAlign(
+              duration: d,
+              curve: Curves.easeOutBack,
+              alignment: Alignment(-1 + 2 * selected.index / (n - 1), 0),
+              child: FractionallySizedBox(
+                widthFactor: 1 / n,
+                heightFactor: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: dark ? Colors.black.withValues(alpha: 0.35) : p.primarySoft.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+            ),
+            Row(
+              children: [
+                cell(HomeFilter.plans, Icons.event_note_outlined, Icons.event_note_rounded, labels.$1),
+                cell(HomeFilter.all, Icons.radar_outlined, Icons.radar, labels.$2),
+                cell(HomeFilter.deadlines, Icons.hourglass_empty_rounded, Icons.hourglass_bottom_rounded, labels.$3),
+              ],
             ),
           ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: (dark ? const Color(0xFF1B2327) : Colors.white).withValues(alpha: dark ? 0.72 : 0.82),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: (dark ? Colors.white : Colors.black).withValues(alpha: dark ? 0.10 : 0.06)),
-              ),
-              child: Stack(
-                children: [
-                  AnimatedAlign(
-                    duration: d,
-                    curve: Curves.easeOutBack,
-                    alignment: Alignment(-1 + 2 * selected.index / (n - 1), 0),
-                    child: FractionallySizedBox(
-                      widthFactor: 1 / n,
-                      heightFactor: 1,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: dark ? Colors.black.withValues(alpha: 0.35) : p.primarySoft,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      cell(HomeFilter.plans, Icons.event_note_outlined, Icons.event_note_rounded, labels.$1),
-                      cell(HomeFilter.all, Icons.radar_outlined, Icons.radar, labels.$2),
-                      cell(
-                        HomeFilter.deadlines,
-                        Icons.hourglass_empty_rounded,
-                        Icons.hourglass_bottom_rounded,
-                        labels.$3,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

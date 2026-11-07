@@ -55,6 +55,12 @@
     #splash .name { color: var(--text); font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) { #splash .ring { animation: none; } }
+    /* Dark rejimda Kakao xaritasi: faqat plitkalar (mts.kakaocdn.net) va fon — markerlar (data:) o'zgarmaydi. */
+    html.lr-dark-map img[src*="mts.kakaocdn.net"] {
+      filter: invert(0.92) hue-rotate(180deg) saturate(0.75) brightness(0.92) contrast(0.92);
+    }
+    /* Xarita konteyneri (markerlar ham ichida) — filtr emas, faqat fon rangi. */
+    html.lr-dark-map [style*="bg_tile.png"] { background: #0E1A1E !important; }
   </style>
 </head>
 <body>

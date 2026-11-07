@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import 'theme.dart';
@@ -739,6 +741,144 @@ class _DetailSheetState extends State<DetailSheet> {
         Expanded(child: widget.bodyBuilder(context, controller)),
         ?widget.bottom,
       ]),
+    );
+  }
+}
+
+/// "Liquid glass" yuza: orqasidagi narsa xiralashib ko'rinadi (blur + yarim shaffof fon),
+/// ingichka yorug' hoshiya va yumshoq soya. Xarita tugmalari, filtrlar, tab bar uchun umumiy.
+class GlassSurface extends StatelessWidget {
+  const GlassSurface({
+    super.key,
+    required this.child,
+    this.radius = 999,
+    this.padding = EdgeInsets.zero,
+    this.opacity,
+    this.blur = 18,
+    this.shadow = true,
+  });
+
+  final Widget child;
+  final double radius;
+  final EdgeInsetsGeometry padding;
+
+  /// Fon shaffofligi (null — tema bo'yicha: light 0.62, dark 0.55).
+  final double? opacity;
+  final double blur;
+  final bool shadow;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final br = BorderRadius.circular(radius);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: br,
+        boxShadow: shadow
+            ? [BoxShadow(color: Colors.black.withValues(alpha: dark ? 0.40 : 0.12), blurRadius: 24, offset: const Offset(0, 8))]
+            : null,
+      ),
+      child: ClipRRect(
+        borderRadius: br,
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: (dark ? const Color(0xFF1B2327) : Colors.white).withValues(alpha: opacity ?? (dark ? 0.55 : 0.62)),
+              borderRadius: br,
+              border: Border.all(color: Colors.white.withValues(alpha: dark ? 0.12 : 0.7)),
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shisha kapsula ichidagi tanlov: tanlangan bo'lak ostida ichki kapsula yengil "sakrab" siljiydi.
+class GlassSegmented<T> extends StatelessWidget {
+  const GlassSegmented({
+    super.key,
+    required this.values,
+    required this.selected,
+    required this.onChanged,
+    required this.label,
+    this.icon,
+    this.height = 46,
+  });
+
+  final List<T> values;
+  final T selected;
+  final ValueChanged<T> onChanged;
+  final String Function(T) label;
+  final IconData Function(T, bool selected)? icon;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final t = context.textStyles;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final n = values.length;
+    final index = values.indexOf(selected).clamp(0, n - 1);
+    final d = Motion.of(context, const Duration(milliseconds: 380));
+    return GlassSurface(
+      padding: const EdgeInsets.all(4),
+      child: SizedBox(
+        height: height - 8,
+        child: Stack(children: [
+          AnimatedAlign(
+            duration: d,
+            curve: Curves.easeOutBack,
+            alignment: Alignment(n == 1 ? 0 : -1 + 2 * index / (n - 1), 0),
+            child: FractionallySizedBox(
+              widthFactor: 1 / n,
+              heightFactor: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: dark ? Colors.black.withValues(alpha: 0.35) : p.primarySoft.withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+          ),
+          Row(children: [
+            for (final v in values)
+              Expanded(
+                child: Semantics(
+                  button: true,
+                  selected: v == selected,
+                  label: label(v),
+                  excludeSemantics: true,
+                  onTap: () => onChanged(v),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => onChanged(v),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      if (icon != null) ...[
+                        Icon(icon!(v, v == selected), size: 18, color: v == selected ? p.primary : p.text),
+                        const SizedBox(width: 6),
+                      ],
+                      Flexible(
+                        child: Text(
+                          label(v),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: t.labelLarge!.copyWith(
+                            color: v == selected ? p.primary : p.text,
+                            fontWeight: v == selected ? FontWeight.w700 : FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ),
+              ),
+          ]),
+        ]),
+      ),
     );
   }
 }

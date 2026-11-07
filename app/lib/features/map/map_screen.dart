@@ -12,6 +12,7 @@ import '../../services/route_matcher.dart';
 import '../event/event_detail_sheet.dart';
 import '../route/route_controller.dart';
 import '../route/route_panel.dart';
+import '../../core/map_theme/map_theme.dart';
 import '../../core/toast.dart';
 import '../../core/widgets.dart';
 import '../../data/location.dart';
@@ -72,6 +73,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     });
 
     final p = context.palette;
+    // Dark rejimda xarita plitkalari ham qorong'i (web: CSS filtr).
+    setMapDarkMode(Theme.of(context).brightness == Brightness.dark);
     final floating = BoxDecoration(
       color: p.surface,
       borderRadius: BorderRadius.circular(Radii.lg),
@@ -98,32 +101,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: floating,
-                    child: SegmentedButton<MapMode>(
-                      showSelectedIcon: false,
-                      style: SegmentedButton.styleFrom(side: BorderSide.none),
-                      segments: [
-                        ButtonSegment(
-                          value: MapMode.explore,
-                          icon: const Icon(Icons.travel_explore, size: 18),
-                          label: Text(l10n.modeExplore),
-                        ),
-                        ButtonSegment(
-                          value: MapMode.myMap,
-                          icon: const Icon(Icons.person_pin_circle_outlined, size: 18),
-                          label: Text(l10n.modeMyMap),
-                        ),
-                        ButtonSegment(
-                          value: MapMode.route,
-                          icon: const Icon(Icons.alt_route_rounded, size: 18),
-                          label: Text(l10n.modeRoute),
-                        ),
-                      ],
-                      selected: {_mode},
-                      onSelectionChanged: (s) => _setMode(s.first),
-                    ),
+                  GlassSegmented<MapMode>(
+                    values: MapMode.values,
+                    selected: _mode,
+                    onChanged: _setMode,
+                    label: (m) => switch (m) {
+                      MapMode.explore => l10n.modeExplore,
+                      MapMode.myMap => l10n.modeMyMap,
+                      MapMode.route => l10n.modeRoute,
+                    },
+                    icon: (m, on) => switch (m) {
+                      MapMode.explore => Icons.travel_explore,
+                      MapMode.myMap => on ? Icons.person_pin_circle : Icons.person_pin_circle_outlined,
+                      MapMode.route => Icons.alt_route_rounded,
+                    },
                   ),
                   const SizedBox(height: Space.sm),
                   Wrap(
@@ -142,7 +133,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           if (_mode != MapMode.route && _ready)
             Positioned(
               right: Space.lg,
-              bottom: Space.lg,
+              bottom: Space.lg + MediaQuery.paddingOf(context).bottom,
               child: Column(
                 children: [
                   _roundButton(
@@ -186,13 +177,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     required String tooltip,
     required Widget icon,
     VoidCallback? onPressed,
-  }) => Container(
-    decoration: BoxDecoration(
-      color: floating.color,
-      shape: BoxShape.circle,
-      border: floating.border,
-      boxShadow: floating.boxShadow,
-    ),
+  }) => GlassSurface(
     child: IconButton(tooltip: tooltip, icon: icon, onPressed: onPressed),
   );
 
@@ -256,38 +241,41 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   /// Layer yoqish/o'chirish — suzuvchi kichik "pill".
+  /// Qatlam tugmasi — shisha "pill": yoqilgan bo'lsa rangli nuqta to'la, yorliq to'q.
   Widget _layerChip(MapLayer layer, String label, Color color, BoxDecoration floating) {
     final p = context.palette;
     final on = _layers.contains(layer);
+    final d = Motion.of(context, Motion.fast);
     return Semantics(
       toggled: on,
       button: true,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(Radii.lg),
-          onTap: () => _setLayer(layer, !on),
-          child: AnimatedContainer(
-            duration: Motion.of(context, Motion.fast),
-            padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: Space.sm),
-            decoration: floating.copyWith(color: on ? p.surface : p.surfaceAlt),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedContainer(
-                  duration: Motion.of(context, Motion.fast),
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: on ? color : Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: color, width: 2),
-                  ),
+      child: GestureDetector(
+        onTap: () => _setLayer(layer, !on),
+        child: GlassSurface(
+          opacity: on ? null : 0.38,
+          padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: Space.sm),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: d,
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: on ? color : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: color, width: 2),
                 ),
-                const SizedBox(width: 6),
-                Text(label, style: context.textStyles.labelMedium!.copyWith(color: on ? p.text : p.textMuted)),
-              ],
-            ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: context.textStyles.labelMedium!.copyWith(
+                  color: on ? p.text : p.textMuted,
+                  fontWeight: on ? FontWeight.w700 : FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ),
