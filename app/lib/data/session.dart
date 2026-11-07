@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'calendar_controller.dart';
-import 'interests.dart';
 import 'providers.dart';
 
 // ─────────────────────────── Theme / til (saqlanadi) ───────────────────────────
@@ -174,4 +173,26 @@ String nextAfterAuthOf(WidgetRef ref) {
   if (ref.read(profileNameProvider) == null) return '/name';
   if (ref.read(interestsProvider).isEmpty) return '/onboarding';
   return '/home';
+}
+
+/// Akkaunt va qurilmadagi barcha LifeRadar ma'lumotlarini o'chiradi (test uchun "noldan boshlash" ham).
+/// Google ruxsati bekor qilinadi (disconnect), kalendar tokeni tozalanadi. Keyin → /welcome.
+Future<void> deleteAccountAndData(WidgetRef ref) async {
+  final session = ref.read(sessionProvider);
+  await ref.read(calendarProvider.notifier).disconnect();
+  if (isGoogleSignInConfigured && session?.kind == SessionKind.google) {
+    try {
+      await GoogleSignIn.instance.disconnect();
+    } catch (_) {}
+  }
+  await ref.read(sharedPrefsProvider).clear();
+  ref
+    ..invalidate(sessionProvider)
+    ..invalidate(interestsProvider)
+    ..invalidate(plansProvider)
+    ..invalidate(profileNameProvider)
+    ..invalidate(setupDoneProvider)
+    ..invalidate(themeModeProvider)
+    ..invalidate(localeProvider)
+    ..invalidate(insightFeedbackProvider);
 }

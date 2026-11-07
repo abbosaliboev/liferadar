@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/confirm.dart';
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
 import '../../core/toast.dart';
@@ -209,21 +210,15 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
   Future<void> _delete() async {
     final l10n = context.l10n;
     final plan = _plan!;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: Text(l10n.planDeleteConfirm(plan.title)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l10n.cancel)),
-          TextButton(
-            onPressed: () => Navigator.pop(c, true),
-            style: TextButton.styleFrom(foregroundColor: context.palette.danger),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+    final ok = await showConfirm(
+      context,
+      icon: Icons.delete_outline_rounded,
+      title: l10n.planDeleteConfirm(plan.title),
+      confirmLabel: l10n.delete,
+      cancelLabel: l10n.cancel,
+      destructive: true,
     );
-    if (ok != true || !mounted) return;
+    if (!ok || !mounted) return;
 
     final navigator = Navigator.of(context);
     setState(() => _saving = true);
@@ -456,9 +451,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
                     Expanded(
                       child: FilledButton(
                         onPressed: _saving ? null : _save,
-                        child: _saving
-                            ? AppSpinner(size: 20, color: p.textMuted)
-                            : Text(l10n.save),
+                        child: _saving ? AppSpinner(size: 20, color: p.textMuted) : Text(l10n.save),
                       ),
                     ),
                   ],

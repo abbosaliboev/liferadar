@@ -161,4 +161,45 @@ void main() {
     await tester.scrollUntilVisible(find.text('Pets'), 300, scrollable: find.byType(Scrollable).last);
     expect(find.text('Pets'), findsOneWidget);
   });
+
+  testWidgets('Plans: karta ostida signal qatori, bosilsa reja oynasi', (tester) async {
+    await pumpApp(tester, interests: ['ai', 'music']);
+    await tester.tap(find.byIcon(Icons.event_note_outlined).last);
+    await tester.pumpAndSettle();
+    // Busan trip (11/20) — o'sha kuni yaqinda konsert → kartada qisqa ogohlantirish
+    final line = find.textContaining('nearby — expect crowds');
+    await tester.scrollUntilVisible(line, 200, scrollable: find.byType(Scrollable).first);
+    expect(line, findsOneWidget);
+
+    await tester.tap(find.text('Busan trip'));
+    await tester.pumpAndSettle();
+    expect(find.text('When'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Around this plan'), 200, scrollable: find.byType(Scrollable).last);
+    expect(find.text('Around this plan'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Edit'), findsOneWidget);
+  });
+
+  testWidgets('Plans: oylik ko\'rinish — kun tanlansa o\'sha kun rejalari', (tester) async {
+    await pumpApp(tester, interests: ['ai']);
+    await tester.tap(find.byIcon(Icons.event_note_outlined).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Month view'));
+    await tester.pumpAndSettle();
+    expect(find.text('November 2026'), findsOneWidget);
+    final list = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.text('No plans on this day'), 200, scrollable: list);
+    expect(find.text('No plans on this day'), findsOneWidget); // 6-noyabr (bugun) — reja yo'q
+
+    final day10 = find.descendant(of: find.byType(GridView), matching: find.text('10'));
+    await tester.ensureVisible(day10);
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('November 10, 1'), findsOneWidget); // ekran o'quvchi uchun yorliq
+    await tester.tap(day10);
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(find.text('Team meeting'), findsOneWidget);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('plans_view'), 'month'); // tanlov eslab qolinadi
+  });
 }

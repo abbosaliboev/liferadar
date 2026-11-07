@@ -26,11 +26,14 @@ class WeatherChip extends ConsumerWidget {
     final daysAhead = day.difference(DateTime(today.year, today.month, today.day)).inDays;
     if (daysAhead < 0) return const SizedBox.shrink();
     if (daysAhead > 9) {
-      return Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(Icons.cloud_queue_rounded, size: 16, color: p.textMuted),
-        const SizedBox(width: 6),
-        Text(l10n.weatherLater, style: style),
-      ]);
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.cloud_queue_rounded, size: 16, color: p.textMuted),
+          const SizedBox(width: 6),
+          Text(l10n.weatherLater, style: style),
+        ],
+      );
     }
 
     final forecast = ref.watch(forecastProvider(forecastKey(location, context.lang)));
@@ -41,24 +44,27 @@ class WeatherChip extends ConsumerWidget {
         final w = days.where((d) => d.date == day).firstOrNull;
         if (w == null) return const SizedBox.shrink();
         final rain = w.likelyRain;
-        return Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(weatherIcon(w.type), size: 16, color: rain ? p.info : p.accent),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              [
-                if (w.maxC != null && w.minC != null) '${w.maxC}° / ${w.minC}°',
-                w.condition,
-                if ((w.rainChance ?? 0) >= 30) '${l10n.rainChance} ${w.rainChance}%',
-              ].join(' · '),
-              style: style?.copyWith(
-                color: rain ? p.info : p.text,
-                fontWeight: rain ? FontWeight.w600 : FontWeight.w500,
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(weatherIcon(w.type), size: 16, color: rain ? p.info : p.accent),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                [
+                  if (w.maxC != null && w.minC != null) '${w.maxC}° / ${w.minC}°',
+                  w.condition,
+                  if ((w.rainChance ?? 0) >= 30) '${l10n.rainChance} ${w.rainChance}%',
+                ].join(' · '),
+                style: style?.copyWith(
+                  color: rain ? p.info : p.text,
+                  fontWeight: rain ? FontWeight.w600 : FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ]);
+          ],
+        );
       },
     );
   }

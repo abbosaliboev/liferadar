@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/confirm.dart';
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
 import '../../core/toast.dart';
@@ -45,8 +46,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       HomeFilter.deadlines => deadlines,
     };
     // Foydalanuvchi o'zi kiritgan ism; bo'lmasa Google'dagi birinchi so'z.
-    final name = ref.watch(profileNameProvider) ??
-        (session == null || session.isGuest ? null : session.name?.split(' ').first);
+    final name =
+        ref.watch(profileNameProvider) ?? (session == null || session.isGuest ? null : session.name?.split(' ').first);
 
     return Scaffold(
       body: SafeArea(
@@ -62,24 +63,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // ── Sarlavha ──
               Padding(
                 padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, 0),
-                child: Row(children: [
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(DateFormat.MMMMEEEEd(context.lang).format(now), style: t.labelMedium),
-                      const SizedBox(height: 2),
-                      Text(name == null ? l10n.homeHello : l10n.homeHelloName(name), style: t.headlineSmall),
-                    ]),
-                  ),
-                  Semantics(
-                    button: true,
-                    label: l10n.tabProfile,
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () => context.go('/profile'),
-                      child: AppAvatar(photoUrl: session?.photoUrl, name: name, size: 40),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(DateFormat.MMMMEEEEd(context.lang).format(now), style: t.labelMedium),
+                          const SizedBox(height: 2),
+                          Text(name == null ? l10n.homeHello : l10n.homeHelloName(name), style: t.headlineSmall),
+                        ],
+                      ),
                     ),
-                  ),
-                ]),
+                    Semantics(
+                      button: true,
+                      label: l10n.tabProfile,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => context.go('/profile'),
+                        child: AppAvatar(photoUrl: session?.photoUrl, name: name, size: 40),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               // ── Statistika = filtr ──
@@ -107,11 +113,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const Shimmer(
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: Space.gutter),
-                    child: Column(children: [
-                      SkeletonCard(lines: 2, leading: false),
-                      SizedBox(height: Space.md),
-                      SkeletonCard(lines: 2, leading: false),
-                    ]),
+                    child: Column(
+                      children: [
+                        SkeletonCard(lines: 2, leading: false),
+                        SizedBox(height: Space.md),
+                        SkeletonCard(lines: 2, leading: false),
+                      ],
+                    ),
                   ),
                 )
               else if (all.isEmpty)
@@ -187,19 +195,21 @@ class _FilterBar extends StatelessWidget {
                     color: on ? p.primarySoft : Colors.transparent,
                     borderRadius: BorderRadius.circular(Radii.md),
                   ),
-                  child: Column(children: [
-                    Text('${counts[f] ?? 0}', style: t.headlineSmall!.copyWith(color: numberColor)),
-                    const SizedBox(height: 2),
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.labelMedium!.copyWith(
-                        color: on ? p.primary : p.textMuted,
-                        fontWeight: on ? FontWeight.w700 : null,
+                  child: Column(
+                    children: [
+                      Text('${counts[f] ?? 0}', style: t.headlineSmall!.copyWith(color: numberColor)),
+                      const SizedBox(height: 2),
+                      Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.labelMedium!.copyWith(
+                          color: on ? p.primary : p.textMuted,
+                          fontWeight: on ? FontWeight.w700 : null,
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -211,13 +221,15 @@ class _FilterBar extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(Space.xs + 2),
-        child: Row(children: [
-          cell(HomeFilter.plans, l10n.statForPlans),
-          const SizedBox(width: Space.xs),
-          cell(HomeFilter.all, l10n.statAll),
-          const SizedBox(width: Space.xs),
-          cell(HomeFilter.deadlines, l10n.statSoon),
-        ]),
+        child: Row(
+          children: [
+            cell(HomeFilter.plans, l10n.statForPlans),
+            const SizedBox(width: Space.xs),
+            cell(HomeFilter.all, l10n.statAll),
+            const SizedBox(width: Space.xs),
+            cell(HomeFilter.deadlines, l10n.statSoon),
+          ],
+        ),
       ),
     );
   }
@@ -249,13 +261,16 @@ void openSignal(BuildContext context, WidgetRef ref, Insight insight) {
     builder: (context) => SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xl),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          SignalWhyBlock(insight: insight, showTitle: true),
-          if (plan?.location != null) ...[
-            const SizedBox(height: Space.md),
-            WeatherChip(location: plan!.location!, date: plan.start),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SignalWhyBlock(insight: insight, showTitle: true),
+            if (plan?.location != null) ...[
+              const SizedBox(height: Space.md),
+              WeatherChip(location: plan!.location!, date: plan.start),
+            ],
           ],
-        ]),
+        ),
       ),
     ),
   );
@@ -277,8 +292,9 @@ class InsightCard extends ConsumerWidget {
     final today = DateTime(now.year, now.month, now.day);
     final interests = ref.watch(interestsProvider);
     final seen = ref.watch(seenProvider);
-    final plan =
-        insight.planId == null ? null : ref.watch(plansProvider).where((x) => x.id == insight.planId).firstOrNull;
+    final plan = insight.planId == null
+        ? null
+        : ref.watch(plansProvider).where((x) => x.id == insight.planId).firstOrNull;
     final event = insight.eventIds.isEmpty ? null : ref.watch(eventByIdProvider(insight.eventIds.first));
     final (kindLabel, kindIcon, tone) = insightKindMeta(context, insight.kind);
     final isSeen = seen.contains('insight:${insight.id}') || (event != null && seen.contains('event:${event.id}'));
@@ -322,23 +338,38 @@ class InsightCard extends ConsumerWidget {
     final left = dl == null ? null : DateTime(dl.year, dl.month, dl.day).difference(today).inDays;
     final showLeft = left != null && left >= 0 && left <= 14;
 
+    /// 👍/👎: bosilgan holatda yana bosish — bekor qilish (tasdiq bilan).
+    /// 👎 berish ham tasdiqlanadi (tasodifan bosib yubormaslik uchun).
     Future<void> react(InsightFeedback f) async {
       final notifier = ref.read(insightFeedbackProvider.notifier);
-      if (f == InsightFeedback.dislike) {
-        final ok = await showDialog<bool>(
-          context: context,
-          builder: (c) => AlertDialog(
-            title: Text(l10n.dislikeConfirmTitle),
-            content: Text(l10n.dislikeConfirmBody),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l10n.no)),
-              FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(l10n.yes)),
-            ],
-          ),
+      final current = insight.feedback;
+      if (current == f) {
+        final undo = await showConfirm(
+          context,
+          icon: f == InsightFeedback.like ? Icons.thumb_up_off_alt_rounded : Icons.visibility_outlined,
+          title: f == InsightFeedback.like ? l10n.likeUndoTitle : l10n.dislikeUndoTitle,
+          body: f == InsightFeedback.like ? l10n.likeUndoBody : l10n.dislikeUndoBody,
+          confirmLabel: f == InsightFeedback.like ? l10n.removeLike : l10n.showAgain,
+          cancelLabel: l10n.keep,
         );
-        if (ok != true) return;
+        if (!undo) return;
+        await notifier.clear(insight.id);
+        Toast.show(l10n.feedbackCleared, type: ToastType.info);
+        return;
       }
-      notifier.set(insight.id, f);
+      if (f == InsightFeedback.dislike) {
+        if (!context.mounted) return;
+        final ok = await showConfirm(
+          context,
+          icon: Icons.thumb_down_alt_outlined,
+          title: l10n.dislikeConfirmTitle,
+          body: l10n.dislikeConfirmBody,
+          confirmLabel: l10n.notForMeConfirm,
+          cancelLabel: l10n.keep,
+        );
+        if (!ok) return;
+      }
+      await notifier.set(insight.id, f);
       Toast.show(f == InsightFeedback.like ? l10n.feedbackLiked : l10n.feedbackDisliked);
     }
 
@@ -350,76 +381,71 @@ class InsightCard extends ConsumerWidget {
           onTap: () => openSignal(context, ref, insight),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(Space.lg, Space.md, Space.sm, Space.xs),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // Tur + qaysi reja bilan bog'liq + muddat
-              Padding(
-                padding: const EdgeInsets.only(right: Space.sm),
-                child: Row(children: [
-                  Pill(kindLabel, icon: kindIcon, tone: tone, dense: true),
-                  if (plan != null) ...[
-                    const SizedBox(width: Space.sm),
-                    Flexible(
-                      child: Text(
-                        plan.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: t.labelMedium!.copyWith(color: p.textMuted),
-                      ),
-                    ),
-                  ],
-                  const Spacer(),
-                  if (showLeft) Pill(left == 0 ? l10n.today : 'D-$left', tone: Tone.accent, dense: true),
-                ]),
-              ),
-              const SizedBox(height: Space.sm),
-              Padding(
-                padding: const EdgeInsets.only(right: Space.sm),
-                child: MarqueeText(what, style: t.titleMedium),
-              ),
-              const SizedBox(height: 6),
-              if (when != null) MetaRow(Icons.schedule_outlined, when),
-              if (where != null && where.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                MetaRow(event?.placeless == true ? Icons.apartment_outlined : Icons.place_outlined, where),
-              ],
-              Row(children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: Space.sm),
-                    child: ClipRect(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const NeverScrollableScrollPhysics(),
-                        child: Row(children: [
-                          for (final o in matched) ...[
-                            InterestChip(label: context.tr(o.label), icon: o.icon, hue: o.hue, dense: true),
-                            const SizedBox(width: 6),
-                          ],
-                          if (matched.isEmpty && event != null)
-                            Pill(context.categoryLabel(event.category), icon: categoryIcon(event.category), dense: true),
-                        ]),
-                      ),
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tur + qaysi reja bilan bog'liq + muddat
+                Padding(
+                  padding: const EdgeInsets.only(right: Space.sm),
+                  child: Row(
+                    children: [
+                      Pill(kindLabel, icon: kindIcon, tone: tone, dense: true),
+                      if (plan != null) ...[
+                        const SizedBox(width: Space.sm),
+                        Flexible(
+                          child: Text(
+                            plan.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: t.labelMedium!.copyWith(color: p.textMuted),
+                          ),
+                        ),
+                      ],
+                      const Spacer(),
+                      if (showLeft) Pill(left == 0 ? l10n.today : 'D-$left', tone: Tone.accent, dense: true),
+                    ],
                   ),
                 ),
-                IconButton(
-                  tooltip: l10n.helpful,
-                  visualDensity: VisualDensity.compact,
-                  isSelected: insight.feedback == InsightFeedback.like,
-                  selectedIcon: Icon(Icons.thumb_up_rounded, color: p.primary, size: 18),
-                  icon: Icon(Icons.thumb_up_outlined, size: 18, color: p.textMuted),
-                  onPressed: () => react(InsightFeedback.like),
+                const SizedBox(height: Space.sm),
+                Padding(
+                  padding: const EdgeInsets.only(right: Space.sm),
+                  child: MarqueeText(what, style: t.titleMedium),
                 ),
-                IconButton(
-                  tooltip: l10n.notForMe,
-                  visualDensity: VisualDensity.compact,
-                  isSelected: insight.feedback == InsightFeedback.dislike,
-                  selectedIcon: Icon(Icons.thumb_down_rounded, color: p.textMuted, size: 18),
-                  icon: Icon(Icons.thumb_down_outlined, size: 18, color: p.textMuted),
-                  onPressed: () => react(InsightFeedback.dislike),
+                const SizedBox(height: 6),
+                if (when != null) MetaRow(Icons.schedule_outlined, when),
+                if (where != null && where.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  MetaRow(event?.placeless == true ? Icons.apartment_outlined : Icons.place_outlined, where),
+                ],
+                Row(
+                  children: [
+                    Expanded(
+                      child: QuietTags([
+                        for (final o in matched) QuietTag(context.tr(o.label), icon: o.icon),
+                        if (matched.isEmpty && event != null)
+                          QuietTag(context.categoryLabel(event.category), icon: categoryIcon(event.category)),
+                      ]),
+                    ),
+                    IconButton(
+                      tooltip: l10n.helpful,
+                      visualDensity: VisualDensity.compact,
+                      isSelected: insight.feedback == InsightFeedback.like,
+                      selectedIcon: Icon(Icons.thumb_up_rounded, color: p.primary, size: 18),
+                      icon: Icon(Icons.thumb_up_outlined, size: 18, color: p.textMuted),
+                      onPressed: () => react(InsightFeedback.like),
+                    ),
+                    IconButton(
+                      tooltip: l10n.notForMe,
+                      visualDensity: VisualDensity.compact,
+                      isSelected: insight.feedback == InsightFeedback.dislike,
+                      selectedIcon: Icon(Icons.thumb_down_rounded, color: p.textMuted, size: 18),
+                      icon: Icon(Icons.thumb_down_outlined, size: 18, color: p.textMuted),
+                      onPressed: () => react(InsightFeedback.dislike),
+                    ),
+                  ],
                 ),
-              ]),
-            ]),
+              ],
+            ),
           ),
         ),
       ),

@@ -46,27 +46,35 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ),
       // Tugma doim ko'rinsin (kichik ekranlarda ham).
       bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(color: p.background, border: Border(top: BorderSide(color: p.border))),
+        decoration: BoxDecoration(
+          color: p.background,
+          border: Border(top: BorderSide(color: p.border)),
+        ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.md),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _selected.isEmpty || _saving ? null : _save,
-                  child: Text(_selected.isEmpty
-                      ? l10n.onboardingPickOne
-                      : widget.editing
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _selected.isEmpty || _saving ? null : _save,
+                    child: Text(
+                      _selected.isEmpty
+                          ? l10n.onboardingPickOne
+                          : widget.editing
                           ? l10n.save
-                          : l10n.onboardingContinue(_selected.length)),
+                          : l10n.onboardingContinue(_selected.length),
+                    ),
+                  ),
                 ),
-              ),
-              if (!widget.editing) ...[
-                const SizedBox(height: Space.sm),
-                Text(l10n.onboardingPrivacy, textAlign: TextAlign.center, style: t.bodySmall),
+                if (!widget.editing) ...[
+                  const SizedBox(height: Space.sm),
+                  Text(l10n.onboardingPrivacy, textAlign: TextAlign.center, style: t.bodySmall),
+                ],
               ],
-            ]),
+            ),
           ),
         ),
       ),
@@ -89,18 +97,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   padding: const EdgeInsets.only(bottom: Space.md),
                   child: Text(context.tr(g.label), style: t.labelLarge!.copyWith(color: p.textMuted)),
                 ),
-                Wrap(spacing: Space.sm, runSpacing: Space.sm, children: [
-                  for (final o in interestOptions.where((o) => o.group == g))
-                    InterestChip(
-                      label: context.tr(o.label),
-                      icon: o.icon,
-                      hue: o.hue,
-                      selected: _selected.contains(o.tag),
-                      onTap: () => setState(
-                        () => _selected.contains(o.tag) ? _selected.remove(o.tag) : _selected.add(o.tag),
+                Wrap(
+                  spacing: Space.sm,
+                  runSpacing: Space.sm,
+                  children: [
+                    for (final o in interestOptions.where((o) => o.group == g))
+                      InterestChip(
+                        label: context.tr(o.label),
+                        icon: o.icon,
+                        hue: o.hue,
+                        selected: _selected.contains(o.tag),
+                        onTap: () =>
+                            setState(() => _selected.contains(o.tag) ? _selected.remove(o.tag) : _selected.add(o.tag)),
                       ),
-                    ),
-                ]),
+                  ],
+                ),
                 const SizedBox(height: Space.xxl),
               ],
             ],

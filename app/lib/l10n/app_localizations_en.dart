@@ -295,22 +295,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginError => 'Google sign-in failed. Please try again.';
 
   @override
-  String get loginBenefitPlans =>
-      'Connects your calendar with events, weather and deadlines';
-
-  @override
-  String get loginBenefitRoute =>
-      'Finds opportunities along the way — KTX or car';
-
-  @override
-  String get loginBenefitSignals =>
-      'Explains why each signal matters, with sources';
-
-  @override
-  String get loginNewUser =>
-      'New here? Your Google account is all you need to sign up.';
-
-  @override
   String get or => 'or';
 
   @override
@@ -687,4 +671,154 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeTagline => 'Signals from your plans and interests';
+
+  @override
+  String get loginF1Title => 'Plans meet the world';
+
+  @override
+  String get loginF1Body => 'Calendar × events × weather × deadlines';
+
+  @override
+  String get loginF2Title => 'Opportunities on your way';
+
+  @override
+  String get loginF2Body => 'KTX or car — see the detour in km and minutes';
+
+  @override
+  String get loginF3Title => 'Know why it matters';
+
+  @override
+  String get loginF3Body => 'Every signal comes with reasons and sources';
+
+  @override
+  String get loginPanelTitle => 'Let\'s get started';
+
+  @override
+  String get loginPanelBody =>
+      'Your Google account is all you need — no extra sign-up.';
+
+  @override
+  String get myLocation => 'My location';
+
+  @override
+  String get locationDenied =>
+      'Location is blocked. Allow it in your browser or device settings.';
+
+  @override
+  String get locationUnavailable => 'Couldn\'t get your location right now.';
+
+  @override
+  String get planViewMonth => 'Month view';
+
+  @override
+  String get planViewList => 'List view';
+
+  @override
+  String get noPlansThisDay => 'No plans on this day';
+
+  @override
+  String get planSignalRain => 'Rain likely — bring an umbrella';
+
+  @override
+  String planSignalCrowd(String event) {
+    return '$event nearby — expect crowds';
+  }
+
+  @override
+  String planSignalNearby(String event) {
+    return 'Nearby: $event';
+  }
+
+  @override
+  String get planAround => 'Around this plan';
+
+  @override
+  String get planNothingAround => 'Nothing unusual around this plan right now.';
+
+  @override
+  String get myPlanBadge => 'My plan';
+
+  @override
+  String get calendarOpenGoogle => 'Open Google Calendar';
+
+  @override
+  String get planWhen => 'When';
+
+  @override
+  String get planWhere => 'Where';
+
+  @override
+  String get likeUndoTitle => 'Remove your like?';
+
+  @override
+  String get likeUndoBody => 'This signal will be ranked like any other again.';
+
+  @override
+  String get dislikeUndoTitle => 'Show signals like this again?';
+
+  @override
+  String get dislikeUndoBody => 'We\'ll stop pushing this one down.';
+
+  @override
+  String get removeLike => 'Remove like';
+
+  @override
+  String get showAgain => 'Show again';
+
+  @override
+  String get keep => 'Keep';
+
+  @override
+  String get notForMeConfirm => 'Not for me';
+
+  @override
+  String get feedbackCleared => 'Feedback removed';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get notifyDesc =>
+      'Deadlines, plan alerts and rain — as system notifications';
+
+  @override
+  String get notifyUnsupported => 'Not available on this device yet';
+
+  @override
+  String get notifyDenied =>
+      'Notifications are blocked. Allow them in your browser settings.';
+
+  @override
+  String get notifyOn => 'Notifications on';
+
+  @override
+  String get notifyTest => 'Send a test notification';
+
+  @override
+  String get notifyTestBody =>
+      'Notifications are working. We\'ll tell you when something affects your plans.';
+
+  @override
+  String get accountData => 'Account & data';
+
+  @override
+  String get accountDataSubtitle =>
+      'Delete your account and everything stored on this device';
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountTitle => 'Delete your account?';
+
+  @override
+  String get deleteAccountBody =>
+      'Your name, interests, your own plans, feedback and settings will be erased from this device, Google access will be revoked, and the app will start over from the beginning. This can\'t be undone.';
+
+  @override
+  String get deleteAccountInfo =>
+      'LifeRadar keeps your data only on this device. Deleting removes it all and disconnects Google Calendar.';
+
+  @override
+  String get accountDeleted => 'Account deleted. Starting fresh.';
 }

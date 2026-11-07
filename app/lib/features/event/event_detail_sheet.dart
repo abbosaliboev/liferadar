@@ -24,12 +24,8 @@ Future<void> showEventDetail(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => EventDetailSheet(
-      event: event,
-      onShowOnMap: onShowOnMap,
-      opportunity: opportunity,
-      insight: insight,
-    ),
+    builder: (_) =>
+        EventDetailSheet(event: event, onShowOnMap: onShowOnMap, opportunity: opportunity, insight: insight),
   );
 }
 
@@ -108,9 +104,7 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
 
     final addButton = FilledButton.icon(
       onPressed: _adding ? null : _addToCalendar,
-      icon: _adding
-          ? AppSpinner(color: p.textMuted)
-          : const Icon(Icons.event_available_outlined),
+      icon: _adding ? AppSpinner(color: p.textMuted) : const Icon(Icons.event_available_outlined),
       label: Text(_adding ? l10n.addingToCalendar : l10n.addToCalendar),
     );
 

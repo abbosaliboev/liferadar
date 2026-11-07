@@ -9,7 +9,6 @@ import '../../core/widgets.dart';
 import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../event/event_detail_sheet.dart';
-import '../shell/app_shell.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -160,34 +159,23 @@ class EventCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Pill(context.categoryLabel(event.category), icon: categoryIcon(event.category), dense: true),
-                          if (ongoing) ...[const SizedBox(width: 6), Pill(l10n.ongoing, tone: Tone.info, dense: true)],
-                          if (event.isFree == true) ...[
-                            const SizedBox(width: 6),
-                            Pill(l10n.free, tone: Tone.primary, dense: true),
-                          ],
-                          if (event.isSample) ...[const SizedBox(width: 6), const SampleBadge()],
-                        ],
-                      ),
+                      // Kategoriya · holat — sokin matn; "Bepul" — faqat rang bilan ajraladi.
+                      QuietTags([
+                        QuietTag(context.categoryLabel(event.category), icon: categoryIcon(event.category)),
+                        if (ongoing) QuietTag(l10n.ongoing),
+                        if (event.isFree == true) QuietTag(l10n.free, color: context.palette.primary),
+                        if (event.isSample) QuietTag(l10n.sampleData),
+                      ]),
                       const SizedBox(height: 6),
                       Text(context.tr(event.title), style: t.titleSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 4),
                       MetaRow(Icons.place_outlined, '${event.venue} · ${event.city}'),
                       if (matched.isNotEmpty) ...[
                         const SizedBox(height: Space.sm),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: [
-                            for (final tag in matched)
-                              if (interestByTag(tag) case final o?)
-                                InterestChip(label: context.tr(o.label), icon: o.icon, hue: o.hue, dense: true)
-                              else
-                                Pill('#$tag', tone: Tone.primary, dense: true),
-                          ],
-                        ),
+                        QuietTags([
+                          for (final tag in matched)
+                            if (interestByTag(tag) case final o?) QuietTag(context.tr(o.label), icon: o.icon),
+                        ]),
                       ],
                     ],
                   ),

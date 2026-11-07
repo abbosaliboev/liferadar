@@ -66,10 +66,10 @@ class SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(color: context.palette.skeleton, borderRadius: BorderRadius.circular(radius)),
-      );
+    width: width,
+    height: height,
+    decoration: BoxDecoration(color: context.palette.skeleton, borderRadius: BorderRadius.circular(radius)),
+  );
 }
 
 /// Karta ko'rinishidagi tayyor skeleton (ro'yxatlar yuklanayotganda).
@@ -80,25 +80,28 @@ class SkeletonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(Space.lg),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (leading) ...[
-              const SkeletonBox(width: 44, height: 44, radius: Radii.md),
-              const SizedBox(width: Space.md),
-            ],
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    child: Padding(
+      padding: const EdgeInsets.all(Space.lg),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (leading) ...[const SkeletonBox(width: 44, height: 44, radius: Radii.md), const SizedBox(width: Space.md)],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 const SkeletonBox(width: 160, height: 16),
                 for (var i = 0; i < lines; i++) ...[
                   const SizedBox(height: Space.sm),
                   SkeletonBox(width: i == lines - 1 ? 120 : double.infinity, height: 12),
                 ],
-              ]),
+              ],
             ),
-          ]),
-        ),
-      );
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 // ───────────────────────────── Matn / sarlavhalar ─────────────────────────────
@@ -112,14 +115,16 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: padding ?? const EdgeInsets.fromLTRB(Space.gutter, Space.xxl, Space.sm, Space.sm),
-        child: Row(children: [
-          Expanded(
-            child: Semantics(header: true, child: Text(title, style: context.textStyles.titleMedium)),
-          ),
-          ?action,
-        ]),
-      );
+    padding: padding ?? const EdgeInsets.fromLTRB(Space.gutter, Space.xxl, Space.sm, Space.sm),
+    child: Row(
+      children: [
+        Expanded(
+          child: Semantics(header: true, child: Text(title, style: context.textStyles.titleMedium)),
+        ),
+        ?action,
+      ],
+    ),
+  );
 }
 
 /// Kichik teg: "일정 알림", "D-12", "#ai".
@@ -145,20 +150,25 @@ class Pill extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: dense ? 6 : Space.sm, vertical: dense ? 2 : 4),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(Radii.sm)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (icon != null) ...[
-          ExcludeSemantics(child: Icon(icon, size: dense ? 12 : 14, color: fg)),
-          const SizedBox(width: 4),
-        ],
-        Flexible(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: context.textStyles.labelSmall!.copyWith(color: fg, fontSize: dense ? 10.5 : 11.5),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            ExcludeSemantics(
+              child: Icon(icon, size: dense ? 12 : 14, color: fg),
+            ),
+            const SizedBox(width: 4),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.textStyles.labelSmall!.copyWith(color: fg, fontSize: dense ? 10.5 : 11.5),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -174,21 +184,24 @@ class MetaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = color ?? context.palette.textMuted;
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(
-        padding: const EdgeInsets.only(top: 1),
-        child: ExcludeSemantics(child: Icon(icon, size: 16, color: c)),
-      ),
-      const SizedBox(width: 6),
-      Expanded(
-        child: Text(
-          text,
-          maxLines: maxLines,
-          overflow: TextOverflow.ellipsis,
-          style: context.textStyles.bodySmall!.copyWith(color: c),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: ExcludeSemantics(child: Icon(icon, size: 16, color: c)),
         ),
-      ),
-    ]);
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
+            style: context.textStyles.bodySmall!.copyWith(color: c),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -209,10 +222,13 @@ class DateTile extends StatelessWidget {
       width: 48,
       height: 52,
       decoration: BoxDecoration(color: p.surfaceAlt, borderRadius: BorderRadius.circular(Radii.md)),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(monthLabel ?? '${date.month}', style: context.textStyles.labelSmall!.copyWith(color: c, fontSize: 10.5)),
-        Text('${date.day}', style: context.textStyles.titleLarge!.copyWith(height: 1.1)),
-      ]),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(monthLabel ?? '${date.month}', style: context.textStyles.labelSmall!.copyWith(color: c, fontSize: 10.5)),
+          Text('${date.day}', style: context.textStyles.titleLarge!.copyWith(height: 1.1)),
+        ],
+      ),
     );
   }
 }
@@ -238,7 +254,9 @@ class IconTile extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(Radii.md)),
-      child: ExcludeSemantics(child: Icon(icon, size: size * 0.5, color: fg)),
+      child: ExcludeSemantics(
+        child: Icon(icon, size: size * 0.5, color: fg),
+      ),
     );
   }
 }
@@ -253,22 +271,28 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: Space.xxl, vertical: Space.xxxl),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          IconTile(icon, size: 56),
-          const SizedBox(height: Space.lg),
-          Text(title, style: context.textStyles.titleMedium, textAlign: TextAlign.center),
-          if (body != null) ...[
-            const SizedBox(height: Space.sm),
-            Text(body!, style: context.textStyles.bodyMedium!.copyWith(color: context.palette.textMuted),
-                textAlign: TextAlign.center),
-          ],
-          if (actions.isNotEmpty) ...[
-            const SizedBox(height: Space.xl),
-            Wrap(spacing: Space.sm, runSpacing: Space.sm, alignment: WrapAlignment.center, children: actions),
-          ],
-        ]),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: Space.xxl, vertical: Space.xxxl),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconTile(icon, size: 56),
+        const SizedBox(height: Space.lg),
+        Text(title, style: context.textStyles.titleMedium, textAlign: TextAlign.center),
+        if (body != null) ...[
+          const SizedBox(height: Space.sm),
+          Text(
+            body!,
+            style: context.textStyles.bodyMedium!.copyWith(color: context.palette.textMuted),
+            textAlign: TextAlign.center,
+          ),
+        ],
+        if (actions.isNotEmpty) ...[
+          const SizedBox(height: Space.xl),
+          Wrap(spacing: Space.sm, runSpacing: Space.sm, alignment: WrapAlignment.center, children: actions),
+        ],
+      ],
+    ),
+  );
 }
 
 /// Profil rasmi: rasm bo'lmasa bosh harflar.
@@ -285,7 +309,10 @@ class AppAvatar extends StatelessWidget {
     final fallback = Center(
       child: initials == null
           ? Icon(Icons.person_outline, size: size * 0.5, color: p.primary)
-          : Text(initials, style: context.textStyles.titleMedium!.copyWith(color: p.primary, fontSize: size * 0.4)),
+          : Text(
+              initials,
+              style: context.textStyles.titleMedium!.copyWith(color: p.primary, fontSize: size * 0.4),
+            ),
     );
     return Container(
       width: size,
@@ -306,13 +333,15 @@ class GroupCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Column(children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) const Divider(indent: Space.lg, endIndent: Space.lg),
-            children[i],
-          ],
-        ]),
-      );
+    child: Column(
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const Divider(indent: Space.lg, endIndent: Space.lg),
+          children[i],
+        ],
+      ],
+    ),
+  );
 }
 
 // ───────────────────────────── Harakat ─────────────────────────────
@@ -352,13 +381,13 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) => FadeTransition(
-        opacity: _a,
-        child: AnimatedBuilder(
-          animation: _a,
-          child: widget.child,
-          builder: (_, child) => Transform.translate(offset: Offset(0, 8 * (1 - _a.value)), child: child),
-        ),
-      );
+    opacity: _a,
+    child: AnimatedBuilder(
+      animation: _a,
+      child: widget.child,
+      builder: (_, child) => Transform.translate(offset: Offset(0, 8 * (1 - _a.value)), child: child),
+    ),
+  );
 }
 
 /// Rangli qiziqish chip'i. [onTap] berilsa — tanlanadigan (onboarding), aks holda — statik belgi.
@@ -393,31 +422,40 @@ class InterestChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: selected ? bg : p.surface,
         borderRadius: radius,
-        border: Border.all(color: selected ? fg.withValues(alpha: 0.55) : p.border, width: selected && onTap != null ? 1.5 : 1),
-      ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        ExcludeSemantics(child: Icon(icon, size: dense ? 14 : 18, color: fg)),
-        SizedBox(width: dense ? 5 : Space.sm),
-        Flexible(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: (dense ? context.textStyles.labelMedium : context.textStyles.titleSmall)!
-                .copyWith(color: selected ? fg : p.text),
-          ),
+        border: Border.all(
+          color: selected ? fg.withValues(alpha: 0.55) : p.border,
+          width: selected && onTap != null ? 1.5 : 1,
         ),
-        if (onTap != null)
-          SmoothSize(
-            duration: Motion.fast,
-            child: selected
-                ? Padding(
-                    padding: const EdgeInsets.only(left: 6),
-                    child: Icon(Icons.check_rounded, size: 18, color: fg),
-                  )
-                : const SizedBox.shrink(),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ExcludeSemantics(
+            child: Icon(icon, size: dense ? 14 : 18, color: fg),
           ),
-      ]),
+          SizedBox(width: dense ? 5 : Space.sm),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: (dense ? context.textStyles.labelMedium : context.textStyles.titleSmall)!.copyWith(
+                color: selected ? fg : p.text,
+              ),
+            ),
+          ),
+          if (onTap != null)
+            SmoothSize(
+              duration: Motion.fast,
+              child: selected
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: Icon(Icons.check_rounded, size: 18, color: fg),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+        ],
+      ),
     );
     if (onTap == null) return chip;
     return Semantics(
@@ -487,48 +525,57 @@ class _MarqueeTextState extends State<MarqueeText> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     final style = DefaultTextStyle.of(context).style.merge(widget.style);
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    return LayoutBuilder(builder: (context, c) {
-      final tp = TextPainter(
-        text: TextSpan(text: widget.text, style: style),
-        maxLines: 1,
-        textDirection: Directionality.of(context),
-        textScaler: MediaQuery.textScalerOf(context),
-      )..layout();
-      final fits = tp.width <= c.maxWidth;
-      if (fits || reduce || !c.maxWidth.isFinite) {
-        if (_c.isAnimating) _c.stop();
-        return Text(widget.text, style: style, maxLines: 1, overflow: TextOverflow.ellipsis);
-      }
-      final distance = tp.width + widget.gap;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _run(distance);
-      });
-      final pauseFraction = _pause.inMilliseconds / (_c.duration?.inMilliseconds ?? 1).clamp(1, 1 << 31);
-      final line = Text(widget.text, style: style, maxLines: 1, softWrap: false);
-      return Semantics(
-        label: widget.text,
-        child: ExcludeSemantics(
-          child: ClipRect(
-            child: SizedBox(
-              height: tp.height,
-              width: c.maxWidth,
-              child: AnimatedBuilder(
-                animation: _c,
-                builder: (context, child) {
-                  final t = _c.value <= pauseFraction ? 0.0 : (_c.value - pauseFraction) / (1 - pauseFraction);
-                  return OverflowBox(
-                    alignment: Alignment.centerLeft,
-                    maxWidth: double.infinity,
-                    child: Transform.translate(offset: Offset(-t * distance, 0), child: child),
-                  );
-                },
-                child: Row(mainAxisSize: MainAxisSize.min, children: [line, SizedBox(width: widget.gap), line]),
+    return LayoutBuilder(
+      builder: (context, c) {
+        final tp = TextPainter(
+          text: TextSpan(text: widget.text, style: style),
+          maxLines: 1,
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final fits = tp.width <= c.maxWidth;
+        if (fits || reduce || !c.maxWidth.isFinite) {
+          if (_c.isAnimating) _c.stop();
+          return Text(widget.text, style: style, maxLines: 1, overflow: TextOverflow.ellipsis);
+        }
+        final distance = tp.width + widget.gap;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _run(distance);
+        });
+        final pauseFraction = _pause.inMilliseconds / (_c.duration?.inMilliseconds ?? 1).clamp(1, 1 << 31);
+        final line = Text(widget.text, style: style, maxLines: 1, softWrap: false);
+        return Semantics(
+          label: widget.text,
+          child: ExcludeSemantics(
+            child: ClipRect(
+              child: SizedBox(
+                height: tp.height,
+                width: c.maxWidth,
+                child: AnimatedBuilder(
+                  animation: _c,
+                  builder: (context, child) {
+                    final t = _c.value <= pauseFraction ? 0.0 : (_c.value - pauseFraction) / (1 - pauseFraction);
+                    return OverflowBox(
+                      alignment: Alignment.centerLeft,
+                      maxWidth: double.infinity,
+                      child: Transform.translate(offset: Offset(-t * distance, 0), child: child),
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      line,
+                      SizedBox(width: widget.gap),
+                      line,
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -542,12 +589,64 @@ class AppSpinner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox.square(
-        dimension: size,
-        child: CircularProgressIndicator(
-          strokeWidth: strokeWidth,
-          strokeCap: StrokeCap.round,
-          color: color ?? context.palette.primary,
-          backgroundColor: (color ?? context.palette.primary).withValues(alpha: 0.15),
+    dimension: size,
+    child: CircularProgressIndicator(
+      strokeWidth: strokeWidth,
+      strokeCap: StrokeCap.round,
+      color: color ?? context.palette.primary,
+      backgroundColor: (color ?? context.palette.primary).withValues(alpha: 0.15),
+    ),
+  );
+}
+
+/// Bitta sokin teg: ixtiyoriy ikonka; [color] berilsa — fonsiz, faqat matn rangi (masalan "Bepul").
+class QuietTag {
+  const QuietTag(this.label, {this.icon, this.color});
+  final String label;
+  final IconData? icon;
+  final Color? color;
+}
+
+/// Kartalardagi minimalist teglar: fonsiz, hoshiyasiz, sokin rangda — "✦ AI · 🚀 Startups".
+/// Rangli [InterestChip] faqat tanlash sahifasida; kartada teglar asosiy ma'lumotdan e'tiborni tortmasin.
+class QuietTags extends StatelessWidget {
+  const QuietTags(this.items, {super.key});
+
+  final List<QuietTag> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final style = context.textStyles.labelMedium!.copyWith(color: p.textMuted, fontWeight: FontWeight.w500);
+    final spans = <InlineSpan>[];
+    for (var i = 0; i < items.length; i++) {
+      final tag = items[i];
+      final c = tag.color ?? p.textMuted;
+      if (i > 0) {
+        spans.add(TextSpan(text: '  ·  ', style: style.copyWith(color: p.border)));
+      }
+      if (tag.icon != null) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Icon(tag.icon, size: 13, color: c),
+            ),
+          ),
+        );
+      }
+      spans.add(
+        TextSpan(
+          text: tag.label,
+          style: tag.color == null ? null : TextStyle(color: c, fontWeight: FontWeight.w600),
         ),
       );
+    }
+    return Text.rich(
+      TextSpan(style: style, children: spans),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
@@ -10,28 +11,59 @@ import '../../data/providers.dart';
 import '../../models/models.dart';
 import '../shell/app_shell.dart';
 import '../weather/weather_chip.dart';
+import 'month_view.dart';
+import 'plan_detail_sheet.dart';
 import 'plan_editor_sheet.dart';
+import 'plan_signals.dart';
 
-class PlansScreen extends ConsumerWidget {
+class PlansScreen extends ConsumerStatefulWidget {
   const PlansScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlansScreen> createState() => _PlansScreenState();
+}
+
+class _PlansScreenState extends ConsumerState<PlansScreen> {
+  static const _viewKey = 'plans_view';
+
+  /// Oylik ko'rinish (tanlov eslab qolinadi).
+  late bool _month = ref.read(sharedPrefsProvider).getString(_viewKey) == 'month';
+  DateTime? _selected;
+  DateTime? _visibleMonth;
+
+  void _setMonth(bool v) {
+    setState(() => _month = v);
+    ref.read(sharedPrefsProvider).setString(_viewKey, v ? 'month' : 'list');
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final cal = ref.watch(calendarProvider);
     final now = ref.watch(nowProvider);
     final today = DateTime(now.year, now.month, now.day);
-    final plans = ref.watch(plansProvider).where((p) => !p.end.isBefore(today)).toList()
-      ..sort((a, b) => a.start.compareTo(b.start));
+    final all = ref.watch(plansProvider);
+    final upcoming = all.where((p) => !p.end.isBefore(today)).toList()..sort((a, b) => a.start.compareTo(b.start));
     final insights = ref.watch(insightsProvider);
+    final signalPlanIds = {for (final i in insights) ?i.planId};
+    final selected = _selected ?? today;
+    final visibleMonth = _visibleMonth ?? selected;
 
-    // Kun bo'yicha guruhlash
+    Widget planTile(Plan plan, int i) => Padding(
+      padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
+      child: FadeSlideIn(
+        key: ValueKey('${plan.id}-$_month'),
+        index: i,
+        child: _PlanCard(plan: plan),
+      ),
+    );
+
+    // Ro'yxat: kun bo'yicha guruhlar
     final groups = <DateTime, List<Plan>>{};
-    for (final p in plans) {
+    for (final p in upcoming) {
       final d = p.start.isBefore(today) ? today : DateTime(p.start.year, p.start.month, p.start.day);
       groups.putIfAbsent(d, () => []).add(p);
     }
-
     String dayLabel(DateTime d) {
       final diff = d.difference(today).inDays;
       if (diff == 0) return l10n.today;
@@ -39,10 +71,18 @@ class PlansScreen extends ConsumerWidget {
       return DateFormat.MMMMEEEEd(context.lang).format(d);
     }
 
+    final dayPlans = all.where((p) => MonthView.covers(p, selected)).toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.tabPlans),
         actions: [
+          IconButton(
+            tooltip: _month ? l10n.planViewList : l10n.planViewMonth,
+            onPressed: () => _setMonth(!_month),
+            icon: Icon(_month ? Icons.view_agenda_outlined : Icons.calendar_month_outlined),
+          ),
           if (cal.isConnected)
             IconButton(
               tooltip: l10n.calendarSync,
@@ -53,7 +93,7 @@ class PlansScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showPlanEditor(context),
+        onPressed: () => showPlanEditor(context, day: _month ? selected : null),
         icon: const Icon(Icons.add_rounded),
         label: Text(l10n.planNew),
       ),
@@ -65,9 +105,9 @@ class PlansScreen extends ConsumerWidget {
           // FAB oxirgi kartani yopmasin.
           padding: const EdgeInsets.only(bottom: 96),
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: Space.gutter),
-              child: _CalendarCard(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
+              child: _CalendarCard(onOpenMonth: () => _setMonth(true)),
             ),
             if (cal.isBusy)
               const Shimmer(
@@ -84,7 +124,43 @@ class PlansScreen extends ConsumerWidget {
                   ),
                 ),
               )
-            else if (plans.isEmpty)
+            else if (_month) ...[
+              // ── Oylik ko'rinish ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, 0),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(Space.md, Space.sm, Space.xs, Space.sm),
+                    child: MonthView(
+                      month: visibleMonth,
+                      selected: selected,
+                      today: today,
+                      plans: all,
+                      signalPlanIds: signalPlanIds,
+                      onSelect: (d) => setState(() {
+                        _selected = d;
+                        _visibleMonth = d;
+                      }),
+                      onMonth: (m) => setState(() {
+                        _visibleMonth = m;
+                        if (DateUtils.isSameMonth(m, today)) _selected = today;
+                      }),
+                    ),
+                  ),
+                ),
+              ),
+              SectionHeader(dayLabel(selected)),
+              if (dayPlans.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
+                  child: Text(
+                    l10n.noPlansThisDay,
+                    style: context.textStyles.bodyMedium!.copyWith(color: context.palette.textMuted),
+                  ),
+                )
+              else
+                for (var i = 0; i < dayPlans.length; i++) planTile(dayPlans[i], i),
+            ] else if (upcoming.isEmpty)
               EmptyState(
                 icon: Icons.event_available_outlined,
                 title: l10n.upcoming,
@@ -100,17 +176,7 @@ class PlansScreen extends ConsumerWidget {
             else
               for (final entry in groups.entries) ...[
                 SectionHeader(dayLabel(entry.key)),
-                for (var i = 0; i < entry.value.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
-                    child: FadeSlideIn(
-                      index: i,
-                      child: _PlanCard(
-                        plan: entry.value[i],
-                        signals: insights.where((x) => x.planId == entry.value[i].id).length,
-                      ),
-                    ),
-                  ),
+                for (var i = 0; i < entry.value.length; i++) planTile(entry.value[i], i),
               ],
           ],
         ),
@@ -119,8 +185,11 @@ class PlansScreen extends ConsumerWidget {
   }
 }
 
+/// Ulanmagan: kalendarni ulash kartasi. Ulangan: ingichka qator — bosilsa oylik ko'rinish,
+/// ↗ — Google Calendar'ning o'zi.
 class _CalendarCard extends ConsumerWidget {
-  const _CalendarCard();
+  const _CalendarCard({required this.onOpenMonth});
+  final VoidCallback onOpenMonth;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -140,12 +209,38 @@ class _CalendarCard extends ConsumerWidget {
           };
 
     if (cal.isConnected) {
-      return Card(
-        child: ListTile(
-          leading: const IconTile(Icons.calendar_month_outlined, size: 36),
-          title: Text(l10n.sourceCalendar),
-          subtitle: Text(cal.isBusy ? l10n.calendarSyncing : l10n.calendarConnectedCount(count)),
-          trailing: Pill(l10n.connected, tone: Tone.primary, dense: true),
+      return Material(
+        color: p.primarySoft,
+        borderRadius: BorderRadius.circular(Radii.md),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Radii.md),
+          onTap: onOpenMonth,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(Space.md, Space.xs, Space.xs, Space.xs),
+            child: Row(
+              children: [
+                Icon(Icons.event_available_rounded, size: 20, color: p.primary),
+                const SizedBox(width: Space.sm),
+                Expanded(
+                  child: Text(
+                    cal.isBusy ? l10n.calendarSyncing : l10n.calendarConnectedCount(count),
+                    style: t.labelLarge!.copyWith(color: p.primary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (cal.isBusy) Padding(padding: const EdgeInsets.all(Space.md), child: AppSpinner(size: 16)),
+                IconButton(
+                  tooltip: l10n.calendarOpenGoogle,
+                  onPressed: () => launchUrl(
+                    Uri.parse('https://calendar.google.com/calendar/r/month'),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  icon: Icon(Icons.open_in_new_rounded, size: 18, color: p.primary),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }
@@ -172,9 +267,7 @@ class _CalendarCard extends ConsumerWidget {
             const SizedBox(height: Space.lg),
             FilledButton.icon(
               onPressed: cal.isBusy ? null : c.connect,
-              icon: cal.isBusy
-                  ? AppSpinner(color: p.textMuted)
-                  : const Icon(Icons.link_rounded),
+              icon: cal.isBusy ? AppSpinner(color: p.textMuted) : const Icon(Icons.link_rounded),
               label: Text(cal.isBusy ? l10n.calendarConnecting : l10n.connect),
             ),
           ],
@@ -184,23 +277,30 @@ class _CalendarCard extends ConsumerWidget {
   }
 }
 
-class _PlanCard extends StatelessWidget {
-  const _PlanCard({required this.plan, required this.signals});
+/// Reja kartasi: vaqt · nom · joy · ob-havo + ostida eng muhim 2 ta signal qatori.
+class _PlanCard extends ConsumerWidget {
+  const _PlanCard({required this.plan});
   final Plan plan;
-  final int signals;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final p = context.palette;
     final t = context.textStyles;
-    final allDay = plan.isAllDay;
     final multiDay = plan.end.difference(plan.start).inDays >= 1;
-    final time = allDay ? '—' : DateFormat.Hm(context.lang).format(plan.start);
+    final time = plan.isAllDay ? '—' : DateFormat.Hm(context.lang).format(plan.start);
+    final signals = planSignals(context, ref, plan);
+    final accent = signals.isEmpty
+        ? p.primary
+        : switch (signals.first.tone) {
+            Tone.info => p.info,
+            Tone.accent => p.accent,
+            _ => p.primary,
+          };
 
     return Card(
       child: InkWell(
-        onTap: () => showPlanEditor(context, plan: plan),
+        onTap: () => showPlanDetail(context, plan),
         child: Padding(
           padding: const EdgeInsets.all(Space.lg),
           child: Row(
@@ -219,10 +319,11 @@ class _PlanCard extends StatelessWidget {
                   ],
                 ),
               ),
+              // Chap chiziq — eng muhim signal rangida (yo'q bo'lsa — brend rangi).
               Container(
                 width: 3,
                 height: 44,
-                decoration: BoxDecoration(color: p.primary, borderRadius: BorderRadius.circular(2)),
+                decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2)),
               ),
               const SizedBox(width: Space.md),
               Expanded(
@@ -251,9 +352,9 @@ class _PlanCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       WeatherChip(location: plan.location!, date: plan.start),
                     ],
-                    if (signals > 0) ...[
+                    if (signals.isNotEmpty) ...[
                       const SizedBox(height: Space.sm),
-                      Pill('${l10n.statSignals} $signals', icon: Icons.radar, tone: Tone.primary, dense: true),
+                      for (final s in signals.take(2)) ...[PlanSignalLine(s), const SizedBox(height: 2)],
                     ],
                   ],
                 ),

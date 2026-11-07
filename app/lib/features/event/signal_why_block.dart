@@ -42,43 +42,44 @@ class SignalWhyBlock extends StatelessWidget {
         borderRadius: BorderRadius.circular(Radii.lg),
         border: Border(left: BorderSide(color: p.primary, width: 3)),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Pill(label, icon: icon, tone: tone),
-          const SizedBox(width: Space.sm),
-          Text(l10n.confidence((insight.confidence * 100).round()), style: t.labelSmall),
-        ]),
-        const SizedBox(height: Space.md),
-        if (showTitle) ...[
-          Text(context.tr(insight.title), style: t.titleMedium),
-          const SizedBox(height: Space.xs),
-        ],
-        Text(context.tr(insight.body), style: t.bodyMedium!.copyWith(color: p.text)),
-        const SizedBox(height: Space.md),
-        Text(l10n.signalWhy, style: t.labelMedium!.copyWith(color: p.primary)),
-        const SizedBox(height: 2),
-        Text(context.tr(insight.why), style: t.bodySmall!.copyWith(color: p.text)),
-        if (insight.signals.isNotEmpty) ...[
-          const SizedBox(height: Space.md),
-          Wrap(spacing: Space.sm, runSpacing: Space.sm, children: [
-            for (final s in insight.signals) Pill(context.tr(s.summary), icon: signalIcon(s.type)),
-          ]),
-        ],
-        const SizedBox(height: Space.md),
-        Text(
-          '${l10n.sources} · ${insight.sources.map((s) => s.title).join(', ')}',
-          style: t.labelSmall,
-        ),
-        for (final s in links)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(
-              style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
-              onPressed: () => launchUrl(Uri.parse(s.url!), mode: LaunchMode.externalApplication),
-              child: Text(l10n.openSource),
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Pill(label, icon: icon, tone: tone),
+              const SizedBox(width: Space.sm),
+              Text(l10n.confidence((insight.confidence * 100).round()), style: t.labelSmall),
+            ],
           ),
-      ]),
+          const SizedBox(height: Space.md),
+          if (showTitle) ...[Text(context.tr(insight.title), style: t.titleMedium), const SizedBox(height: Space.xs)],
+          Text(context.tr(insight.body), style: t.bodyMedium!.copyWith(color: p.text)),
+          const SizedBox(height: Space.md),
+          Text(l10n.signalWhy, style: t.labelMedium!.copyWith(color: p.primary)),
+          const SizedBox(height: 2),
+          Text(context.tr(insight.why), style: t.bodySmall!.copyWith(color: p.text)),
+          if (insight.signals.isNotEmpty) ...[
+            const SizedBox(height: Space.md),
+            Wrap(
+              spacing: Space.sm,
+              runSpacing: Space.sm,
+              children: [for (final s in insight.signals) Pill(context.tr(s.summary), icon: signalIcon(s.type))],
+            ),
+          ],
+          const SizedBox(height: Space.md),
+          Text('${l10n.sources} · ${insight.sources.map((s) => s.title).join(', ')}', style: t.labelSmall),
+          for (final s in links)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                onPressed: () => launchUrl(Uri.parse(s.url!), mode: LaunchMode.externalApplication),
+                child: Text(l10n.openSource),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

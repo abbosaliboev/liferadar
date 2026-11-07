@@ -85,12 +85,13 @@ class _ToastView extends StatefulWidget {
 class _ToastViewState extends State<_ToastView> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 320),
-    reverseDuration: const Duration(milliseconds: 220),
+    duration: const Duration(milliseconds: 520),
+    reverseDuration: const Duration(milliseconds: 240),
   );
+  // Kirish: yengil "sakrash" (easeOutBack), chiqish: tez va yumshoq.
   late final Animation<double> _curve = CurvedAnimation(
     parent: _c,
-    curve: Curves.easeOutCubic,
+    curve: Curves.easeOutBack,
     reverseCurve: Curves.easeInCubic,
   );
   Timer? _timer;
@@ -129,47 +130,80 @@ class _ToastViewState extends State<_ToastView> with SingleTickerProviderStateMi
 
   @override
   Widget build(BuildContext context) {
-    final top = MediaQuery.paddingOf(context).top + Space.sm;
+    // Status bar va sarlavhadan biroz pastda — ko'z tabiiy tushadigan joy.
+    final top = MediaQuery.paddingOf(context).top + 56;
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return Positioned(
       top: top,
-      left: Space.lg,
-      right: Space.lg,
-      child: SafeArea(
-        top: false,
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: AnimatedBuilder(
-              animation: _curve,
-              builder: (context, child) => Opacity(
-                opacity: _curve.value.clamp(0.0, 1.0),
-                child: FractionalTranslation(translation: Offset(0, (1 - _curve.value) * -1.3), child: child),
-              ),
-              child: GestureDetector(
-                onTap: _close,
-                onVerticalDragEnd: (d) {
-                  if ((d.primaryVelocity ?? 0) < 0) _close();
-                },
-                child: Semantics(
-                  liveRegion: true,
-                  container: true,
-                  child: Material(
-                    color: widget.type.color,
-                    elevation: 8,
-                    shadowColor: Colors.black.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(Radii.md),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: Space.xl, vertical: Space.md + 2),
-                      child: Text(
-                        widget.message,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              height: 1.35,
+      left: Space.xl,
+      right: Space.xl,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 440),
+          child: AnimatedBuilder(
+            animation: _curve,
+            builder: (context, child) {
+              final v = _curve.value;
+              return Opacity(
+                opacity: _c.value.clamp(0.0, 1.0),
+                child: Transform.translate(
+                  offset: Offset(0, (1 - v) * -28),
+                  child: Transform.scale(scale: 0.9 + 0.1 * v, child: child),
+                ),
+              );
+            },
+            child: GestureDetector(
+              onTap: _close,
+              onVerticalDragEnd: (d) {
+                if ((d.primaryVelocity ?? 0) < 0) _close();
+              },
+              child: Semantics(
+                liveRegion: true,
+                container: true,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: [
+                      BoxShadow(color: widget.type.color.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 10)),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 6, offset: const Offset(0, 2)),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: ColoredBox(
+                      color: widget.type.color,
+                      child: Stack(children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: Space.xl + 2, vertical: Space.md + 1),
+                          child: Text(
+                            widget.message,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.35,
+                                ),
+                          ),
+                        ),
+                        // Qolgan vaqt — pastki ingichka chiziq.
+                        if (!reduce)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 1, end: 0),
+                              duration: widget.duration,
+                              builder: (_, f, _) => Align(
+                                alignment: Alignment.centerLeft,
+                                child: FractionallySizedBox(
+                                  widthFactor: f,
+                                  child: Container(height: 2.5, color: Colors.white.withValues(alpha: 0.45)),
+                                ),
+                              ),
                             ),
-                      ),
+                          ),
+                      ]),
                     ),
                   ),
                 ),

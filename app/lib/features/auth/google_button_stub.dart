@@ -13,7 +13,9 @@ Widget googleSignInButton(BuildContext context, {required String languageCode, r
           await GoogleSignIn.instance.authenticate();
         } catch (e) {
           Toast.show(
-            languageCode == 'ko' ? '이 기기에서는 아직 Google 로그인을 사용할 수 없어요.' : 'Google sign-in is not set up on this device yet.',
+            languageCode == 'ko'
+                ? '이 기기에서는 아직 Google 로그인을 사용할 수 없어요.'
+                : 'Google sign-in is not set up on this device yet.',
             type: ToastType.warning,
           );
         }

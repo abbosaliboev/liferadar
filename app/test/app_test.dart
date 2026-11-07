@@ -161,6 +161,45 @@ void main() {
     expect(find.text('Deadline'), findsWidgets);
   });
 
+  testWidgets('👍 qaytariladi (tasdiq bilan)', (tester) async {
+    await pumpApp(tester, interests: ['ai', 'startup']);
+    final prefs = await SharedPreferences.getInstance();
+    await tester.ensureVisible(find.byIcon(Icons.thumb_up_outlined).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.thumb_up_outlined).first);
+    await tester.pumpAndSettle();
+    expect(prefs.getStringList('insight_feedback')!.single, endsWith('|like'));
+
+    // Yana bosish → "Remove your like?" → Remove like
+    await tester.tap(find.byIcon(Icons.thumb_up_rounded).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Remove your like?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove like'));
+    await tester.pumpAndSettle();
+    expect(prefs.getStringList('insight_feedback'), isEmpty);
+    expect(find.byIcon(Icons.thumb_up_rounded), findsNothing);
+  });
+
+  testWidgets('Akkauntni o\'chirish: ichkarida + tasdiq → hammasi tozalanib welcome', (tester) async {
+    await pumpApp(tester, interests: ['ai'], name: 'Abbos');
+    await tester.tap(find.byIcon(Icons.person_outline_rounded).last);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Account & data'), 200, scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.text('Account & data'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Delete account'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete your account?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete account'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose your language'), findsOneWidget); // noldan
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('name:guest'), isNull);
+    expect(prefs.getStringList('interests:guest'), isNull);
+    expect(prefs.getBool('setup_done'), isNull);
+  });
+
   testWidgets('Ochilgan signal kartasi xiralashadi va saqlanadi', (tester) async {
     await pumpApp(tester, interests: ['ai', 'startup', 'music']);
     double opacityOfFirst() => tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity).first).opacity;
@@ -181,15 +220,15 @@ void main() {
     await tester.tap(find.byIcon(Icons.thumb_down_outlined).first);
     await tester.pumpAndSettle();
     final prefs = await SharedPreferences.getInstance();
-    // Avval tasdiqlash so'raladi — "Yo'q" bosilsa hech narsa saqlanmaydi.
+    // Avval tasdiqlash so'raladi — "Keep" bosilsa hech narsa saqlanmaydi.
     expect(find.text('Not for you?'), findsOneWidget);
-    await tester.tap(find.text('No'));
+    await tester.tap(find.text('Keep'));
     await tester.pumpAndSettle();
     expect(prefs.getStringList('insight_feedback'), isNull);
 
     await tester.tap(find.byIcon(Icons.thumb_down_outlined).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Yes'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Not for me'));
     await tester.pumpAndSettle();
     expect(prefs.getStringList('insight_feedback')!.single, endsWith('|dislike'));
     expect(find.text('Got it — fewer signals like this'), findsOneWidget); // toast

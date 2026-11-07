@@ -1,11 +1,11 @@
 {
-    "name": "liferadar",
-    "short_name": "liferadar",
+    "name": "LifeRadar",
+    "short_name": "LifeRadar",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F6F8F9",
+    "theme_color": "#0F766E",
+    "description": "Signals from your plans and interests — events, weather and opportunities on your way.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

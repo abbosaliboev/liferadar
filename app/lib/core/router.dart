@@ -10,6 +10,7 @@ import '../features/map/map_screen.dart';
 import '../features/onboarding/name_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/plans/plans_screen.dart';
+import '../features/profile/account_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/shell/app_shell.dart';
 import '../features/welcome/welcome_screen.dart';
@@ -51,6 +52,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (_, s) => _fadePage(s, NameScreen(editing: s.uri.queryParameters['edit'] == '1')),
       ),
       GoRoute(path: '/onboarding', pageBuilder: (_, s) => _fadePage(s, const OnboardingScreen())),
+      GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
       GoRoute(path: '/interests', builder: (_, _) => const OnboardingScreen(editing: true)),
       StatefulShellRoute(
         builder: (context, state, shell) => shell,

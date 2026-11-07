@@ -40,17 +40,16 @@ class RouteState {
     List<RouteOpportunity>? opportunities,
     String? error,
     bool clearResult = false,
-  }) =>
-      RouteState(
-        origin: origin ?? this.origin,
-        destination: destination ?? this.destination,
-        date: date ?? this.date,
-        mode: mode ?? this.mode,
-        status: status ?? (clearResult ? RouteStatus.idle : this.status),
-        route: clearResult ? null : (route ?? this.route),
-        opportunities: clearResult ? const [] : (opportunities ?? this.opportunities),
-        error: error,
-      );
+  }) => RouteState(
+    origin: origin ?? this.origin,
+    destination: destination ?? this.destination,
+    date: date ?? this.date,
+    mode: mode ?? this.mode,
+    status: status ?? (clearResult ? RouteStatus.idle : this.status),
+    route: clearResult ? null : (route ?? this.route),
+    opportunities: clearResult ? const [] : (opportunities ?? this.opportunities),
+    error: error,
+  );
 }
 
 final routeProvider = NotifierProvider<RouteController, RouteState>(RouteController.new);
@@ -97,8 +96,9 @@ class RouteController extends Notifier<RouteState> {
       final route = mode == TravelMode.car
           ? await kakao.directions(origin.location, dest.location)
           // 09:00 da jo'nash (KST)
-          : await ref.read(googleApiProvider).transit(origin.location, dest.location,
-              departure: state.date.add(const Duration(hours: 9)));
+          : await ref
+                .read(googleApiProvider)
+                .transit(origin.location, dest.location, departure: state.date.add(const Duration(hours: 9)));
       final dayStart = state.date;
       final dayEnd = dayStart.add(const Duration(days: 1)).subtract(const Duration(seconds: 1));
       var opps = _matcher.match(
@@ -125,11 +125,20 @@ class RouteController extends Notifier<RouteState> {
   /// Transit: Google TRANSIT oraliq nuqtani qo'llamaydi, shuning uchun
   /// yo'ldagi eng yaqin nuqtadan (bekat) eventgacha borib-qaytish (Kakao, ×2).
   Future<RouteOpportunity> _detour(
-      KakaoApi kakao, TravelRoute route, Place origin, Place dest, RouteOpportunity o) async {
+    KakaoApi kakao,
+    TravelRoute route,
+    Place origin,
+    Place dest,
+    RouteOpportunity o,
+  ) async {
     try {
       if (route.mode == TravelMode.car) {
-        final via = await kakao.directions(origin.location, dest.location,
-            waypoint: o.event.location, withGeometry: false);
+        final via = await kakao.directions(
+          origin.location,
+          dest.location,
+          waypoint: o.event.location,
+          withGeometry: false,
+        );
         return o.withDetour(
           (via.distanceMeters - route.distanceMeters) / 1000,
           ((via.durationSeconds - route.durationSeconds) / 60).round(),

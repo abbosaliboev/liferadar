@@ -196,10 +196,6 @@
   "homeEmptyBody": "Connect your calendar or add more interests — LifeRadar will connect your plans with events and weather.",
   "tabProfile": "Profile",
   "loginError": "Google sign-in failed. Please try again.",
-  "loginBenefitPlans": "Connects your calendar with events, weather and deadlines",
-  "loginBenefitRoute": "Finds opportunities along the way — KTX or car",
-  "loginBenefitSignals": "Explains why each signal matters, with sources",
-  "loginNewUser": "New here? Your Google account is all you need to sign up.",
   "or": "or",
   "continueAsGuest": "Look around as a guest",
   "loginPrivacy": "Your calendar is connected separately, only with your consent.",
@@ -393,5 +389,65 @@
       }
     }
   },
-  "welcomeTagline": "Signals from your plans and interests"
+  "welcomeTagline": "Signals from your plans and interests",
+  "loginF1Title": "Plans meet the world",
+  "loginF1Body": "Calendar × events × weather × deadlines",
+  "loginF2Title": "Opportunities on your way",
+  "loginF2Body": "KTX or car — see the detour in km and minutes",
+  "loginF3Title": "Know why it matters",
+  "loginF3Body": "Every signal comes with reasons and sources",
+  "loginPanelTitle": "Let's get started",
+  "loginPanelBody": "Your Google account is all you need — no extra sign-up.",
+  "myLocation": "My location",
+  "locationDenied": "Location is blocked. Allow it in your browser or device settings.",
+  "locationUnavailable": "Couldn't get your location right now.",
+  "planViewMonth": "Month view",
+  "planViewList": "List view",
+  "noPlansThisDay": "No plans on this day",
+  "planSignalRain": "Rain likely — bring an umbrella",
+  "planSignalCrowd": "{event} nearby — expect crowds",
+  "@planSignalCrowd": {
+    "placeholders": {
+      "event": {
+        "type": "String"
+      }
+    }
+  },
+  "planSignalNearby": "Nearby: {event}",
+  "@planSignalNearby": {
+    "placeholders": {
+      "event": {
+        "type": "String"
+      }
+    }
+  },
+  "planAround": "Around this plan",
+  "planNothingAround": "Nothing unusual around this plan right now.",
+  "myPlanBadge": "My plan",
+  "calendarOpenGoogle": "Open Google Calendar",
+  "planWhen": "When",
+  "planWhere": "Where",
+  "likeUndoTitle": "Remove your like?",
+  "likeUndoBody": "This signal will be ranked like any other again.",
+  "dislikeUndoTitle": "Show signals like this again?",
+  "dislikeUndoBody": "We'll stop pushing this one down.",
+  "removeLike": "Remove like",
+  "showAgain": "Show again",
+  "keep": "Keep",
+  "notForMeConfirm": "Not for me",
+  "feedbackCleared": "Feedback removed",
+  "notifications": "Notifications",
+  "notifyDesc": "Deadlines, plan alerts and rain — as system notifications",
+  "notifyUnsupported": "Not available on this device yet",
+  "notifyDenied": "Notifications are blocked. Allow them in your browser settings.",
+  "notifyOn": "Notifications on",
+  "notifyTest": "Send a test notification",
+  "notifyTestBody": "Notifications are working. We'll tell you when something affects your plans.",
+  "accountData": "Account & data",
+  "accountDataSubtitle": "Delete your account and everything stored on this device",
+  "deleteAccount": "Delete account",
+  "deleteAccountTitle": "Delete your account?",
+  "deleteAccountBody": "Your name, interests, your own plans, feedback and settings will be erased from this device, Google access will be revoked, and the app will start over from the beginning. This can't be undone.",
+  "deleteAccountInfo": "LifeRadar keeps your data only on this device. Deleting removes it all and disconnects Google Calendar.",
+  "accountDeleted": "Account deleted. Starting fresh."
 }

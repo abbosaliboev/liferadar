@@ -12,7 +12,9 @@ import '../../services/route_matcher.dart';
 import '../event/event_detail_sheet.dart';
 import '../route/route_controller.dart';
 import '../route/route_panel.dart';
+import '../../core/toast.dart';
 import '../../core/widgets.dart';
+import '../../data/location.dart';
 import 'marker_icons.dart';
 
 enum MapMode { explore, myMap, route }
@@ -59,6 +61,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       _drawing = _drawing.then((_) => _drawPlans(next)).catchError((_) {});
     });
 
+    ref.listen<MyLocation>(myLocationProvider, (prev, next) {
+      if (next.position != null && next.position != prev?.position) _drawMe(next.position);
+    });
+
     ref.listen<RouteState>(routeProvider, (prev, next) {
       if (prev?.route != next.route || prev?.opportunities != next.opportunities) {
         _drawRoute(next, fit: prev?.route != next.route);
@@ -74,71 +80,165 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
 
     return Scaffold(
-      body: Stack(children: [
-        Positioned.fill(child: _buildMap(context)),
-        // Xarita tayyor bo'lguncha skeleton
-        if (!_ready && _canShowMap)
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Shimmer(child: ColoredBox(color: p.skeleton, child: const SizedBox.expand())),
-            ),
-          ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(Space.md, Space.sm, Space.md, 0),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: floating,
-                child: SegmentedButton<MapMode>(
-                  showSelectedIcon: false,
-                  style: SegmentedButton.styleFrom(side: BorderSide.none),
-                  segments: [
-                    ButtonSegment(value: MapMode.explore, icon: const Icon(Icons.travel_explore, size: 18), label: Text(l10n.modeExplore)),
-                    ButtonSegment(value: MapMode.myMap, icon: const Icon(Icons.person_pin_circle_outlined, size: 18), label: Text(l10n.modeMyMap)),
-                    ButtonSegment(value: MapMode.route, icon: const Icon(Icons.alt_route_rounded, size: 18), label: Text(l10n.modeRoute)),
-                  ],
-                  selected: {_mode},
-                  onSelectionChanged: (s) => _setMode(s.first),
+      body: Stack(
+        children: [
+          Positioned.fill(child: _buildMap(context)),
+          // Xarita tayyor bo'lguncha skeleton
+          if (!_ready && _canShowMap)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Shimmer(
+                  child: ColoredBox(color: p.skeleton, child: const SizedBox.expand()),
                 ),
               ),
-              const SizedBox(height: Space.sm),
-              Wrap(spacing: 6, runSpacing: 6, children: [
-                _layerChip(MapLayer.plans, l10n.layerPlans, AppColors.plan, floating),
-                _layerChip(MapLayer.recommended, l10n.layerRecommended, AppColors.recommended, floating),
-                _layerChip(MapLayer.route, l10n.layerRoute, AppColors.route, floating),
-              ]),
-            ]),
-          ),
-        ),
-        if (_mode != MapMode.route && _ready)
-          Positioned(
-            right: Space.lg,
-            bottom: Space.lg,
-            child: Container(
-              // copyWith(borderRadius: null) radiusni o'chirmaydi → circle + radius assertion.
-              decoration: BoxDecoration(
-                color: floating.color,
-                shape: BoxShape.circle,
-                border: floating.border,
-                boxShadow: floating.boxShadow,
-              ),
-              child: IconButton(
-                tooltip: l10n.modeExplore,
-                icon: Icon(Icons.fit_screen_outlined, color: p.text),
-                onPressed: _fitAll,
+            ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Space.md, Space.sm, Space.md, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: floating,
+                    child: SegmentedButton<MapMode>(
+                      showSelectedIcon: false,
+                      style: SegmentedButton.styleFrom(side: BorderSide.none),
+                      segments: [
+                        ButtonSegment(
+                          value: MapMode.explore,
+                          icon: const Icon(Icons.travel_explore, size: 18),
+                          label: Text(l10n.modeExplore),
+                        ),
+                        ButtonSegment(
+                          value: MapMode.myMap,
+                          icon: const Icon(Icons.person_pin_circle_outlined, size: 18),
+                          label: Text(l10n.modeMyMap),
+                        ),
+                        ButtonSegment(
+                          value: MapMode.route,
+                          icon: const Icon(Icons.alt_route_rounded, size: 18),
+                          label: Text(l10n.modeRoute),
+                        ),
+                      ],
+                      selected: {_mode},
+                      onSelectionChanged: (s) => _setMode(s.first),
+                    ),
+                  ),
+                  const SizedBox(height: Space.sm),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _layerChip(MapLayer.plans, l10n.layerPlans, AppColors.plan, floating),
+                      _layerChip(MapLayer.recommended, l10n.layerRecommended, AppColors.recommended, floating),
+                      _layerChip(MapLayer.route, l10n.layerRoute, AppColors.route, floating),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
-        if (_mode == MapMode.route)
-          Positioned(
-            left: Space.md,
-            right: Space.md,
-            bottom: Space.md,
-            child: RoutePanel(onOpportunityTap: _openOpportunity),
-          ),
-      ]),
+          if (_mode != MapMode.route && _ready)
+            Positioned(
+              right: Space.lg,
+              bottom: Space.lg,
+              child: Column(
+                children: [
+                  _roundButton(
+                    floating,
+                    tooltip: l10n.myLocation,
+                    icon: _locating
+                        ? AppSpinner(size: 20)
+                        : Icon(
+                            ref.watch(myLocationProvider).status == LocationStatus.located
+                                ? Icons.my_location_rounded
+                                : Icons.location_searching_rounded,
+                            color: p.primary,
+                          ),
+                    onPressed: _goToMe,
+                  ),
+                  const SizedBox(height: Space.sm),
+                  _roundButton(
+                    floating,
+                    tooltip: l10n.modeExplore,
+                    icon: Icon(Icons.fit_screen_outlined, color: p.text),
+                    onPressed: _fitAll,
+                  ),
+                ],
+              ),
+            ),
+          if (_mode == MapMode.route)
+            Positioned(
+              left: Space.md,
+              right: Space.md,
+              bottom: Space.md,
+              child: RoutePanel(onOpportunityTap: _openOpportunity),
+            ),
+        ],
+      ),
     );
+  }
+
+  /// Suzuvchi yumaloq tugma. (copyWith(borderRadius: null) radiusni o'chirmaydi → yangi BoxDecoration.)
+  Widget _roundButton(
+    BoxDecoration floating, {
+    required String tooltip,
+    required Widget icon,
+    VoidCallback? onPressed,
+  }) => Container(
+    decoration: BoxDecoration(
+      color: floating.color,
+      shape: BoxShape.circle,
+      border: floating.border,
+      boxShadow: floating.boxShadow,
+    ),
+    child: IconButton(tooltip: tooltip, icon: icon, onPressed: onPressed),
+  );
+
+  // ---------- Mening joyim ----------
+
+  km.Poi? _mePoi;
+  bool _locating = false;
+
+  /// Joylashuv o'zgarganda ko'k nuqtani chizish/siljitish.
+  Future<void> _drawMe(GeoPoint? at) async {
+    final map = _map;
+    if (map == null || at == null) return;
+    if (_mePoi == null) {
+      _mePoi = await map.labelLayer.addPoi(
+        _ll(at),
+        id: 'me',
+        style: km.PoiStyle(icon: await MarkerIcons.myLocation(AppColors.route), anchor: const km.KPoint(0.5, 0.5)),
+        rank: 30, // hamma markerlar ustida
+      );
+    } else {
+      await _mePoi!.move(_ll(at), 400);
+    }
+  }
+
+  Future<void> _goToMe() async {
+    final l10n = context.l10n;
+    var me = ref.read(myLocationProvider);
+    if (me.status != LocationStatus.located) {
+      setState(() => _locating = true);
+      await ref.read(myLocationProvider.notifier).start();
+      if (!mounted) return;
+      setState(() => _locating = false);
+      me = ref.read(myLocationProvider);
+    }
+    switch (me.status) {
+      case LocationStatus.located:
+        await _drawMe(me.position);
+        await _map?.moveCamera(
+          km.CameraUpdate.newCenterPosition(_ll(me.position!), zoomLevel: 15),
+          animation: const km.CameraAnimation(700),
+        );
+      case LocationStatus.denied:
+        Toast.show(l10n.locationDenied, type: ToastType.warning);
+      default:
+        Toast.show(l10n.locationUnavailable, type: ToastType.error);
+    }
   }
 
   bool get _canShowMap => Env.hasKakaoMapKey && isKakaoSdkLoaded() && _mapError == null;
@@ -171,20 +271,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             duration: Motion.of(context, Motion.fast),
             padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: Space.sm),
             decoration: floating.copyWith(color: on ? p.surface : p.surfaceAlt),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              AnimatedContainer(
-                duration: Motion.of(context, Motion.fast),
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: on ? color : Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: color, width: 2),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedContainer(
+                  duration: Motion.of(context, Motion.fast),
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: on ? color : Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: color, width: 2),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 6),
-              Text(label, style: context.textStyles.labelMedium!.copyWith(color: on ? p.text : p.textMuted)),
-            ]),
+                const SizedBox(width: 6),
+                Text(label, style: context.textStyles.labelMedium!.copyWith(color: on ? p.text : p.textMuted)),
+              ],
+            ),
           ),
         ),
       ),
@@ -200,6 +303,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     await _fitAll();
     final pending = ref.read(mapFocusProvider);
     if (pending != null) await _focusEvent(pending);
+    // O'z joyini ko'rsatish (birinchi marta brauzer/qurilma ruxsat so'raydi). Kamera umumiy ko'rinishda qoladi.
+    final ok = await ref.read(myLocationProvider.notifier).start();
+    if (ok) await _drawMe(ref.read(myLocationProvider).position);
   }
 
   Future<void> _drawOverlays() async {
@@ -233,16 +339,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final planIcon = await MarkerIcons.pin(AppColors.plan, Icons.event);
     for (final p in plans) {
       if (p.location == null) continue;
-      _pois[MapLayer.plans]!.add(await map.labelLayer.addPoi(
-        _ll(p.location!),
-        style: km.PoiStyle(
-          icon: planIcon,
-          textStyle: const [km.PoiTextStyle(size: 12, color: Colors.black87, stroke: 2, strokeColor: Colors.white)],
+      _pois[MapLayer.plans]!.add(
+        await map.labelLayer.addPoi(
+          _ll(p.location!),
+          style: km.PoiStyle(
+            icon: planIcon,
+            textStyle: const [km.PoiTextStyle(size: 12, color: Colors.black87, stroke: 2, strokeColor: Colors.white)],
+          ),
+          text: p.title,
+          rank: 10, // rejalar event markerlari ustida
+          visible: _layers.contains(MapLayer.plans),
         ),
-        text: p.title,
-        rank: 10, // rejalar event markerlari ustida
-        visible: _layers.contains(MapLayer.plans),
-      ));
+      );
     }
   }
 
@@ -297,29 +405,33 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final startIcon = await MarkerIcons.pin(AppColors.route, Icons.trip_origin);
     for (final (p, icon) in [(s.origin, startIcon), (s.destination, endIcon)]) {
       if (p == null) continue;
-      _pois[MapLayer.route]!.add(await map.labelLayer.addPoi(
-        _ll(p.location),
-        style: km.PoiStyle(
-          icon: icon,
-          textStyle: const [km.PoiTextStyle(size: 13, color: Colors.black87, stroke: 2, strokeColor: Colors.white)],
+      _pois[MapLayer.route]!.add(
+        await map.labelLayer.addPoi(
+          _ll(p.location),
+          style: km.PoiStyle(
+            icon: icon,
+            textStyle: const [km.PoiTextStyle(size: 13, color: Colors.black87, stroke: 2, strokeColor: Colors.white)],
+          ),
+          text: p.name,
+          visible: visible,
         ),
-        text: p.name,
-        visible: visible,
-      ));
+      );
     }
 
     // Yo'l bo'yidagi imkoniyatlar
     for (final o in s.opportunities) {
       final icon = await MarkerIcons.pin(AppColors.route, categoryIcon(o.event.category), selected: true);
       _routeOppByEventId[o.event.id] = o;
-      _pois[MapLayer.route]!.add(await map.labelLayer.addPoi(
-        _ll(o.event.location),
-        id: 'route-${o.event.id}',
-        style: km.PoiStyle(icon: icon),
-        rank: 20,
-        visible: visible,
-        onClick: () => _openOpportunity(_routeOppByEventId[o.event.id] ?? o),
-      ));
+      _pois[MapLayer.route]!.add(
+        await map.labelLayer.addPoi(
+          _ll(o.event.location),
+          id: 'route-${o.event.id}',
+          style: km.PoiStyle(icon: icon),
+          rank: 20,
+          visible: visible,
+          onClick: () => _openOpportunity(_routeOppByEventId[o.event.id] ?? o),
+        ),
+      );
     }
 
     if (fit) {
@@ -378,6 +490,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _focusEvent(String id) async {
+    // Reja joyi: "plan:<id>" — kamerani o'sha joyga, "My Plans" qatlamini yoqib.
+    if (id.startsWith('plan:')) {
+      final plan = ref.read(plansProvider).where((x) => x.id == id.substring(5)).firstOrNull;
+      ref.read(mapFocusProvider.notifier).focus(null);
+      if (plan?.location == null || _map == null) return;
+      if (!_layers.contains(MapLayer.plans)) await _setLayer(MapLayer.plans, true);
+      await _map!.moveCamera(
+        km.CameraUpdate.newCenterPosition(_ll(plan!.location!), zoomLevel: 15),
+        animation: const km.CameraAnimation(800),
+      );
+      return;
+    }
     final event = ref.read(eventByIdProvider(id));
     if (event == null || _map == null) return;
     ref.read(mapFocusProvider.notifier).focus(null);
@@ -403,7 +527,9 @@ class _MapMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ColoredBox(
-        color: context.palette.surfaceAlt,
-        child: Center(child: EmptyState(icon: Icons.map_outlined, title: message)),
-      );
+    color: context.palette.surfaceAlt,
+    child: Center(
+      child: EmptyState(icon: Icons.map_outlined, title: message),
+    ),
+  );
 }

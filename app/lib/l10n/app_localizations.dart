@@ -596,30 +596,6 @@ abstract class AppLocalizations {
   /// **'Google sign-in failed. Please try again.'**
   String get loginError;
 
-  /// No description provided for @loginBenefitPlans.
-  ///
-  /// In en, this message translates to:
-  /// **'Connects your calendar with events, weather and deadlines'**
-  String get loginBenefitPlans;
-
-  /// No description provided for @loginBenefitRoute.
-  ///
-  /// In en, this message translates to:
-  /// **'Finds opportunities along the way — KTX or car'**
-  String get loginBenefitRoute;
-
-  /// No description provided for @loginBenefitSignals.
-  ///
-  /// In en, this message translates to:
-  /// **'Explains why each signal matters, with sources'**
-  String get loginBenefitSignals;
-
-  /// No description provided for @loginNewUser.
-  ///
-  /// In en, this message translates to:
-  /// **'New here? Your Google account is all you need to sign up.'**
-  String get loginNewUser;
-
   /// No description provided for @or.
   ///
   /// In en, this message translates to:
@@ -1327,6 +1303,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Signals from your plans and interests'**
   String get welcomeTagline;
+
+  /// No description provided for @loginF1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans meet the world'**
+  String get loginF1Title;
+
+  /// No description provided for @loginF1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar × events × weather × deadlines'**
+  String get loginF1Body;
+
+  /// No description provided for @loginF2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Opportunities on your way'**
+  String get loginF2Title;
+
+  /// No description provided for @loginF2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'KTX or car — see the detour in km and minutes'**
+  String get loginF2Body;
+
+  /// No description provided for @loginF3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Know why it matters'**
+  String get loginF3Title;
+
+  /// No description provided for @loginF3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Every signal comes with reasons and sources'**
+  String get loginF3Body;
+
+  /// No description provided for @loginPanelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s get started'**
+  String get loginPanelTitle;
+
+  /// No description provided for @loginPanelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Google account is all you need — no extra sign-up.'**
+  String get loginPanelBody;
+
+  /// No description provided for @myLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'My location'**
+  String get myLocation;
+
+  /// No description provided for @locationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is blocked. Allow it in your browser or device settings.'**
+  String get locationDenied;
+
+  /// No description provided for @locationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t get your location right now.'**
+  String get locationUnavailable;
+
+  /// No description provided for @planViewMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month view'**
+  String get planViewMonth;
+
+  /// No description provided for @planViewList.
+  ///
+  /// In en, this message translates to:
+  /// **'List view'**
+  String get planViewList;
+
+  /// No description provided for @noPlansThisDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No plans on this day'**
+  String get noPlansThisDay;
+
+  /// No description provided for @planSignalRain.
+  ///
+  /// In en, this message translates to:
+  /// **'Rain likely — bring an umbrella'**
+  String get planSignalRain;
+
+  /// No description provided for @planSignalCrowd.
+  ///
+  /// In en, this message translates to:
+  /// **'{event} nearby — expect crowds'**
+  String planSignalCrowd(String event);
+
+  /// No description provided for @planSignalNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby: {event}'**
+  String planSignalNearby(String event);
+
+  /// No description provided for @planAround.
+  ///
+  /// In en, this message translates to:
+  /// **'Around this plan'**
+  String get planAround;
+
+  /// No description provided for @planNothingAround.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing unusual around this plan right now.'**
+  String get planNothingAround;
+
+  /// No description provided for @myPlanBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'My plan'**
+  String get myPlanBadge;
+
+  /// No description provided for @calendarOpenGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Google Calendar'**
+  String get calendarOpenGoogle;
+
+  /// No description provided for @planWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get planWhen;
+
+  /// No description provided for @planWhere.
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get planWhere;
+
+  /// No description provided for @likeUndoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove your like?'**
+  String get likeUndoTitle;
+
+  /// No description provided for @likeUndoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This signal will be ranked like any other again.'**
+  String get likeUndoBody;
+
+  /// No description provided for @dislikeUndoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show signals like this again?'**
+  String get dislikeUndoTitle;
+
+  /// No description provided for @dislikeUndoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll stop pushing this one down.'**
+  String get dislikeUndoBody;
+
+  /// No description provided for @removeLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove like'**
+  String get removeLike;
+
+  /// No description provided for @showAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Show again'**
+  String get showAgain;
+
+  /// No description provided for @keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get keep;
+
+  /// No description provided for @notForMeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Not for me'**
+  String get notForMeConfirm;
+
+  /// No description provided for @feedbackCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback removed'**
+  String get feedbackCleared;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @notifyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadlines, plan alerts and rain — as system notifications'**
+  String get notifyDesc;
+
+  /// No description provided for @notifyUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available on this device yet'**
+  String get notifyUnsupported;
+
+  /// No description provided for @notifyDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked. Allow them in your browser settings.'**
+  String get notifyDenied;
+
+  /// No description provided for @notifyOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications on'**
+  String get notifyOn;
+
+  /// No description provided for @notifyTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a test notification'**
+  String get notifyTest;
+
+  /// No description provided for @notifyTestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are working. We\'ll tell you when something affects your plans.'**
+  String get notifyTestBody;
+
+  /// No description provided for @accountData.
+  ///
+  /// In en, this message translates to:
+  /// **'Account & data'**
+  String get accountData;
+
+  /// No description provided for @accountDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account and everything stored on this device'**
+  String get accountDataSubtitle;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name, interests, your own plans, feedback and settings will be erased from this device, Google access will be revoked, and the app will start over from the beginning. This can\'t be undone.'**
+  String get deleteAccountBody;
+
+  /// No description provided for @deleteAccountInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'LifeRadar keeps your data only on this device. Deleting removes it all and disconnects Google Calendar.'**
+  String get deleteAccountInfo;
+
+  /// No description provided for @accountDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted. Starting fresh.'**
+  String get accountDeleted;
 }
 
 class _AppLocalizationsDelegate

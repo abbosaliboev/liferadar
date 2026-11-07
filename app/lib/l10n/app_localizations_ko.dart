@@ -289,18 +289,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get loginError => 'Google 로그인에 실패했습니다. 다시 시도해 주세요.';
 
   @override
-  String get loginBenefitPlans => '내 캘린더를 행사·날씨·마감과 연결해요';
-
-  @override
-  String get loginBenefitRoute => 'KTX나 자동차로 가는 길의 기회를 찾아요';
-
-  @override
-  String get loginBenefitSignals => '왜 중요한지 출처와 함께 설명해요';
-
-  @override
-  String get loginNewUser => '처음이신가요? Google 계정만 있으면 바로 가입돼요.';
-
-  @override
   String get or => '또는';
 
   @override
@@ -673,4 +661,148 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get welcomeTagline => '내 일정과 관심사로 찾는 신호';
+
+  @override
+  String get loginF1Title => '일정과 세상을 연결';
+
+  @override
+  String get loginF1Body => '캘린더 × 행사 × 날씨 × 마감';
+
+  @override
+  String get loginF2Title => '가는 길의 기회';
+
+  @override
+  String get loginF2Body => 'KTX·자동차 경로에서 추가 km·분까지';
+
+  @override
+  String get loginF3Title => '왜 중요한지 바로';
+
+  @override
+  String get loginF3Body => '모든 신호에 이유와 출처를 함께';
+
+  @override
+  String get loginPanelTitle => '시작해 볼까요?';
+
+  @override
+  String get loginPanelBody => 'Google 계정만 있으면 돼요. 따로 가입할 필요 없어요.';
+
+  @override
+  String get myLocation => '내 위치';
+
+  @override
+  String get locationDenied => '위치 권한이 꺼져 있어요. 브라우저나 기기 설정에서 허용해 주세요.';
+
+  @override
+  String get locationUnavailable => '지금은 위치를 가져올 수 없어요.';
+
+  @override
+  String get planViewMonth => '월간 보기';
+
+  @override
+  String get planViewList => '목록 보기';
+
+  @override
+  String get noPlansThisDay => '이 날은 일정이 없어요';
+
+  @override
+  String get planSignalRain => '비 예보 — 우산을 챙기세요';
+
+  @override
+  String planSignalCrowd(String event) {
+    return '근처 $event — 혼잡 예상';
+  }
+
+  @override
+  String planSignalNearby(String event) {
+    return '근처: $event';
+  }
+
+  @override
+  String get planAround => '이 일정 주변 소식';
+
+  @override
+  String get planNothingAround => '지금은 이 일정에 영향을 줄 소식이 없어요.';
+
+  @override
+  String get myPlanBadge => '내 일정';
+
+  @override
+  String get calendarOpenGoogle => 'Google 캘린더 열기';
+
+  @override
+  String get planWhen => '언제';
+
+  @override
+  String get planWhere => '어디서';
+
+  @override
+  String get likeUndoTitle => '좋아요를 취소할까요?';
+
+  @override
+  String get likeUndoBody => '이 신호가 다시 다른 신호와 같은 순서로 보여요.';
+
+  @override
+  String get dislikeUndoTitle => '비슷한 신호를 다시 볼까요?';
+
+  @override
+  String get dislikeUndoBody => '이 신호를 더 이상 아래로 내리지 않을게요.';
+
+  @override
+  String get removeLike => '좋아요 취소';
+
+  @override
+  String get showAgain => '다시 보기';
+
+  @override
+  String get keep => '유지';
+
+  @override
+  String get notForMeConfirm => '관심 없음';
+
+  @override
+  String get feedbackCleared => '평가를 취소했어요';
+
+  @override
+  String get notifications => '알림';
+
+  @override
+  String get notifyDesc => '마감·일정 알림·비 예보를 시스템 알림으로 받아요';
+
+  @override
+  String get notifyUnsupported => '이 기기에서는 아직 지원하지 않아요';
+
+  @override
+  String get notifyDenied => '알림이 차단되어 있어요. 브라우저 설정에서 허용해 주세요.';
+
+  @override
+  String get notifyOn => '알림을 켰어요';
+
+  @override
+  String get notifyTest => '테스트 알림 보내기';
+
+  @override
+  String get notifyTestBody => '알림이 잘 작동해요. 일정에 영향을 주는 소식이 생기면 알려드릴게요.';
+
+  @override
+  String get accountData => '계정 및 데이터';
+
+  @override
+  String get accountDataSubtitle => '계정과 이 기기에 저장된 데이터를 삭제해요';
+
+  @override
+  String get deleteAccount => '계정 삭제';
+
+  @override
+  String get deleteAccountTitle => '계정을 삭제할까요?';
+
+  @override
+  String get deleteAccountBody =>
+      '이름·관심사·직접 만든 일정·평가·설정이 이 기기에서 모두 지워지고, Google 접근 권한도 해제돼요. 앱은 처음 상태로 돌아가요. 되돌릴 수 없어요.';
+
+  @override
+  String get deleteAccountInfo =>
+      'LifeRadar는 데이터를 이 기기에만 저장해요. 삭제하면 모두 지워지고 Google 캘린더 연결도 끊겨요.';
+
+  @override
+  String get accountDeleted => '계정을 삭제했어요. 처음부터 시작해요.';
 }

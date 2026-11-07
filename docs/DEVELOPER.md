@@ -330,6 +330,25 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 
 전환: 최상위 화면은 `_fadePage`(페이드+살짝 위로), 탭 간에는 `FadeBranchContainer`(상태 유지 + 페이드). 테스트는 `disableAnimations: true`로 실행해 모션 줄이기 경로도 함께 검증합니다.
 
+### 내 위치와 일정 화면
+
+- **`myLocationProvider` (`data/location.dart`)**: `geolocator`로 권한 요청 → 현재 위치 → 20 m 이상 이동 시 갱신. 지도가 준비되면 자동 시작, ⌖ 버튼은 권한 재요청 + 카메라 이동. 거부/실패는 토스트. 위치는 저장·전송하지 않음.
+- 파란 점은 `MarkerIcons.myLocation()` (앵커 0.5, 0.5, rank 30). 일정 상세의 지도 버튼은 `mapFocusProvider.focus('plan:<id>')`.
+- **일정 신호 한 줄 (`plan_signals.dart`)**: 해당 `planId`의 인사이트를 비 → 혼잡 → 근처 기회 순으로. 카드에는 최대 2개, 왼쪽 막대 색 = 가장 중요한 신호 색.
+- **월간 달력 (`month_view.dart`)**: 일요일 시작, 종일/여러 날 일정은 `MonthView.covers()`로 모든 날짜에 표시. 보기 선택은 `plans_view`에 저장. 각 칸은 독립 시맨틱 노드("11월 10일, 1").
+- **일정 상세 (`plan_detail_sheet.dart`)**: 언제·어디서·날씨·주변 소식·메모 → **수정**은 편집 시트로.
+
+### 알림 · 확인 시트 · 계정 삭제 · 아이콘
+
+- **알림 (`core/notify/`, `data/notifications.dart`)**: 웹 Notification API(`package:web`), 그 외 플랫폼은 stub. 설정 스위치(`notify_enabled`)를 켤 때만 권한 요청. `AppShell`이 `insightsProvider`를 듣고 `SignalNotifier.dispatch()` → 마감 ≤ 2일, 3일 이내 일정의 planAlert만, 신호당 1번(`notified:<scope>`), 한 번에 최대 3개. 문구는 `lookupAppLocalizations()`로 현재 언어.
+  - 한계: 탭이 열려 있어야 함. 앱이 닫혀 있을 때의 푸시는 FCM + 서버(Cloud Functions) + 서비스 워커 필요.
+  - 헤드리스 검증: CDP `Browser.grantPermissions(['notifications'])` + `Page.addScriptToEvaluateOnNewDocument`로 `Notification` 생성자를 감싸 콘솔에 기록.
+- **확인 시트 (`core/confirm.dart`)**: `showConfirm()` — 루트 내비게이터 바텀시트(하단 탭까지 덮음), 아이콘 elastic pop, 두 개의 큰 버튼, `destructive`면 빨강. 👎, 👍/👎 취소, 일정 삭제, 계정 삭제에서 사용.
+- **👍/👎 토글**: 같은 버튼을 다시 누르면 확인 후 `InsightFeedbackController.clear()`.
+- **계정 삭제 (`deleteAccountAndData`)**: 캘린더 토큰 해제 → Google `disconnect()` → `SharedPreferences.clear()` → 관련 provider invalidate → `/welcome`. 위치: 프로필 → 정보 → 계정 및 데이터 (`/account`).
+- **토스트**: 상단에서 56dp 아래, pill 모양, `easeOutBack` 진입(살짝 튕김) + 남은 시간 막대.
+- **앱 아이콘**: 원본 `docs/brand/app-icon-source.png`(검은 배경) → 스퀘어클 마스크(4x 슈퍼샘플링, 반경 265/1040)로 투명 처리한 `docs/brand/app-icon.png`에서 `web/icons/*`, `web/favicon.png`, maskable(80% 안전 영역), Android `mipmap-*/ic_launcher.png` 생성.
+
 ### 첫 실행 흐름과 글꼴
 
 ```
@@ -342,6 +361,11 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 - **로딩 화면**: `web/index.html`의 HTML 스플래시(브랜드 색, 다크 모드, 모션 줄이기 대응)가 `flutter-first-frame` 이벤트에서 사라집니다.
 - **스피너**는 `AppSpinner` 하나로 통일 (둥근 끝, 브랜드 색 + 연한 트랙).
 - 한국어 문장은 Flutter가 글자 단위로 줄바꿈하므로, 짧은 안내문은 `\n`으로 의미 단위 줄바꿈을 넣습니다.
+
+### 색 사용 원칙 — 관심사 태그
+
+- **고를 때만 색**: 온보딩/관심사 수정 화면의 `InterestChip`은 관심사별 색(`Hue`)으로 구분을 돕습니다.
+- **카드에서는 조용히**: 홈·발견 카드의 관심사는 `QuietTags` — 배경·테두리 없이 회색 아이콘 + 글자, `·`로 구분, 한 줄. 카드의 주인공은 제목·시간·장소이고 태그는 보조 정보이기 때문입니다.
 
 ### 홈 카드 · 토스트 · 읽음 표시
 
@@ -398,7 +422,7 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 | `access_denied` | 해당 Gmail이 테스트 사용자에 없음 |
 | 새로고침 후 캘린더 연결이 풀림 | 토큰을 메모리에만 저장(의도된 동작). 다시 연결 |
 | Kakao 네이티브 지도가 에뮬레이터에서 안 보임 | x86 미지원. ARM 실기기 사용 |
-| 웹 release 빌드만 흰 화면 + `MissingPluginException(getAll … shared_preferences)` | 플러그인 추가 후 `.dart_tool`의 오래된 빌드 캐시가 재사용되어 플러그인이 등록되지 않음 → `flutter clean && flutter pub get` 후 다시 빌드 |
+| `MissingPluginException` (예: `getAll … shared_preferences`, `isLocationServiceEnabled … geolocator`) | **플러그인을 추가한 뒤** `.dart_tool`의 오래된 빌드 캐시가 재사용되어 웹 플러그인이 등록되지 않음 → `flutter clean && flutter pub get && dart run tool/gen_web_env.dart` 후 다시 빌드/실행 (핫 리스타트로는 안 됨) |
 | 실행할 때마다 다시 로그인·관심사 선택 | `flutter run -d chrome`의 임시 프로필 → `--web-browser-flag="--user-data-dir=..."` (1장 참고) |
 | 디버그에서만 화면이 깨짐 (`A circle cannot have a border radius`) | `BoxDecoration.copyWith(borderRadius: null)`은 radius를 **지우지 않음** → 새 `BoxDecoration` 작성. release에서는 assert가 꺼져 안 보이므로 디버그로도 확인 |
 | 테스트에서 `RenderAnimatedSize was mutated in its own performLayout` | 모션 줄이기에서 `AnimatedSize(duration: 0)` → `SmoothSize` 위젯 사용 |
@@ -434,5 +458,6 @@ flutter test --platform chrome test/google_api_test.dart   # 웹(dart2js) 동작
 - [ ] 웹 배포 + Kakao/Google OAuth에 배포 도메인 등록 (심사용 링크)
 - [ ] 👍/👎 피드백을 추천 점수에 반영
 - [ ] Gemini로 카드 문장 다듬기 — 키를 숨길 서버(Cloud Functions) 필요
-- [ ] Firebase: 기기 간 동기화(Firestore), API 키 이전, FCM 푸시
+- [x] 웹 시스템 알림(설정에서 켜기/끄기), 계정 삭제, 앱 아이콘
+- [ ] Firebase: 기기 간 동기화(Firestore), API 키 이전, FCM 푸시(앱이 닫혀 있어도)
 - [ ] Android: Kakao 네이티브 키, Google OAuth Android 클라이언트(SHA-1), 실기기 데모 빌드

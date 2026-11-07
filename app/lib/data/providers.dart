@@ -133,10 +133,18 @@ class InsightFeedbackController extends Notifier<Map<String, InsightFeedback>> {
 
   Future<void> set(String id, InsightFeedback f) async {
     state = {...state, id: f};
-    await ref
-        .read(sharedPrefsProvider)
-        .setStringList(_key, [for (final e in state.entries) '${e.key}|${e.value.name}']);
+    await _persist();
   }
+
+  /// Bahoni qaytarish (👍/👎 bekor qilinadi).
+  Future<void> clear(String id) async {
+    state = {...state}..remove(id);
+    await _persist();
+  }
+
+  Future<void> _persist() => ref
+      .read(sharedPrefsProvider)
+      .setStringList(_key, [for (final e in state.entries) '${e.key}|${e.value.name}']);
 }
 
 /// Insight'lar = InsightEngine(rejalar, eventlar, qiziqishlar, ob-havo) + feedback.
