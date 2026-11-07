@@ -35,7 +35,7 @@ class ProfileScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.tabProfile)),
       body: ListView(
-        padding: const EdgeInsets.only(bottom: Space.xxxl),
+        padding: EdgeInsets.only(bottom: Space.xxxl + MediaQuery.paddingOf(context).bottom),
         children: [
           // ── Foydalanuvchi ──
           Padding(

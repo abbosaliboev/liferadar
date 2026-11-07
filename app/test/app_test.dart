@@ -225,7 +225,11 @@ void main() {
     await pumpApp(tester, interests: ['ai'], name: 'Abbos');
     await tester.tap(find.byIcon(Icons.person_outline_rounded).last);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Account & data'), 200, scrollable: find.byType(Scrollable).last);
+    // Pastki suzuvchi navigatsiya ostida qolmasin — ekranning yuqorisiga olib chiqamiz.
+    final list = find.byType(Scrollable).last;
+    await tester.scrollUntilVisible(find.text('Account & data'), 200, scrollable: list);
+    await tester.drag(list, const Offset(0, -200));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Account & data'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(OutlinedButton, 'Delete account'));

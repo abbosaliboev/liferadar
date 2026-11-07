@@ -45,7 +45,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.tabDiscover)),
       body: ListView(
-        padding: const EdgeInsets.only(bottom: Space.xxxl),
+        padding: EdgeInsets.only(bottom: Space.xxxl + MediaQuery.paddingOf(context).bottom),
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),

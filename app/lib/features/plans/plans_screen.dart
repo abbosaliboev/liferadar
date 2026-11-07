@@ -103,7 +103,7 @@ class _PlansScreenState extends ConsumerState<PlansScreen> {
         },
         child: ListView(
           // FAB oxirgi kartani yopmasin.
-          padding: const EdgeInsets.only(bottom: 96),
+          padding: EdgeInsets.only(bottom: 96 + MediaQuery.paddingOf(context).bottom),
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Space.gutter),

@@ -172,7 +172,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             Positioned(
               left: Space.md,
               right: Space.md,
-              bottom: Space.md,
+              bottom: Space.md + MediaQuery.paddingOf(context).bottom,
               child: RoutePanel(onOpportunityTap: _openOpportunity),
             ),
         ],
