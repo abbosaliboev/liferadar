@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../services/google_api.dart';
 import '../services/insight_engine.dart';
 import '../services/kakao_api.dart';
+import '../services/taste.dart';
 import 'ai_insights.dart';
 import 'event_feed.dart';
 import 'interests.dart';
@@ -94,12 +95,13 @@ final mapEventsProvider = Provider<List<RadarEvent>>((ref) {
   final today = DateTime(now.year, now.month, now.day);
   final horizon = today.add(const Duration(days: 30));
   final interests = ref.watch(interestsProvider);
+  final taste = ref.watch(tasteProvider);
   final all = ref.watch(eventsProvider);
   final real = all
       .where((e) => !e.isSample && !e.placeless && !e.end.isBefore(today) && e.start.isBefore(horizon))
       .toList()
     ..sort((a, b) {
-      final s = interestScore(b, interests).compareTo(interestScore(a, interests));
+      final s = taste.score(b, interests).compareTo(taste.score(a, interests));
       return s != 0 ? s : a.start.compareTo(b.start);
     });
   return [...all.where((e) => e.isSample), ...real.take(mapEventLimit)];
@@ -148,6 +150,12 @@ class InsightFeedbackController extends Notifier<Map<String, InsightFeedback>> {
       .setStringList(_key, [for (final e in state.entries) '${e.key}|${e.value.name}']);
 }
 
+/// Feedback'dan o'rganilgan did: Home, Discover, Map va Route tartibiga ta'sir qiladi.
+final tasteProvider = Provider<Taste>((ref) {
+  final events = {for (final e in ref.watch(eventsProvider)) e.id: e};
+  return Taste.from(ref.watch(insightFeedbackProvider), events);
+});
+
 /// Qoida asosidagi insight'lar = InsightEngine(rejalar, eventlar, qiziqishlar, ob-havo).
 /// Har qanday kirish o'zgarsa avtomatik qayta hisoblanadi.
 final baseInsightsProvider = Provider<List<Insight>>((ref) {
@@ -173,6 +181,7 @@ final baseInsightsProvider = Provider<List<Insight>>((ref) {
     interests: ref.watch(interestsProvider),
     now: now,
     weatherByPlanId: weather,
+    taste: ref.watch(tasteProvider),
   );
 });
 

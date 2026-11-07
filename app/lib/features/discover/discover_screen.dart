@@ -29,12 +29,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final l10n = context.l10n;
     final t = context.textStyles;
     final interests = ref.watch(interestsProvider);
+    final taste = ref.watch(tasteProvider);
     final now = ref.watch(nowProvider);
     final today = DateTime(now.year, now.month, now.day);
     final all = ref.watch(eventsProvider).where((e) => !e.end.isBefore(today)).toList();
     final events = all.where((e) => _category == null || e.category == _category).toList()
       ..sort((a, b) {
-        final byScore = interestScore(b, interests).compareTo(interestScore(a, interests));
+        final byScore = taste.score(b, interests).compareTo(taste.score(a, interests));
         if (byScore != 0) return byScore;
         // Davom etayotgan (oldin boshlangan) event bugungi deb hisoblanadi.
         DateTime eff(RadarEvent e) => e.start.isBefore(today) ? today : e.start;

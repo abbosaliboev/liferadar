@@ -1,5 +1,6 @@
 import '../models/models.dart';
 import 'route_matcher.dart';
+import 'taste.dart';
 
 /// "Connect the dots" — rejalar × eventlar × ob-havo × qiziqishlar → Insight kartalari.
 ///
@@ -42,7 +43,10 @@ class InsightEngine {
     required Set<String> interests,
     required DateTime now,
     Map<String, DailyWeather> weatherByPlanId = const {},
+    Taste taste = Taste.none,
   }) {
+    // Qiziqish mosligi + feedback'dan o'rganilgan did (👍 o'xshashlar yuqoriga, 👎 pastga).
+    double interestOf(RadarEvent e) => taste.score(e, interests);
     final today = DateTime(now.year, now.month, now.day);
     final out = <Insight>[];
     final usedEventIds = <String>{};
@@ -62,7 +66,7 @@ class InsightEngine {
           if (!_overlaps(plan.start, plan.end, e.start, e.end)) continue;
           final km = RouteMatcher.haversineKm(plan.location!, e.location);
           if (km > nearbyKm) continue;
-          final interest = _interest(e, interests);
+          final interest = interestOf(e);
           if (_isCrowd(e, km)) {
             crowdCandidates.add((e, km));
           } else if (interest > 0) {
@@ -181,13 +185,13 @@ class InsightEngine {
     final deadlineCandidates = <(RadarEvent, int)>[];
     for (final e in events) {
       final d = e.deadline;
-      if (d == null || _interest(e, interests) == 0) continue;
+      if (d == null || interestOf(e) == 0) continue;
       final left = DateTime(d.year, d.month, d.day).difference(today).inDays;
       if (left < 0 || left > deadlineWindowDays) continue;
       deadlineCandidates.add((e, left));
     }
     deadlineCandidates.sort((a, b) {
-      final byInterest = _interest(b.$1, interests).compareTo(_interest(a.$1, interests));
+      final byInterest = interestOf(b.$1).compareTo(interestOf(a.$1));
       return byInterest != 0 ? byInterest : a.$2.compareTo(b.$2);
     });
     for (final (e, left) in deadlineCandidates.take(maxDeadlines)) {
@@ -221,7 +225,7 @@ class InsightEngine {
             ko: '관심사(${_tags(e, interests)})와 맞는 행사이며, 마감을 놓치면 참가할 수 없습니다.',
             en: 'It matches your interests (${_tags(e, interests)}); missing the deadline means missing it.',
           ),
-          confidence: _round(0.5 + 0.4 * _interest(e, interests)),
+          confidence: _round(0.5 + 0.4 * interestOf(e)),
           signals: [
             Signal(
               SignalType.deadline,
@@ -248,10 +252,10 @@ class InsightEngine {
         events
             .where((e) => !usedEventIds.contains(e.id))
             .where((e) => !e.end.isBefore(today) && e.start.isBefore(horizon))
-            .where((e) => _interest(e, interests) > 0)
+            .where((e) => interestOf(e) > 0)
             .toList()
           ..sort((a, b) {
-            final s = _interest(b, interests).compareTo(_interest(a, interests));
+            final s = interestOf(b).compareTo(interestOf(a));
             return s != 0 ? s : a.start.compareTo(b.start);
           });
     for (final e in general.take(maxGeneralOpportunities)) {
@@ -269,7 +273,7 @@ class InsightEngine {
             ko: '관심사(${_tags(e, interests)})와 일치합니다.',
             en: 'Matches your interests (${_tags(e, interests)}).',
           ),
-          confidence: _round(0.4 + 0.4 * _interest(e, interests)),
+          confidence: _round(0.4 + 0.4 * interestOf(e)),
           signals: [Signal(SignalType.event, LocalizedText(ko: e.venue, en: e.venue))],
           sources: [_source(e)],
         ),
@@ -314,9 +318,6 @@ class InsightEngine {
     final a1 = DateTime(aEnd.year, aEnd.month, aEnd.day, 23, 59);
     return !bEnd.isBefore(a0) && !bStart.isAfter(a1);
   }
-
-  static double _interest(RadarEvent e, Set<String> interests) =>
-      e.tags.isEmpty ? 0 : e.tags.where(interests.contains).length / e.tags.length;
 
   static String _tags(RadarEvent e, Set<String> interests) =>
       e.tags.where(interests.contains).map((t) => '#$t').join(' ');

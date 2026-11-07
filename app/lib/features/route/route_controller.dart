@@ -107,7 +107,7 @@ class RouteController extends Notifier<RouteState> {
         interests: ref.read(interestsProvider),
         tripStart: dayStart,
         tripEnd: dayEnd,
-        interestScore: interestScore,
+        interestScore: ref.read(tasteProvider).score,
       );
       // Avval yo'lni ko'rsatamiz, keyin detour'larni to'ldiramiz.
       state = state.copyWith(status: RouteStatus.done, route: route, opportunities: opps);
