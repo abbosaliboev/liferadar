@@ -1,6 +1,8 @@
 import '../models/models.dart';
 import 'route_matcher.dart';
+import '../models/traffic.dart';
 import 'taste.dart';
+import 'traffic_matcher.dart';
 
 /// "Connect the dots" — rejalar × eventlar × ob-havo × qiziqishlar → Insight kartalari.
 ///
@@ -44,6 +46,8 @@ class InsightEngine {
     required DateTime now,
     Map<String, DailyWeather> weatherByPlanId = const {},
     Taste taste = Taste.none,
+    List<TrafficNotice> traffic = const [],
+    TrafficMatcher trafficMatcher = const TrafficMatcher(),
   }) {
     // Qiziqish mosligi + feedback'dan o'rganilgan did (👍 o'xshashlar yuqoriga, 👎 pastga).
     double interestOf(RadarEvent e) => taste.score(e, interests);
@@ -84,26 +88,28 @@ class InsightEngine {
               kind: InsightKind.planAlert,
               planId: plan.id,
               eventIds: [e.id],
+              // "행사 개최 사실만으로 이동 영향 판정 금지" (판별 로직 D08/E01): bu ma'lumot darajasi —
+              // transport ta'siri tasdiqlanmagan, bildirishnoma yuborilmaydi (SignalNotifier).
               title: LocalizedText(
-                ko: '${_dateKo(_on(e, plan.start))} $where 일정',
-                en: '$where on ${_dateEn(_on(e, plan.start))}',
+                ko: '${_dateKo(_on(e, plan.start))} $where 일정 — 근처 대형 행사',
+                en: 'Large event near $where on ${_dateEn(_on(e, plan.start))}',
               ),
               body: LocalizedText(
                 ko:
                     '같은 날 약 ${km.toStringAsFixed(1)} km 거리에서 "${e.title.ko}" 행사가 열립니다. '
-                    '교통편과 숙소를 미리 확인하세요.',
+                    '출발 전에 교통 통제나 혼잡 안내가 있는지 확인해 보세요.',
                 en:
                     '"${e.title.en}" takes place about ${km.toStringAsFixed(1)} km away the same day. '
-                    'Check transport and lodging early.',
+                    'Check for traffic or crowd notices before you go.',
               ),
               why: const LocalizedText(
-                ko: '방문 일정과 대규모 행사가 겹치면 교통·숙소 수요가 몰리고 혼잡해질 수 있습니다.',
-                en: 'When your visit overlaps a large event, transport and lodging demand can spike.',
+                ko: '방문 일정과 같은 날 근처에서 대규모 행사가 열립니다. 공식 교통 영향 정보는 아직 확인되지 않았습니다.',
+                en: 'A large event is happening near your plan that day. No official traffic impact has been confirmed yet.',
               ),
-              confidence: _round(0.6 + 0.3 * (1 - km / nearbyKm)),
+              confidence: _round(0.4 + 0.3 * (1 - km / nearbyKm)),
               signals: [
                 Signal(SignalType.event, LocalizedText(ko: e.venue, en: e.venue)),
-                const Signal(SignalType.traffic, LocalizedText(ko: '혼잡 예상', en: 'Crowds expected')),
+                const Signal(SignalType.traffic, LocalizedText(ko: '교통 영향 미확인', en: 'Traffic impact unconfirmed')),
               ],
               sources: [_source(e)],
             ),
@@ -142,6 +148,14 @@ class InsightEngine {
             ),
           );
         }
+      }
+
+      // 1b) Rasmiy yo'l ta'siri (TOPIS) — reja joyi yaqinida, reja oldidan. Matn shablon: faktlar manbadan,
+      // Gemini qayta yozmaydi (ai_insights.dart). Transport turi noma'lum → faqat CAUTION.
+      for (final n in traffic) {
+        final m = trafficMatcher.evaluate(plan, n, now);
+        if (m.decision != TrafficDecision.caution) continue;
+        out.add(_trafficCard(plan, where, n, m));
       }
 
       // 2) Reja kuni yomg'ir
@@ -281,6 +295,55 @@ class InsightEngine {
     }
 
     return rank(out);
+  }
+
+  Insight _trafficCard(Plan plan, String where, TrafficNotice n, TrafficMatch m) {
+    final (whatKo, whatEn) = switch (n.kind) {
+      TrafficKind.rally => ('집회', 'a rally'),
+      TrafficKind.event => ('행사', 'an event'),
+      TrafficKind.drill => ('훈련', 'a drill'),
+      TrafficKind.construction => ('공사', 'construction'),
+      TrafficKind.weather => ('기상', 'weather'),
+      TrafficKind.other => ('돌발 상황', 'an incident'),
+    };
+    String hm(DateTime d) => '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    final end = n.end;
+    final periodKo = '${_dateKo(n.start)} ${hm(n.start)} ~ ${end == null ? '종료 시각 미확인' : '${_dateKo(end)} ${hm(end)}'}';
+    final periodEn = '${_dateEn(n.start)} ${hm(n.start)} – ${end == null ? 'end time not announced' : '${_dateEn(end)} ${hm(end)}'}';
+    final km = m.distanceKm!.toStringAsFixed(1);
+    final whenKo = switch (m.time) {
+      TimeMatch.window => '일정 시작 전 시간대에',
+      TimeMatch.date => '일정 날짜에',
+      _ => '일정 날짜에 (시간 확인 필요)',
+    };
+    final whenEn = switch (m.time) {
+      TimeMatch.window => 'in the hours before your plan starts',
+      TimeMatch.date => 'on your plan day',
+      _ => 'on your plan day (check the time)',
+    };
+    return Insight(
+      id: 'traffic:${plan.id}:${n.id}',
+      kind: InsightKind.planAlert,
+      planId: plan.id,
+      title: LocalizedText(ko: '$where 인근 $whatKo 통제', en: 'Road control near $where ($whatEn)'),
+      // 판별 로직 §12 "이동수단 미확인" 문구 — 지연·통행 불가를 단정하지 않는다.
+      body: LocalizedText(
+        ko: '$whenKo 일정 장소 인근(약 $km km)에 도로 통제가 예고되어 있습니다. '
+            '이용하실 교통수단과 접근 경로에 영향이 있는지 확인해 주세요.',
+        en: 'A road control is announced about $km km from your plan $whenEn. '
+            'Check whether it affects how you plan to get there.',
+      ),
+      why: LocalizedText(
+        ko: '${n.sourceName} 공식 정보: "${n.title}" ($periodKo)',
+        en: 'Official notice from ${n.sourceName}: "${n.title}" ($periodEn)',
+      ),
+      confidence: m.time == TimeMatch.window ? 0.7 : 0.55,
+      signals: [
+        Signal(SignalType.traffic, LocalizedText(ko: periodKo, en: periodEn)),
+        Signal(SignalType.event, LocalizedText(ko: n.title, en: n.title)),
+      ],
+      sources: [SourceLink(n.sourceName, n.sourceUrl)],
+    );
   }
 
   /// Avval rejaga oid ogohlantirishlar va muddatlar, keyin ishonch bo'yicha.

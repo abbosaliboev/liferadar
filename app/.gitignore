@@ -49,3 +49,4 @@ env.json
 
 # Web uchun generatsiya qilingan Kakao config
 web/kakao_config.js
+/tool/out/

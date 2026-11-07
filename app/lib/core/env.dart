@@ -23,6 +23,12 @@ abstract final class Env {
     defaultValue: 'https://raw.githubusercontent.com/abbosaliboev/liferadar-data/main/events.json',
   );
 
+  /// Rasmiy yo'l ta'siri (TOPIS) — GitHub Actions har 3 soatda yangilaydi.
+  static const trafficUrl = String.fromEnvironment(
+    'TRAFFIC_URL',
+    defaultValue: 'https://raw.githubusercontent.com/abbosaliboev/liferadar-data/main/traffic.json',
+  );
+
   /// Web'da JS SDK index.html orqali (kakao_config.js), Android'da native key bilan.
   static bool get hasKakaoMapKey => kIsWeb ? kakaoJsKey.isNotEmpty : kakaoNativeAppKey.isNotEmpty;
 }
