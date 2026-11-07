@@ -16,6 +16,7 @@
   "errGeneric": "Something went wrong. Please try again.",
   "eventsUpdated": "Real public data · {count} events · updated {date}",
   "@eventsUpdated": {"placeholders": {"count": {"type": "int"}, "date": {"type": "String"}}},
+  "notifyDeniedApp": "Notifications are blocked. Turn on notifications for LifeRadar in Settings, then try again.",
   "sources": "Sources",
   "confidence": "Confidence {percent}%",
   "@confidence": {

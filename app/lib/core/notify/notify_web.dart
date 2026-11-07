@@ -5,6 +5,11 @@ import 'package:web/web.dart' as web;
 
 bool get notifySupported => web.window.has('Notification');
 
+Future<void> initNotify() async {}
+
+/// Brauzerda sozlamalarni ochib bo'lmaydi.
+Future<bool> openNotifySettings() async => false;
+
 /// 'granted' | 'denied' | 'default' | 'unsupported'
 String notifyPermission() => notifySupported ? web.Notification.permission : 'unsupported';
 

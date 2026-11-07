@@ -6,6 +6,7 @@ import 'package:kakao_map_sdk/kakao_map_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/env.dart';
+import 'core/notify/notify.dart';
 import 'core/router.dart';
 import 'core/theme.dart';
 import 'data/calendar_controller.dart';
@@ -24,7 +25,7 @@ Future<void> main() async {
   }
   // GIS SDK'ni fonda yuklaymiz — ilova ochilishini kutdirmaymiz.
   initGoogleSignIn().catchError((Object e) => debugPrint('Google Sign-In init failed: $e'));
-  final prefs = await SharedPreferences.getInstance();
+  final (prefs, _) = await (SharedPreferences.getInstance(), initNotify()).wait;
   final feed = await LiveEvents.initial(prefs);
   runApp(ProviderScope(
     overrides: [

@@ -56,6 +56,10 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get notifyDeniedApp =>
+      '알림이 꺼져 있어요. 설정에서 LifeRadar 알림을 켠 뒤 다시 시도해 주세요.';
+
+  @override
   String get sources => '출처';
 
   @override

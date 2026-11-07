@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/calendar_link.dart';
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
 import '../../core/widgets.dart';
@@ -152,7 +152,7 @@ class PlanDetailSheet extends ConsumerWidget {
                 if (plan.htmlLink != null) ...[
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => launchUrl(Uri.parse(plan.htmlLink!), mode: LaunchMode.externalApplication),
+                      onPressed: () => openCalendar(htmlLink: plan.htmlLink, at: plan.start),
                       icon: const Icon(Icons.open_in_new_rounded, size: 18),
                       label: Text(l10n.calendarOpenGoogle, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),

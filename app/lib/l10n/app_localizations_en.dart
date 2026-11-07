@@ -58,6 +58,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notifyDeniedApp =>
+      'Notifications are blocked. Turn on notifications for LifeRadar in Settings, then try again.';
+
+  @override
   String get sources => 'Sources';
 
   @override

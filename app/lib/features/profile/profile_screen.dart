@@ -242,7 +242,9 @@ class _NotificationsRow extends ConsumerWidget {
         case 'unsupported':
           Toast.show(l10n.notifyUnsupported, type: ToastType.warning);
         default:
-          Toast.show(l10n.notifyDenied, type: ToastType.warning);
+          // Android: sozlamalarni ochamiz; web: brauzer sozlamalari haqida xabar.
+          final opened = await openNotifySettings();
+          Toast.show(opened ? l10n.notifyDeniedApp : l10n.notifyDenied, type: ToastType.warning);
       }
     }
 
