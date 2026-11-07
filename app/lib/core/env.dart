@@ -13,6 +13,9 @@ abstract final class Env {
   static const googleApiKey = String.fromEnvironment('GOOGLE_API_KEY');
   static const googleOAuthWebClientId = String.fromEnvironment('GOOGLE_OAUTH_WEB_CLIENT_ID');
 
+  /// Home insight matnlari uchun (bo'sh bo'lsa — faqat qoida matni). Demo uchun client'da.
+  static const geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
+
   /// Web'da JS SDK index.html orqali (kakao_config.js), Android'da native key bilan.
   static bool get hasKakaoMapKey => kIsWeb ? kakaoJsKey.isNotEmpty : kakaoNativeAppKey.isNotEmpty;
 }

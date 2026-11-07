@@ -67,9 +67,11 @@ flutter run -d chrome --web-port=8080 --dart-define-from-file=env.json \
 | `GOOGLE_API_KEY` | 대중교통 경로(Routes), Places, Weather | Google Cloud Console → 사용자 인증 정보 | Routes / Places (New) / Weather / Calendar API 사용 설정 |
 | `SEOUL_OPEN_API_KEY` | 실제 행사 수집 (`tool/collect_events.dart` 전용, 앱에는 안 들어감) | [서울 열린데이터광장](https://data.seoul.go.kr) → 회원가입 → 인증키 신청 (일반 인증키, 즉시 발급) | 없으면 `sample` 키로 5건만 수집 |
 | `DATA_GO_KR_KEY` | 전국 축제 수집 (TourAPI), 창업 공고 (K-Startup, 예정) — 수집 스크립트 전용 | [공공데이터포털](https://www.data.go.kr) → 데이터별 **활용신청** (자동승인) → 마이페이지 → 일반 인증키 **(Decoding)** | 승인 후 1–2시간 뒤 활성화. 개발계정 일 1,000건 |
-| `GEMINI_API_KEY` | 수집 데이터의 영어 번역 + 관심사 태그 (수집 스크립트 전용) | [Google AI Studio](https://aistudio.google.com/apikey) | `AQ.`로 시작하는 새 형식 키는 `?key=` 쿼리로 전달 |
+| `GEMINI_API_KEY` | 수집 데이터의 영어 번역 + 관심사 태그 (수집 스크립트) · Home 인사이트 문구 작성 (앱, `lib/ai/insight_writer.dart` — 없으면 규칙 문구) | [Google AI Studio](https://aistudio.google.com/apikey) | `AQ.`로 시작하는 새 형식 키는 `?key=` 쿼리로 전달 |
 | `GOOGLE_OAUTH_WEB_CLIENT_ID` | Google 로그인 → 캘린더 접근 | Google Auth Platform → 클라이언트 → 웹 애플리케이션 | 승인된 JS 원본 `http://localhost:8080`, 대상 = 테스트 중 + **테스트 사용자 등록**, 범위 `calendar.events` |
 | `TMAP_APP_KEY` | (예비) 대중교통 | SK Open API | 무료 할당량이 매우 작아 현재 미사용 |
+
+Android Google 로그인도 `GOOGLE_OAUTH_WEB_CLIENT_ID`를 `serverClientId`로 사용합니다. 같은 Google Cloud 프로젝트에 패키지 `com.liferadar.liferadar`와 APK 서명 인증서의 SHA-1을 등록한 Android OAuth 클라이언트가 필요합니다. Android 클라이언트 ID는 이 환경 변수에 넣지 않습니다.
 
 ### Android 키 해시 (Kakao 네이티브)
 

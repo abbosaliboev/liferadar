@@ -53,6 +53,17 @@ class SignalWhyBlock extends StatelessWidget {
               const SizedBox(width: Space.sm),
               Text(label, style: t.labelLarge!.copyWith(color: fg)),
               const Spacer(),
+              if (insight.aiModel != null) ...[
+                Tooltip(
+                  message: l10n.aiWritten,
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.auto_awesome_rounded, size: 14, color: fg),
+                    const SizedBox(width: 2),
+                    Text('AI', style: t.labelSmall!.copyWith(color: fg)),
+                  ]),
+                ),
+                const SizedBox(width: Space.sm),
+              ],
               Text(l10n.confidence((insight.confidence * 100).round()), style: t.labelSmall),
             ],
           ),
@@ -68,6 +79,7 @@ class SignalWhyBlock extends StatelessWidget {
             ],
             const SizedBox(height: Space.md),
             Text('${l10n.sources} · ${insight.sources.map((s) => s.title).join(', ')}', style: t.labelSmall),
+            if (insight.aiModel != null) Text('${l10n.aiWritten} · ${insight.aiModel}', style: t.labelSmall),
             for (final s in links)
               Align(
                 alignment: Alignment.centerLeft,

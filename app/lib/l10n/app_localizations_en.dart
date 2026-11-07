@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whyItMatters => 'Why it matters';
 
   @override
+  String get aiWritten => 'Written with Gemini';
+
+  @override
   String get sources => 'Sources';
 
   @override

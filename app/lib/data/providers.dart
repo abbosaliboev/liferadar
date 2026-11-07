@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../services/google_api.dart';
 import '../services/insight_engine.dart';
 import '../services/kakao_api.dart';
+import 'ai_insights.dart';
 import 'event_feed.dart';
 import 'interests.dart';
 import 'sample_data.dart';
@@ -147,9 +148,9 @@ class InsightFeedbackController extends Notifier<Map<String, InsightFeedback>> {
       .setStringList(_key, [for (final e in state.entries) '${e.key}|${e.value.name}']);
 }
 
-/// Insight'lar = InsightEngine(rejalar, eventlar, qiziqishlar, ob-havo) + feedback.
+/// Qoida asosidagi insight'lar = InsightEngine(rejalar, eventlar, qiziqishlar, ob-havo).
 /// Har qanday kirish o'zgarsa avtomatik qayta hisoblanadi.
-final insightsProvider = Provider<List<Insight>>((ref) {
+final baseInsightsProvider = Provider<List<Insight>>((ref) {
   final plans = ref.watch(plansProvider);
   final now = ref.watch(nowProvider);
   final today = DateTime(now.year, now.month, now.day);
@@ -166,15 +167,26 @@ final insightsProvider = Provider<List<Insight>>((ref) {
     if (w != null) weather[p.id] = w;
   }
 
-  final list = const InsightEngine().build(
+  return const InsightEngine().build(
     plans: plans,
     events: ref.watch(eventsProvider),
     interests: ref.watch(interestsProvider),
     now: now,
     weatherByPlanId: weather,
   );
+});
+
+/// Home'dagi insight'lar = qoida kartalari + Gemini matni (bor bo'lsa) + feedback.
+final insightsProvider = Provider<List<Insight>>((ref) {
+  final ai = ref.watch(aiInsightTextProvider);
   final feedback = ref.watch(insightFeedbackProvider);
-  final withFeedback = [for (final i in list) i.copyWith(feedback: feedback[i.id])];
+  final withFeedback = [
+    for (final i in ref.watch(baseInsightsProvider))
+      switch (ai[i.id]) {
+        final w? => i.copyWith(feedback: feedback[i.id], body: w.body, why: w.why, aiModel: w.model),
+        null => i.copyWith(feedback: feedback[i.id]),
+      },
+  ];
   // 👎 bosilganlar pastga.
   return [
     ...withFeedback.where((i) => i.feedback != InsightFeedback.dislike),

@@ -8,6 +8,7 @@
   "homeGreeting": "Signals for you",
   "homeSubtitle": "What changed around your plans and interests",
   "whyItMatters": "Why it matters",
+  "aiWritten": "Written with Gemini",
   "sources": "Sources",
   "confidence": "Confidence {percent}%",
   "@confidence": {

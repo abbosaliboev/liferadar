@@ -255,6 +255,7 @@ class Insight {
     this.signals = const [],
     this.sources = const [],
     this.feedback,
+    this.aiModel,
   });
 
   final String id;
@@ -269,18 +270,22 @@ class Insight {
   final List<SourceLink> sources;
   final InsightFeedback? feedback;
 
-  Insight copyWith({InsightFeedback? feedback}) => Insight(
+  /// [body]/[why] ni Gemini yozgan bo'lsa — model nomi (UI'da "AI" belgisi). Faktlar baribir qoidadan.
+  final String? aiModel;
+
+  Insight copyWith({InsightFeedback? feedback, LocalizedText? body, LocalizedText? why, String? aiModel}) => Insight(
         id: id,
         kind: kind,
         title: title,
-        body: body,
-        why: why,
+        body: body ?? this.body,
+        why: why ?? this.why,
         confidence: confidence,
         planId: planId,
         eventIds: eventIds,
         signals: signals,
         sources: sources,
         feedback: feedback ?? this.feedback,
+        aiModel: aiModel ?? this.aiModel,
       );
 }
 

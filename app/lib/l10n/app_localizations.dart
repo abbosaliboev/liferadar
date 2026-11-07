@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'Why it matters'**
   String get whyItMatters;
 
+  /// No description provided for @aiWritten.
+  ///
+  /// In en, this message translates to:
+  /// **'Written with Gemini'**
+  String get aiWritten;
+
   /// No description provided for @sources.
   ///
   /// In en, this message translates to:

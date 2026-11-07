@@ -33,6 +33,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get whyItMatters => '중요한 이유';
 
   @override
+  String get aiWritten => 'Gemini가 작성';
+
+  @override
   String get sources => '출처';
 
   @override
