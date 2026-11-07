@@ -144,7 +144,7 @@ class GlassTabBar extends StatelessWidget {
                           heightFactor: 1,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: dark ? Colors.black.withValues(alpha: 0.35) : p.primarySoft,
+                              color: dark ? Colors.white.withValues(alpha: 0.13) : p.primarySoft,
                               borderRadius: BorderRadius.circular(999),
                             ),
                           ),

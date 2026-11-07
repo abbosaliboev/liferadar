@@ -178,6 +178,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     required Widget icon,
     VoidCallback? onPressed,
   }) => GlassSurface(
+    opacity: 0.84,
+    blur: 24,
     child: IconButton(tooltip: tooltip, icon: icon, onPressed: onPressed),
   );
 
@@ -252,7 +254,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       child: GestureDetector(
         onTap: () => _setLayer(layer, !on),
         child: GlassSurface(
-          opacity: on ? null : 0.38,
+          opacity: on ? 0.84 : 0.6,
+          blur: 24,
           padding: const EdgeInsets.symmetric(horizontal: Space.md, vertical: Space.sm),
           child: Row(
             mainAxisSize: MainAxisSize.min,

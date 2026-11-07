@@ -824,7 +824,10 @@ class GlassSegmented<T> extends StatelessWidget {
     final n = values.length;
     final index = values.indexOf(selected).clamp(0, n - 1);
     final d = Motion.of(context, const Duration(milliseconds: 380));
+    // Boshqaruv chalkash fon (xarita yozuvlari) ustida turadi — o'qilishi uchun qalinroq shisha.
     return GlassSurface(
+      opacity: dark ? 0.82 : 0.84,
+      blur: 24,
       padding: const EdgeInsets.all(4),
       child: SizedBox(
         height: height - 8,
@@ -838,7 +841,7 @@ class GlassSegmented<T> extends StatelessWidget {
               heightFactor: 1,
               child: Container(
                 decoration: BoxDecoration(
-                  color: dark ? Colors.black.withValues(alpha: 0.35) : p.primarySoft.withValues(alpha: 0.95),
+                  color: dark ? Colors.white.withValues(alpha: 0.13) : p.primarySoft.withValues(alpha: 0.95),
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),

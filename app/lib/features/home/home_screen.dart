@@ -344,7 +344,7 @@ class _FilterHeader extends SliverPersistentHeaderDelegate {
                 heightFactor: 1,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: dark ? Colors.black.withValues(alpha: 0.35) : p.primarySoft.withValues(alpha: 0.9),
+                    color: dark ? Colors.white.withValues(alpha: 0.13) : p.primarySoft.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
