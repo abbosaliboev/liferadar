@@ -27,7 +27,9 @@ final googleApiProvider = Provider<GoogleApi>((ref) => GoogleApi());
 final eventFeedProvider = Provider<EventFeed>((ref) => EventFeed.empty);
 
 /// Barcha eventlar: haqiqiy (ochiq API) + demo stsenariy uchun sample'lar ("Sample" belgisi bilan).
-final eventsProvider = Provider<List<RadarEvent>>((ref) => [...ref.watch(eventFeedProvider).events, ...sampleEvents]);
+final eventsProvider = Provider<List<RadarEvent>>(
+  (ref) => [...ref.watch(eventFeedProvider).events, ...sampleEventsAt(ref.watch(nowProvider))],
+);
 
 /// Rejalar = asosiy manba (Google Calendar ulanmaguncha sample, keyin kalendar)
 /// + ilovada qo'lda qo'shilgan rejalar (qurilmada, akkaunt bo'yicha saqlanadi).
@@ -42,7 +44,7 @@ class PlansController extends Notifier<List<Plan>> {
   @override
   List<Plan> build() {
     _key = 'plans:${accountScope(ref.watch(sessionProvider))}';
-    _base = samplePlans;
+    _base = samplePlansAt(ref.watch(nowProvider));
     _own = _load();
     return _merge();
   }
@@ -72,7 +74,7 @@ class PlansController extends Notifier<List<Plan>> {
     state = _merge();
   }
 
-  void resetToSample() => setPlans(samplePlans);
+  void resetToSample() => setPlans(samplePlansAt(ref.read(nowProvider)));
 
   /// Ilovadagi o'z rejani qo'shadi yoki yangilaydi (source = 'local').
   Future<void> saveLocal(Plan plan) async {

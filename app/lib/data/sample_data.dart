@@ -105,6 +105,8 @@ final sampleEvents = <RadarEvent>[
     venue: '대전컨벤션센터 (DCC)',
     city: 'Daejeon',
     location: _dcc,
+    // Demo 5-qadam: "kalendarga qo'shgan seminaringiz uchun ro'yxatdan o'tish 2 kunda tugaydi" (push).
+    deadline: DateTime(2026, 11, 15),
   ),
   RadarEvent(
     id: 'ev-kaist-hackathon',
@@ -175,3 +177,53 @@ final samplePlans = <Plan>[
     location: _haeundae,
   ),
 ];
+
+/// Demo stsenariy eskirmasin: Busan safari bugundan kamida [_minLeadDays] kun keyin bo'lishi kerak
+/// (ob-havo prognozi va "muddat yaqin" kartalari ishlashi uchun). Agar sana o'tib ketsa, hamma
+/// sample'lar butun haftalarga oldinga suriladi — hafta kunlari va o'zaro oraliqlar saqlanadi.
+/// Hakamlar APK'ni 11-14 dan keyin ochsa ham demo kartalari chiqadi.
+const _minLeadDays = 6;
+final _demoAnchor = DateTime(2026, 11, 20); // Busan safari boshlanishi
+
+Duration demoShift(DateTime now) {
+  final gap = _demoAnchor.difference(DateTime(now.year, now.month, now.day)).inDays;
+  if (gap >= _minLeadDays) return Duration.zero;
+  return Duration(days: 7 * ((_minLeadDays - gap) / 7).ceil());
+}
+
+/// [now] ga moslab surilgan sample eventlar.
+List<RadarEvent> sampleEventsAt(DateTime now) {
+  final d = demoShift(now);
+  if (d == Duration.zero) return sampleEvents;
+  return [
+    for (final e in sampleEvents)
+      RadarEvent(
+        id: e.id,
+        title: e.title,
+        description: e.description,
+        category: e.category,
+        tags: e.tags,
+        start: e.start.add(d),
+        end: e.end.add(d),
+        venue: e.venue,
+        city: e.city,
+        location: e.location,
+        url: e.url,
+        registerUrl: e.registerUrl,
+        deadline: e.deadline?.add(d),
+        source: e.source,
+        sourceName: e.sourceName,
+        imageUrl: e.imageUrl,
+        isFree: e.isFree,
+        price: e.price,
+        placeless: e.placeless,
+      ),
+  ];
+}
+
+/// [now] ga moslab surilgan sample rejalar.
+List<Plan> samplePlansAt(DateTime now) {
+  final d = demoShift(now);
+  if (d == Duration.zero) return samplePlans;
+  return [for (final p in samplePlans) p.copyWith(start: p.start.add(d), end: p.end.add(d))];
+}

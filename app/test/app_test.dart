@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:liferadar/data/providers.dart';
 import 'package:liferadar/data/sample_data.dart';
 import 'package:liferadar/features/discover/discover_screen.dart';
 import 'package:liferadar/features/home/home_screen.dart';
 import 'package:liferadar/main.dart';
+import 'package:liferadar/models/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// [session] null bo'lsa — tizimga kirilmagan (login ekrani).
@@ -17,6 +19,7 @@ Future<void> pumpApp(
   bool setupDone = true,
   String? name = 'Tester',
   String locale = 'en',
+  List<Override> overrides = const [],
 }) async {
   // "Animatsiyani kamaytirish" — cheksiz animatsiyalar (radar, shimmer) to'xtaydi;
   // shu bilan birga ilova bu sozlamani hurmat qilishini ham tekshiramiz.
@@ -35,6 +38,7 @@ Future<void> pumpApp(
     overrides: [
       sharedPrefsProvider.overrideWithValue(prefs),
       nowProvider.overrideWithValue(now ?? DateTime(2026, 11, 6, 10)),
+      ...overrides,
     ],
     child: const LifeRadarApp(),
   ));
@@ -143,7 +147,8 @@ void main() {
   });
 
   testWidgets('Signal yo\'q bo\'lsa Home yo\'naltiruvchi karta ko\'rsatadi', (tester) async {
-    await pumpApp(tester, interests: ['ai'], now: DateTime(2027, 1, 15));
+    // Sample'lar sanasi surilib turadi (demo eskirmaydi), shuning uchun bo'sh holat — eventlar yo'q.
+    await pumpApp(tester, interests: ['ai'], overrides: [eventsProvider.overrideWithValue(const <RadarEvent>[])]);
     expect(find.text('No signals yet'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Connect Google Calendar'), findsOneWidget);
   });
