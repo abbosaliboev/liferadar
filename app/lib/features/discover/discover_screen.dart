@@ -30,6 +30,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final t = context.textStyles;
     final interests = ref.watch(interestsProvider);
     final taste = ref.watch(tasteProvider);
+    final feed = ref.watch(eventFeedProvider);
     final now = ref.watch(nowProvider);
     final today = DateTime(now.year, now.month, now.day);
     final all = ref.watch(eventsProvider).where((e) => !e.end.isBefore(today)).toList();
@@ -52,6 +53,20 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
             child: Text(l10n.discoverSubtitle, style: t.bodySmall),
           ),
+          if (feed.generatedAt != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xs, Space.gutter, 0),
+              child: Row(children: [
+                Icon(Icons.cloud_done_outlined, size: 14, color: context.palette.textMuted),
+                const SizedBox(width: Space.xs),
+                Expanded(
+                  child: Text(
+                    l10n.eventsUpdated(feed.events.length, context.formatDateTime(feed.generatedAt!.toLocal())),
+                    style: t.labelSmall,
+                  ),
+                ),
+              ]),
+            ),
           const SizedBox(height: Space.md),
 
           // ── Kategoriyalar ──

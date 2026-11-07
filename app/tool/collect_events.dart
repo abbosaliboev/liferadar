@@ -126,7 +126,7 @@ Future<void> main(List<String> args) async {
 
   final file = File(_out)..createSync(recursive: true);
   file.writeAsStringSync(const JsonEncoder.withIndent(' ').convert({
-    'generatedAt': DateTime.now().toIso8601String(),
+    'generatedAt': DateTime.now().toUtc().toIso8601String(), // Z bilan — CI (UTC) va telefon bir xil tushunadi
     'windowDays': days,
     'sources': sources,
     'enrichedWith': geminiKey.isEmpty || args.contains('--no-ai') ? null : _models.first,

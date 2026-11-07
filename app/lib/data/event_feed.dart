@@ -46,4 +46,19 @@ class EventFeed {
       return empty;
     }
   }
+
+  /// Ishlatsa bo'ladigan feed: sanasi bor va yetarlicha event (yarim yozilgan/bo'sh fayl emas).
+  bool get isUsable => generatedAt != null && events.length >= minEvents;
+  static const minEvents = 20;
+
+  /// [other] bundan yangiroqmi.
+  bool isNewerThan(EventFeed other) =>
+      generatedAt != null && (other.generatedAt == null || generatedAt!.isAfter(other.generatedAt!));
+
+  /// Ikkisidan yangirog'i (ishlatsa bo'ladiganlar orasidan).
+  static EventFeed newest(EventFeed a, EventFeed b) {
+    if (!b.isUsable) return a;
+    if (!a.isUsable) return b;
+    return b.isNewerThan(a) ? b : a;
+  }
 }

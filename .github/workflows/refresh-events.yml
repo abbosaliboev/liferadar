@@ -1,0 +1,97 @@
+# Haqiqiy eventlarni har kuni yangilaydi va ochiq `liferadar-data` repo'ga joylaydi.
+# Ilova u yerdagi events.json ni ochilganda yuklaydi (app/lib/data/live_events.dart).
+#
+# Kerakli sozlamalar (Settings → Secrets and variables → Actions):
+#   SEOUL_OPEN_API_KEY, DATA_GO_KR_KEY, GEMINI_API_KEY — env.json dagi kalitlar
+#   DATA_DEPLOY_KEY — liferadar-data repo'ga yozish huquqli deploy key (SSH private key)
+name: Refresh events
+
+on:
+  schedule:
+    - cron: "0 21 * * *" # har kuni 06:00 KST
+  workflow_dispatch: # qo'lda: Actions → Refresh events → Run workflow
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-events
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Seoul # "bugun" va 90 kunlik oyna Koreya vaqti bo'yicha
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.41.9
+          cache: true
+
+      - run: flutter pub get
+
+      # Gemini tarjimalari keshi: faqat yangi eventlar tarjima qilinadi (tez va kvota tejaladi).
+      - name: Restore translation cache
+        uses: actions/cache/restore@v4
+        with:
+          path: app/tool/cache
+          key: ai-cache-${{ github.run_id }}
+          restore-keys: ai-cache-
+
+      - name: Write env.json
+        env:
+          SEOUL_OPEN_API_KEY: ${{ secrets.SEOUL_OPEN_API_KEY }}
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          keys = ["SEOUL_OPEN_API_KEY", "DATA_GO_KR_KEY", "GEMINI_API_KEY"]
+          json.dump({k: os.environ.get(k, "") for k in keys}, open("env.json", "w"))
+          PY
+
+      - name: Collect events
+        run: dart run tool/collect_events.dart
+
+      - name: Check result
+        run: |
+          python3 - <<'PY'
+          import json
+          d = json.load(open("assets/data/events.json"))
+          n = len(d["events"])
+          print("events:", n, "generatedAt:", d["generatedAt"])
+          print({s["id"]: s["count"] for s in d["sources"]})
+          assert n >= 20, "juda kam event — nashr qilinmaydi"
+          PY
+
+      - name: Save translation cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: app/tool/cache
+          key: ai-cache-${{ github.run_id }}
+
+      - name: Publish to liferadar-data
+        env:
+          DEPLOY_KEY: ${{ secrets.DATA_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/data_key && chmod 600 ~/.ssh/data_key
+          export GIT_SSH_COMMAND="ssh -i ~/.ssh/data_key -o StrictHostKeyChecking=accept-new"
+          git clone --depth 1 git@github.com:abbosaliboev/liferadar-data.git /tmp/data
+          cp assets/data/events.json /tmp/data/events.json
+          cd /tmp/data
+          git config user.name "liferadar-bot"
+          git config user.email "liferadar-bot@users.noreply.github.com"
+          git add events.json
+          git diff --cached --quiet && { echo "o'zgarish yo'q"; exit 0; }
+          git commit -m "events: $(date +%F)"
+          git push

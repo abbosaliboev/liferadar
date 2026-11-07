@@ -9,6 +9,7 @@ import 'core/env.dart';
 import 'core/router.dart';
 import 'core/theme.dart';
 import 'data/calendar_controller.dart';
+import 'data/live_events.dart';
 import 'data/providers.dart';
 import 'data/session.dart';
 import 'l10n/app_localizations.dart';
@@ -23,11 +24,13 @@ Future<void> main() async {
   }
   // GIS SDK'ni fonda yuklaymiz — ilova ochilishini kutdirmaymiz.
   initGoogleSignIn().catchError((Object e) => debugPrint('Google Sign-In init failed: $e'));
-  final (prefs, feed) = await (SharedPreferences.getInstance(), EventFeed.load()).wait;
+  final prefs = await SharedPreferences.getInstance();
+  final feed = await LiveEvents.initial(prefs);
   runApp(ProviderScope(
     overrides: [
       sharedPrefsProvider.overrideWithValue(prefs),
-      eventFeedProvider.overrideWithValue(feed),
+      initialEventFeedProvider.overrideWithValue(feed),
+      liveEventsEnabledProvider.overrideWithValue(true),
     ],
     child: const LifeRadarApp(),
   ));

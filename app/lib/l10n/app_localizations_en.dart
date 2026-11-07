@@ -53,6 +53,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errGeneric => 'Something went wrong. Please try again.';
 
   @override
+  String eventsUpdated(int count, String date) {
+    return 'Real public data · $count events · updated $date';
+  }
+
+  @override
   String get sources => 'Sources';
 
   @override
@@ -560,11 +565,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showMore => 'Show more';
-
-  @override
-  String eventsUpdated(String date) {
-    return 'Real events updated $date';
-  }
 
   @override
   String get realData => 'Live data';

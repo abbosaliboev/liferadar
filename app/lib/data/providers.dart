@@ -10,6 +10,7 @@ import '../services/taste.dart';
 import 'ai_insights.dart';
 import 'event_feed.dart';
 import 'interests.dart';
+import 'live_events.dart';
 import 'sample_data.dart';
 import 'session.dart';
 
@@ -23,8 +24,31 @@ final googleApiProvider = Provider<GoogleApi>((ref) => GoogleApi());
 
 
 
-/// Haqiqiy eventlar — main()'da asset'dan yuklanib override qilinadi (testlarda bo'sh).
-final eventFeedProvider = Provider<EventFeed>((ref) => EventFeed.empty);
+/// Ilova ochilgandagi eventlar — main()'da asset/keshdan yuklanib override qilinadi (testlarda bo'sh).
+final initialEventFeedProvider = Provider<EventFeed>((ref) => EventFeed.empty);
+
+/// Internetdan yangilash yoqilganmi (main()'da true; testlar tarmoqqa chiqmaydi).
+final liveEventsEnabledProvider = Provider<bool>((ref) => false);
+
+/// Haqiqiy eventlar: avval [initialEventFeedProvider], keyin internetdan yangirog'i (bo'lsa).
+final eventFeedProvider = NotifierProvider<EventFeedController, EventFeed>(EventFeedController.new);
+
+class EventFeedController extends Notifier<EventFeed> {
+  @override
+  EventFeed build() {
+    final initial = ref.watch(initialEventFeedProvider);
+    if (ref.watch(liveEventsEnabledProvider)) Future.microtask(refresh);
+    return initial;
+  }
+
+  /// Yangi feed bo'lsa almashtiradi. Natija: yangilandimi.
+  Future<bool> refresh() async {
+    final fresh = await LiveEvents.fetch(ref.read(sharedPrefsProvider), state);
+    if (fresh == null || !ref.mounted) return false;
+    state = fresh;
+    return true;
+  }
+}
 
 /// Barcha eventlar: haqiqiy (ochiq API) + demo stsenariy uchun sample'lar ("Sample" belgisi bilan).
 final eventsProvider = Provider<List<RadarEvent>>(

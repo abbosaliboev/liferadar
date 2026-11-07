@@ -182,6 +182,12 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Please try again.'**
   String get errGeneric;
 
+  /// No description provided for @eventsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Real public data · {count} events · updated {date}'**
+  String eventsUpdated(int count, String date);
+
   /// No description provided for @sources.
   ///
   /// In en, this message translates to:
@@ -1099,12 +1105,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show more'**
   String get showMore;
-
-  /// No description provided for @eventsUpdated.
-  ///
-  /// In en, this message translates to:
-  /// **'Real events updated {date}'**
-  String eventsUpdated(String date);
 
   /// No description provided for @realData.
   ///

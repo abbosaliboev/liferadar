@@ -51,6 +51,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get errGeneric => '문제가 발생했어요. 다시 시도해 주세요.';
 
   @override
+  String eventsUpdated(int count, String date) {
+    return '실제 공공데이터 · 행사 $count개 · $date 업데이트';
+  }
+
+  @override
   String get sources => '출처';
 
   @override
@@ -549,11 +554,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get showMore => '더 보기';
-
-  @override
-  String eventsUpdated(String date) {
-    return '실제 행사 데이터 $date 업데이트';
-  }
 
   @override
   String get realData => '실제 데이터';

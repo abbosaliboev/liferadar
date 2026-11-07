@@ -14,6 +14,8 @@
   "errService": "This service isn't available right now.",
   "errNoRoute": "Couldn't find a route between these places.",
   "errGeneric": "Something went wrong. Please try again.",
+  "eventsUpdated": "Real public data · {count} events · updated {date}",
+  "@eventsUpdated": {"placeholders": {"count": {"type": "int"}, "date": {"type": "String"}}},
   "sources": "Sources",
   "confidence": "Confidence {percent}%",
   "@confidence": {
@@ -315,14 +317,6 @@
     }
   },
   "showMore": "Show more",
-  "eventsUpdated": "Real events updated {date}",
-  "@eventsUpdated": {
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
   "realData": "Live data",
   "ongoing": "Ongoing",
   "categoryStartupSupport": "Startup programs",

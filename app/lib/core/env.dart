@@ -16,6 +16,13 @@ abstract final class Env {
   /// Home insight matnlari uchun (bo'sh bo'lsa — faqat qoida matni). Demo uchun client'da.
   static const geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
 
+  /// Har kuni yangilanadigan haqiqiy eventlar (GitHub Actions → ochiq `liferadar-data` repo).
+  /// Bo'sh qilinsa — faqat APK ichidagi eventlar.
+  static const eventsUrl = String.fromEnvironment(
+    'EVENTS_URL',
+    defaultValue: 'https://raw.githubusercontent.com/abbosaliboev/liferadar-data/main/events.json',
+  );
+
   /// Web'da JS SDK index.html orqali (kakao_config.js), Android'da native key bilan.
   static bool get hasKakaoMapKey => kIsWeb ? kakaoJsKey.isNotEmpty : kakaoNativeAppKey.isNotEmpty;
 }
