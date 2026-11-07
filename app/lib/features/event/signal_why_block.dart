@@ -17,14 +17,14 @@ import '../../models/models.dart';
   };
 }
 
-/// "Bu signal nega chiqdi": kartadan olib tashlangan batafsil ma'lumot (tafsilotlar oynasida).
+/// "Bu signal nega chiqdi" — signal turiga mos yumshoq rangli ixcham blok (chiziqsiz, hoshiyasiz):
+/// tur + ishonch, bitta asosiy jumla, ostida sababi (sokin).
+/// [standalone] — eventsiz signal oynasi: sarlavha, belgilar va manba havolalari ham shu yerda.
 class SignalWhyBlock extends StatelessWidget {
-  const SignalWhyBlock({super.key, required this.insight, this.showTitle = false});
+  const SignalWhyBlock({super.key, required this.insight, this.standalone = false});
 
   final Insight insight;
-
-  /// Eventsiz signal oynasida sarlavha ham shu blokda.
-  final bool showTitle;
+  final bool standalone;
 
   @override
   Widget build(BuildContext context) {
@@ -32,52 +32,52 @@ class SignalWhyBlock extends StatelessWidget {
     final p = context.palette;
     final t = context.textStyles;
     final (label, icon, tone) = insightKindMeta(context, insight.kind);
+    final (fg, bg) = switch (tone) {
+      Tone.info => (p.info, p.infoSoft),
+      Tone.accent => (p.accent, p.accentSoft),
+      Tone.danger => (p.danger, p.dangerSoft),
+      _ => (p.primary, p.primarySoft),
+    };
     final links = insight.sources.where((s) => s.url != null).toList();
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(Space.lg),
-      decoration: BoxDecoration(
-        color: p.surfaceAlt,
-        borderRadius: BorderRadius.circular(Radii.lg),
-        border: Border(left: BorderSide(color: p.primary, width: 3)),
-      ),
+      padding: const EdgeInsets.fromLTRB(Space.lg, Space.md, Space.lg, Space.lg),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(Radii.lg)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Pill(label, icon: icon, tone: tone),
+              Icon(icon, size: 18, color: fg),
               const SizedBox(width: Space.sm),
+              Text(label, style: t.labelLarge!.copyWith(color: fg)),
+              const Spacer(),
               Text(l10n.confidence((insight.confidence * 100).round()), style: t.labelSmall),
             ],
           ),
-          const SizedBox(height: Space.md),
-          if (showTitle) ...[Text(context.tr(insight.title), style: t.titleMedium), const SizedBox(height: Space.xs)],
-          Text(context.tr(insight.body), style: t.bodyMedium!.copyWith(color: p.text)),
-          const SizedBox(height: Space.md),
-          Text(l10n.signalWhy, style: t.labelMedium!.copyWith(color: p.primary)),
-          const SizedBox(height: 2),
-          Text(context.tr(insight.why), style: t.bodySmall!.copyWith(color: p.text)),
-          if (insight.signals.isNotEmpty) ...[
+          const SizedBox(height: Space.sm),
+          if (standalone) ...[Text(context.tr(insight.title), style: t.titleMedium), const SizedBox(height: Space.xs)],
+          Text(context.tr(insight.body), style: t.bodyMedium!.copyWith(color: p.text, height: 1.5)),
+          const SizedBox(height: Space.sm),
+          Text(context.tr(insight.why), style: t.bodySmall),
+          if (standalone) ...[
+            if (insight.signals.isNotEmpty) ...[
+              const SizedBox(height: Space.md),
+              QuietTags([for (final s in insight.signals) QuietTag(context.tr(s.summary), icon: signalIcon(s.type))]),
+            ],
             const SizedBox(height: Space.md),
-            Wrap(
-              spacing: Space.sm,
-              runSpacing: Space.sm,
-              children: [for (final s in insight.signals) Pill(context.tr(s.summary), icon: signalIcon(s.type))],
-            ),
-          ],
-          const SizedBox(height: Space.md),
-          Text('${l10n.sources} · ${insight.sources.map((s) => s.title).join(', ')}', style: t.labelSmall),
-          for (final s in links)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
-                onPressed: () => launchUrl(Uri.parse(s.url!), mode: LaunchMode.externalApplication),
-                child: Text(l10n.openSource),
+            Text('${l10n.sources} · ${insight.sources.map((s) => s.title).join(', ')}', style: t.labelSmall),
+            for (final s in links)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
+                  onPressed: () => launchUrl(Uri.parse(s.url!), mode: LaunchMode.externalApplication),
+                  child: Text(l10n.openSource),
+                ),
               ),
-            ),
+          ],
         ],
       ),
     );

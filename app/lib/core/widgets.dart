@@ -651,7 +651,7 @@ class QuietTags extends StatelessWidget {
   }
 }
 
-/// Tafsilot oynasi (bottom sheet) ramkasi: ~90% balandlikda ochiladi, yuqoriga tortilsa — to'liq ekran,
+/// Tafsilot oynasi (bottom sheet) ramkasi: ~92% balandlikda ochiladi, yuqoriga tortilsa — 95% gacha,
 /// pastga tortilsa — yopiladi. Tepada tutqich va doim ko'rinadigan "orqaga" tugmasi.
 /// [bodyBuilder] — aylanadigan kontent (berilgan controller'ni ishlatsin), [bottom] — qotgan pastki panel.
 class DetailSheet extends StatefulWidget {
@@ -661,6 +661,9 @@ class DetailSheet extends StatefulWidget {
   final Widget? bottom;
 
   static const initial = 0.92;
+
+  /// Eng baland holat — to'liq ekran emas, tepada fon biroz ko'rinib tursin.
+  static const max = 0.95;
 
   @override
   State<DetailSheet> createState() => _DetailSheetState();
@@ -678,7 +681,7 @@ class _DetailSheetState extends State<DetailSheet> {
   void _drag(DragUpdateDetails d) {
     if (!_sheet.isAttached) return;
     final h = MediaQuery.sizeOf(context).height;
-    _sheet.jumpTo((_sheet.size - d.delta.dy / h).clamp(0.3, 1.0));
+    _sheet.jumpTo((_sheet.size - d.delta.dy / h).clamp(0.3, DetailSheet.max));
   }
 
   void _dragEnd(DragEndDetails d) {
@@ -691,8 +694,8 @@ class _DetailSheetState extends State<DetailSheet> {
         : _sheet.animateTo(to, duration: dur, curve: Curves.easeOutCubic);
     if (v > 700 || size < 0.6) {
       Navigator.of(context).maybePop();
-    } else if (v < -300 || size > (DetailSheet.initial + 1) / 2) {
-      go(1);
+    } else if (v < -300 || size > (DetailSheet.initial + DetailSheet.max) / 2) {
+      go(DetailSheet.max);
     } else {
       go(DetailSheet.initial);
     }
@@ -706,7 +709,7 @@ class _DetailSheetState extends State<DetailSheet> {
       expand: false,
       initialChildSize: DetailSheet.initial,
       minChildSize: 0.3,
-      maxChildSize: 1,
+      maxChildSize: DetailSheet.max,
       snap: true,
       snapSizes: const [DetailSheet.initial],
       builder: (context, controller) => Column(children: [

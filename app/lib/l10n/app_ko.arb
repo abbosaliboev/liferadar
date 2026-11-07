@@ -246,5 +246,10 @@
   "deleteAccountTitle": "계정을 삭제할까요?",
   "deleteAccountBody": "이름·관심사·직접 만든 일정·평가·설정이 이 기기에서 모두 지워지고, Google 접근 권한도 해제돼요. 앱은 처음 상태로 돌아가요. 되돌릴 수 없어요.",
   "deleteAccountInfo": "LifeRadar는 데이터를 이 기기에만 저장해요. 삭제하면 모두 지워지고 Google 캘린더 연결도 끊겨요.",
-  "accountDeleted": "계정을 삭제했어요. 처음부터 시작해요."
+  "accountDeleted": "계정을 삭제했어요. 처음부터 시작해요.",
+  "eventAbout": "소개",
+  "eventPrice": "요금",
+  "applicationLabel": "접수 기간",
+  "organizer": "주관",
+  "matchesYou": "내 관심사와 일치"
 }

@@ -449,5 +449,10 @@
   "deleteAccountTitle": "Delete your account?",
   "deleteAccountBody": "Your name, interests, your own plans, feedback and settings will be erased from this device, Google access will be revoked, and the app will start over from the beginning. This can't be undone.",
   "deleteAccountInfo": "LifeRadar keeps your data only on this device. Deleting removes it all and disconnects Google Calendar.",
-  "accountDeleted": "Account deleted. Starting fresh."
+  "accountDeleted": "Account deleted. Starting fresh.",
+  "eventAbout": "About",
+  "eventPrice": "Price",
+  "applicationLabel": "Applications",
+  "organizer": "Organizer",
+  "matchesYou": "Matches your interests"
 }

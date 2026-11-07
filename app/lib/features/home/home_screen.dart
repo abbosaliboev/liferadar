@@ -435,7 +435,7 @@ void openSignal(BuildContext context, WidgetRef ref, Insight insight) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SignalWhyBlock(insight: insight, showTitle: true),
+            SignalWhyBlock(insight: insight, standalone: true),
             if (plan?.location != null) ...[
               const SizedBox(height: Space.md),
               WeatherChip(location: plan!.location!, date: plan.start),

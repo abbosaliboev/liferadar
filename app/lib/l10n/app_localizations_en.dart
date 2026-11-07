@@ -821,4 +821,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountDeleted => 'Account deleted. Starting fresh.';
+
+  @override
+  String get eventAbout => 'About';
+
+  @override
+  String get eventPrice => 'Price';
+
+  @override
+  String get applicationLabel => 'Applications';
+
+  @override
+  String get organizer => 'Organizer';
+
+  @override
+  String get matchesYou => 'Matches your interests';
 }

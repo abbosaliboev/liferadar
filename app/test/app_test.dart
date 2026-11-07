@@ -182,7 +182,7 @@ void main() {
     expect(tester.getTopLeft(find.text('Due soon')).dy, lessThan(120)); // ekranning yuqorisida
   });
 
-  testWidgets('Signal oynasi baland ochiladi, tortilsa to\'liq ekran, orqaga tugmasi yopadi', (tester) async {
+  testWidgets('Signal oynasi baland ochiladi, tortilsa 95% gacha, orqaga tugmasi yopadi', (tester) async {
     await pumpApp(tester, interests: ['ai', 'startup', 'music']);
     await tester.tap(find.byType(InsightCard).first);
     await tester.pumpAndSettle();
@@ -194,7 +194,8 @@ void main() {
 
     await tester.drag(back, const Offset(0, -300));
     await tester.pumpAndSettle();
-    expect(tester.getTopLeft(back).dy, lessThan(before)); // to'liq ekranga yoyildi
+    expect(tester.getTopLeft(back).dy, lessThan(before)); // 95% gacha yoyildi
+    expect(tester.getTopLeft(back).dy, greaterThan(screenH * 0.04)); // lekin to'liq ekran emas
 
     await tester.tap(back);
     await tester.pumpAndSettle();

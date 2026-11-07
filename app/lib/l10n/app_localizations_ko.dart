@@ -805,4 +805,19 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get accountDeleted => '계정을 삭제했어요. 처음부터 시작해요.';
+
+  @override
+  String get eventAbout => '소개';
+
+  @override
+  String get eventPrice => '요금';
+
+  @override
+  String get applicationLabel => '접수 기간';
+
+  @override
+  String get organizer => '주관';
+
+  @override
+  String get matchesYou => '내 관심사와 일치';
 }

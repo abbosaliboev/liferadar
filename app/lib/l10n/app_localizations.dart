@@ -1579,6 +1579,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account deleted. Starting fresh.'**
   String get accountDeleted;
+
+  /// No description provided for @eventAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get eventAbout;
+
+  /// No description provided for @eventPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get eventPrice;
+
+  /// No description provided for @applicationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Applications'**
+  String get applicationLabel;
+
+  /// No description provided for @organizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Organizer'**
+  String get organizer;
+
+  /// No description provided for @matchesYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches your interests'**
+  String get matchesYou;
 }
 
 class _AppLocalizationsDelegate

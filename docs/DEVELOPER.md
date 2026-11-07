@@ -343,7 +343,8 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 - **알림 (`core/notify/`, `data/notifications.dart`)**: 웹 Notification API(`package:web`), 그 외 플랫폼은 stub. 설정 스위치(`notify_enabled`)를 켤 때만 권한 요청. `AppShell`이 `insightsProvider`를 듣고 `SignalNotifier.dispatch()` → 마감 ≤ 2일, 3일 이내 일정의 planAlert만, 신호당 1번(`notified:<scope>`), 한 번에 최대 3개. 문구는 `lookupAppLocalizations()`로 현재 언어.
   - 한계: 탭이 열려 있어야 함. 앱이 닫혀 있을 때의 푸시는 FCM + 서버(Cloud Functions) + 서비스 워커 필요.
   - 헤드리스 검증: CDP `Browser.grantPermissions(['notifications'])` + `Page.addScriptToEvaluateOnNewDocument`로 `Notification` 생성자를 감싸 콘솔에 기록.
-- **상세 시트 (`DetailSheet`, `core/widgets.dart`)**: 행사·일정 상세 공용. 루트 내비게이터에 화면 92% 높이로 열리고(하단 탭까지 덮음), 상단 핸들/← 영역을 위로 끌면 전체 화면, 아래로 끌면 닫힘. ← 뒤로 버튼은 항상 보임. 모션 줄이기에서는 `animateTo` 대신 `jumpTo`(duration 0 assertion 방지).
+- **행사 상세 구성**: 포스터 → 조용한 분류 줄 + 제목 → **한눈에 카드**(`_FactsCard`: 언제·어디서(지도 버튼)·요금·마감 D-n, 공고는 접수 기간·주관) → 신호 이유(`SignalWhyBlock`: 신호 종류 색의 연한 배경, 테두리·왼쪽 선 없음, 한 문장 + 이유) → 소개(6줄 + 더 보기) → 내 관심사(조용한 태그) → 출처·번역 표시.
+- **상세 시트 (`DetailSheet`, `core/widgets.dart`)**: 행사·일정 상세 공용. 루트 내비게이터에 화면 92% 높이로 열리고(하단 탭까지 덮음), 상단 핸들/← 영역을 위로 끌면 95%까지(전체 화면은 아님), 아래로 끌면 닫힘. ← 뒤로 버튼은 항상 보임. 모션 줄이기에서는 `animateTo` 대신 `jumpTo`(duration 0 assertion 방지).
 - **확인 시트 (`core/confirm.dart`)**: `showConfirm()` — 루트 내비게이터 바텀시트(하단 탭까지 덮음), 아이콘 elastic pop, 두 개의 큰 버튼, `destructive`면 빨강. 👎, 👍/👎 취소, 일정 삭제, 계정 삭제에서 사용.
 - **👍/👎 토글**: 같은 버튼을 다시 누르면 확인 후 `InsightFeedbackController.clear()`.
 - **계정 삭제 (`deleteAccountAndData`)**: 캘린더 토큰 해제 → Google `disconnect()` → `SharedPreferences.clear()` → 관련 provider invalidate → `/welcome`. 위치: 프로필 → 정보 → 계정 및 데이터 (`/account`).
