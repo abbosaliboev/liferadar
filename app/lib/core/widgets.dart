@@ -831,7 +831,7 @@ class GlassSegmented<T> extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       child: SizedBox(
         height: height - 8,
-        child: Stack(children: [
+        child: Stack(fit: StackFit.expand, children: [
           AnimatedAlign(
             duration: d,
             curve: Curves.easeOutBack,

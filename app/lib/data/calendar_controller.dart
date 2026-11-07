@@ -23,11 +23,15 @@ class CalendarState {
 /// Google Sign-In ni ilova boshida bir marta ishga tushiramiz (web: GIS SDK yuklanadi).
 Future<void> initGoogleSignIn() async {
   if (!isGoogleSignInConfigured) return;
-  await GoogleSignIn.instance.initialize(clientId: Env.googleOAuthWebClientId);
+  await GoogleSignIn.instance.initialize(
+    clientId: kIsWeb ? Env.googleOAuthWebClientId : null,
+    serverClientId: kIsWeb ? null : Env.googleOAuthWebClientId,
+  );
 }
 
-/// Hozircha faqat web uchun OAuth client sozlangan. Android client keyin qo'shiladi.
-bool get isGoogleSignInConfigured => kIsWeb && Env.googleOAuthWebClientId.isNotEmpty;
+/// Android OAuth client paket va SHA-1 orqali aniqlanadi; server ID uchun web client ishlatiladi.
+bool get isGoogleSignInConfigured =>
+    (kIsWeb || defaultTargetPlatform == TargetPlatform.android) && Env.googleOAuthWebClientId.isNotEmpty;
 
 final calendarProvider = NotifierProvider<CalendarController, CalendarState>(CalendarController.new);
 

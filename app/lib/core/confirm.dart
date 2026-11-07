@@ -19,7 +19,8 @@ Future<bool> showConfirm(
     context: context,
     useSafeArea: true,
     isScrollControlled: true,
-    useRootNavigator: true, // pastki navigatsiyani ham qoplasin — diqqat faqat tanlovda
+    useRootNavigator:
+        true, // pastki navigatsiyani ham qoplasin — diqqat faqat tanlovda
     builder: (_) => _ConfirmSheet(
       icon: icon,
       title: title,
@@ -60,47 +61,80 @@ class _ConfirmSheet extends StatelessWidget {
     final soft = destructive ? p.dangerSoft : p.primarySoft;
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(Space.xxl, Space.sm, Space.xxl, Space.xl + MediaQuery.viewInsetsOf(context).bottom),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: reduce ? 1 : 0.4, end: 1),
-          duration: reduce ? Duration.zero : const Duration(milliseconds: 520),
-          curve: Curves.elasticOut,
-          builder: (_, v, child) => Transform.scale(scale: v, child: child),
-          child: Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: soft,
-              shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: color.withValues(alpha: 0.18), blurRadius: 24, spreadRadius: 2)],
-            ),
-            child: Icon(icon, color: color, size: 30),
-          ),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          Space.xxl,
+          Space.sm,
+          Space.xxl,
+          Space.xl + MediaQuery.viewInsetsOf(context).bottom,
         ),
-        const SizedBox(height: Space.lg),
-        Text(title, textAlign: TextAlign.center, style: t.titleLarge),
-        if (body != null) ...[
-          const SizedBox(height: Space.sm),
-          Text(body!, textAlign: TextAlign.center, style: t.bodyMedium!.copyWith(color: p.textMuted)),
-        ],
-        if (extra != null) ...[const SizedBox(height: Space.lg), extra!],
-        const SizedBox(height: Space.xl),
-        Row(children: [
-          Expanded(
-            child: OutlinedButton(onPressed: () => Navigator.pop(context, false), child: Text(cancelLabel)),
-          ),
-          const SizedBox(width: Space.md),
-          Expanded(
-            child: FilledButton(
-              style: destructive ? FilledButton.styleFrom(backgroundColor: p.danger, foregroundColor: Colors.white) : null,
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(confirmLabel),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: reduce ? 1 : 0.4, end: 1),
+              duration: reduce
+                  ? Duration.zero
+                  : const Duration(milliseconds: 520),
+              curve: Curves.elasticOut,
+              builder: (_, v, child) => Transform.scale(scale: v, child: child),
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: soft,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.18),
+                      blurRadius: 24,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Icon(icon, color: color, size: 30),
+              ),
             ),
-          ),
-        ]),
-      ]),
+            const SizedBox(height: Space.lg),
+            Text(title, textAlign: TextAlign.center, style: t.titleLarge),
+            if (body != null) ...[
+              const SizedBox(height: Space.sm),
+              Text(
+                body!,
+                textAlign: TextAlign.center,
+                style: t.bodyMedium!.copyWith(color: p.textMuted),
+              ),
+            ],
+            if (extra != null) ...[const SizedBox(height: Space.lg), extra!],
+            const SizedBox(height: Space.xl),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text(cancelLabel),
+                  ),
+                ),
+                const SizedBox(width: Space.md),
+                Expanded(
+                  child: FilledButton(
+                    style: destructive
+                        ? FilledButton.styleFrom(
+                            backgroundColor: p.danger,
+                            foregroundColor: Colors.white,
+                          )
+                        : null,
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(confirmLabel),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
