@@ -55,6 +55,8 @@ class SignalNotifier {
 
     bool important(Insight i) {
       if (i.feedback == InsightFeedback.dislike || i.feedback == InsightFeedback.hidden) return false;
+      // Yaqindagi katta tadbir — faqat ma'lumot (transport ta'siri tasdiqlanmagan): bildirishnoma yo'q.
+      if (i.id.startsWith('crowd:')) return false;
       if (i.kind == InsightKind.deadline) {
         final e = i.eventIds.isEmpty ? null : ref.read(eventByIdProvider(i.eventIds.first));
         final d = e?.deadline;

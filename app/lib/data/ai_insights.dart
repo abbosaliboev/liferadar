@@ -45,7 +45,9 @@ class AiInsightTextController extends Notifier<Map<String, InsightWriting>> {
     final keyById = <String, String>{};
     final todo = <String, Map<String, dynamic>>{};
     final out = <String, InsightWriting>{};
-    for (final i in base.where((i) => hidden[i.id] != InsightFeedback.hidden).take(aiInsightLimit)) {
+    // Rasmiy yo'l ta'siri kartalari shablon matnda qoladi (판별 로직 §12) — AI qayta yozmaydi.
+    final candidates = base.where((i) => hidden[i.id] != InsightFeedback.hidden && !i.id.startsWith('traffic:'));
+    for (final i in candidates.take(aiInsightLimit)) {
       final facts = InsightWriter.facts(
         i,
         plan: plans[i.planId],

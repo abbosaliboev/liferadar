@@ -11,6 +11,7 @@ import 'ai_insights.dart';
 import 'event_feed.dart';
 import 'interests.dart';
 import 'live_events.dart';
+import 'live_traffic.dart';
 import 'sample_data.dart';
 import 'session.dart';
 
@@ -176,6 +177,25 @@ class InsightFeedbackController extends Notifier<Map<String, InsightFeedback>> {
       .setStringList(_key, [for (final e in state.entries) '${e.key}|${e.value.name}']);
 }
 
+/// Rasmiy yo'l ta'siri: avval keshdagisi, keyin internetdan yangirog'i.
+final trafficFeedProvider = NotifierProvider<TrafficFeedController, TrafficFeed>(TrafficFeedController.new);
+
+class TrafficFeedController extends Notifier<TrafficFeed> {
+  @override
+  TrafficFeed build() {
+    final cached = LiveTraffic.cached(ref.read(sharedPrefsProvider));
+    if (ref.watch(liveEventsEnabledProvider)) Future.microtask(refresh);
+    return cached;
+  }
+
+  Future<bool> refresh() async {
+    final fresh = await LiveTraffic.fetch(ref.read(sharedPrefsProvider), state);
+    if (fresh == null || !ref.mounted) return false;
+    state = fresh;
+    return true;
+  }
+}
+
 /// Feedback'dan o'rganilgan did: Home, Discover, Map va Route tartibiga ta'sir qiladi.
 final tasteProvider = Provider<Taste>((ref) {
   final events = {for (final e in ref.watch(eventsProvider)) e.id: e};
@@ -208,6 +228,7 @@ final baseInsightsProvider = Provider<List<Insight>>((ref) {
     now: now,
     weatherByPlanId: weather,
     taste: ref.watch(tasteProvider),
+    traffic: ref.watch(trafficFeedProvider).activeAt(now),
   );
 });
 
