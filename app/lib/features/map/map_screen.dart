@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' as km;
 
+import '../../core/errors.dart';
 import '../../core/env.dart';
 import '../../core/kakao_sdk_check.dart';
 import '../../core/l10n_ext.dart';
@@ -234,7 +235,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final l10n = context.l10n;
     if (!Env.hasKakaoMapKey) return _MapMessage(l10n.mapKeyMissing);
     if (!isKakaoSdkLoaded()) return _MapMessage(l10n.mapSdkNotLoaded(Uri.base.origin));
-    if (_mapError != null) return _MapMessage(l10n.mapError(_mapError!));
+    if (_mapError != null) return _MapMessage(l10n.mapError(friendlyError(l10n, _mapError)));
     return km.KakaoMap(
       option: const km.KakaoMapOption(position: _seoul, zoomLevel: 7),
       onMapReady: _onMapReady,

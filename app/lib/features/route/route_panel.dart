@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/errors.dart';
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
 import '../../core/widgets.dart';
@@ -144,7 +145,7 @@ class _RoutePanelState extends ConsumerState<RoutePanel> {
                       Container(
                         padding: const EdgeInsets.all(Space.md),
                         decoration: BoxDecoration(color: p.dangerSoft, borderRadius: BorderRadius.circular(Radii.md)),
-                        child: Text(l10n.routeError(s.error ?? ''), style: t.bodySmall!.copyWith(color: p.danger)),
+                        child: Text(l10n.routeError(friendlyError(l10n, s.error)), style: t.bodySmall!.copyWith(color: p.danger)),
                       ),
                     ],
 
@@ -335,7 +336,7 @@ class _PlaceSearchSheetState extends ConsumerState<PlaceSearchSheet> {
       if (!mounted || q != _query) return;
       setState(() => _results = r);
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = friendlyError(context.l10n, e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

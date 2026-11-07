@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/errors.dart';
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
 import '../../core/widgets.dart';
@@ -205,7 +206,7 @@ class _CalendarCard extends ConsumerWidget {
         : switch (cal.error) {
             'not-configured' => l10n.calendarNotConfigured,
             'expired' => l10n.calendarExpired,
-            _ => l10n.calendarError(cal.error ?? ''),
+            _ => l10n.calendarError(friendlyError(l10n, cal.error)),
           };
 
     if (cal.isConnected) {

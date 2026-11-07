@@ -9,6 +9,11 @@
   "homeSubtitle": "What changed around your plans and interests",
   "whyItMatters": "Why it matters",
   "aiWritten": "Written with Gemini",
+  "errOffline": "No internet connection. Check your connection and try again.",
+  "errBusy": "The service is busy right now. Please try again in a minute.",
+  "errService": "This service isn't available right now.",
+  "errNoRoute": "Couldn't find a route between these places.",
+  "errGeneric": "Something went wrong. Please try again.",
   "sources": "Sources",
   "confidence": "Confidence {percent}%",
   "@confidence": {

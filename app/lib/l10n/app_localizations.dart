@@ -152,6 +152,36 @@ abstract class AppLocalizations {
   /// **'Written with Gemini'**
   String get aiWritten;
 
+  /// No description provided for @errOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Check your connection and try again.'**
+  String get errOffline;
+
+  /// No description provided for @errBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The service is busy right now. Please try again in a minute.'**
+  String get errBusy;
+
+  /// No description provided for @errService.
+  ///
+  /// In en, this message translates to:
+  /// **'This service isn\'t available right now.'**
+  String get errService;
+
+  /// No description provided for @errNoRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t find a route between these places.'**
+  String get errNoRoute;
+
+  /// No description provided for @errGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get errGeneric;
+
   /// No description provided for @sources.
   ///
   /// In en, this message translates to:

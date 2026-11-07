@@ -36,6 +36,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aiWritten => 'Gemini가 작성';
 
   @override
+  String get errOffline => '인터넷에 연결되어 있지 않아요. 연결을 확인하고 다시 시도해 주세요.';
+
+  @override
+  String get errBusy => '지금 서비스가 혼잡해요. 잠시 후 다시 시도해 주세요.';
+
+  @override
+  String get errService => '지금은 이 서비스를 사용할 수 없어요.';
+
+  @override
+  String get errNoRoute => '두 장소 사이의 경로를 찾지 못했어요.';
+
+  @override
+  String get errGeneric => '문제가 발생했어요. 다시 시도해 주세요.';
+
+  @override
   String get sources => '출처';
 
   @override

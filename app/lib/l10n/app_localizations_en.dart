@@ -36,6 +36,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiWritten => 'Written with Gemini';
 
   @override
+  String get errOffline =>
+      'No internet connection. Check your connection and try again.';
+
+  @override
+  String get errBusy =>
+      'The service is busy right now. Please try again in a minute.';
+
+  @override
+  String get errService => 'This service isn\'t available right now.';
+
+  @override
+  String get errNoRoute => 'Couldn\'t find a route between these places.';
+
+  @override
+  String get errGeneric => 'Something went wrong. Please try again.';
+
+  @override
   String get sources => 'Sources';
 
   @override

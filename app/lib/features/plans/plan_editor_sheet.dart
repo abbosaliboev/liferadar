@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/errors.dart';
 import '../../core/confirm.dart';
 import '../../core/l10n_ext.dart';
 import '../../core/theme.dart';
@@ -201,7 +202,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = l10n.planSaveError(e.toString());
+          _error = l10n.planSaveError(friendlyError(l10n, e));
         });
       }
     }
@@ -234,7 +235,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
       if (mounted) {
         setState(() {
           _saving = false;
-          _error = l10n.planSaveError(e.toString());
+          _error = l10n.planSaveError(friendlyError(l10n, e));
         });
       }
     }

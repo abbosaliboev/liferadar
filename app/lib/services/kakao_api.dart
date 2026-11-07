@@ -55,7 +55,7 @@ class KakaoApi {
     final json = await _get(uri);
     final route = (json['routes'] as List).first as Map<String, dynamic>;
     if (route['result_code'] != 0) {
-      throw KakaoApiException(route['result_msg'] as String? ?? 'route failed');
+      throw KakaoApiException('No route: ${route['result_msg'] as String? ?? '-'}');
     }
     final summary = route['summary'] as Map<String, dynamic>;
     final points = <GeoPoint>[];
