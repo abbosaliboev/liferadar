@@ -343,6 +343,7 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 - **알림 (`core/notify/`, `data/notifications.dart`)**: 웹 Notification API(`package:web`), 그 외 플랫폼은 stub. 설정 스위치(`notify_enabled`)를 켤 때만 권한 요청. `AppShell`이 `insightsProvider`를 듣고 `SignalNotifier.dispatch()` → 마감 ≤ 2일, 3일 이내 일정의 planAlert만, 신호당 1번(`notified:<scope>`), 한 번에 최대 3개. 문구는 `lookupAppLocalizations()`로 현재 언어.
   - 한계: 탭이 열려 있어야 함. 앱이 닫혀 있을 때의 푸시는 FCM + 서버(Cloud Functions) + 서비스 워커 필요.
   - 헤드리스 검증: CDP `Browser.grantPermissions(['notifications'])` + `Page.addScriptToEvaluateOnNewDocument`로 `Notification` 생성자를 감싸 콘솔에 기록.
+- **상세 시트 (`DetailSheet`, `core/widgets.dart`)**: 행사·일정 상세 공용. 루트 내비게이터에 화면 92% 높이로 열리고(하단 탭까지 덮음), 상단 핸들/← 영역을 위로 끌면 전체 화면, 아래로 끌면 닫힘. ← 뒤로 버튼은 항상 보임. 모션 줄이기에서는 `animateTo` 대신 `jumpTo`(duration 0 assertion 방지).
 - **확인 시트 (`core/confirm.dart`)**: `showConfirm()` — 루트 내비게이터 바텀시트(하단 탭까지 덮음), 아이콘 elastic pop, 두 개의 큰 버튼, `destructive`면 빨강. 👎, 👍/👎 취소, 일정 삭제, 계정 삭제에서 사용.
 - **👍/👎 토글**: 같은 버튼을 다시 누르면 확인 후 `InsightFeedbackController.clear()`.
 - **계정 삭제 (`deleteAccountAndData`)**: 캘린더 토큰 해제 → Google `disconnect()` → `SharedPreferences.clear()` → 관련 provider invalidate → `/welcome`. 위치: 프로필 → 정보 → 계정 및 데이터 (`/account`).
@@ -370,7 +371,8 @@ Gemini를 붙일 때는 이 결과의 `body/why`만 다시 쓰게 하고, 사실
 ### 홈 카드 · 토스트 · 읽음 표시
 
 - **신호 카드 (`InsightCard`)**: 무엇(`MarqueeText` — 넘치면 가로로 흐름, 모션 줄이기에선 말줄임) · 언제 · 어디서 · 관심사 칩 최대 2개 · D-n. 본문·이유·신뢰도·출처는 카드에 없고 탭하면 `openSignal()` → 행사 시트의 `SignalWhyBlock` (행사 없는 신호는 단독 시트).
-- **필터 (`HomeFilter`)**: 상단 숫자 3개 = 내 일정 / 전체(기본, 선택 표시) / 마감 임박(마감일 순).
+- **필터 (`HomeFilter`, `_FilterHeader`)**: 상단 숫자 3개 = 내 일정 / 전체(기본) / 마감 임박(마감일 순). `SliverPersistentHeader(pinned)` — 맨 위에선 큰 숫자 카드, 스크롤하면 `shrinkOffset`에 따라 iOS 스타일 **유리 pill**(BackdropFilter 블러, 반경 16→28, 숫자는 라벨 옆 배지로)로 변하며 고정. 선택 표시는 미끄러지는 인디케이터(`AnimatedAlign`).
+- **좌우 스와이프**: 목록을 옆으로 밀면(속도 > 250) 이전/다음 필터, 카드는 같은 방향으로 슬라이드 전환 + 햅틱.
 - **👎 확인**: 예/아니요 다이얼로그 후 저장.
 - **토스트 (`core/toast.dart`)**: `Toast.show(msg, type:)` — `GoRouter(navigatorKey: Toast.navigatorKey)`의 루트 오버레이에 위에서 내려옴, 아이콘 없음, 탭/위로 밀어 닫기. 색은 상태별(success 초록 `#15803D`, error, warning, info), 흰 글자와 4.5:1 이상. `SnackBar`는 쓰지 않습니다.
 - **읽음 (`seenProvider`)**: `insight:<id>`, `event:<id>`를 계정별 최근 500개 저장 → 홈·발견 카드 불투명도 0.6.

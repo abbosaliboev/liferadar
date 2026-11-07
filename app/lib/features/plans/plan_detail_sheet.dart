@@ -20,6 +20,8 @@ Future<void> showPlanDetail(BuildContext context, Plan plan) => showModalBottomS
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
+  useRootNavigator: true,
+  showDragHandle: false,
   builder: (_) => PlanDetailSheet(planId: plan.id),
 );
 
@@ -48,8 +50,10 @@ class PlanDetailSheet extends ConsumerWidget {
         : '${DateFormat.Hm(lang).format(plan.start)} – ${DateFormat.Hm(lang).format(plan.end)}';
 
     void edit() {
-      Navigator.pop(context);
-      showPlanEditor(context, plan: plan);
+      // Oyna yopilgach uning context'i yaroqsiz — tahrirlashni navigator context'idan ochamiz.
+      final nav = Navigator.of(context);
+      nav.pop();
+      showPlanEditor(nav.context, plan: plan);
     }
 
     void map() {
@@ -58,135 +62,114 @@ class PlanDetailSheet extends ConsumerWidget {
       context.go('/map');
     }
 
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.92,
-      builder: (context, controller) => Column(
+    return DetailSheet(
+      bodyBuilder: (context, controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xl),
         children: [
-          Expanded(
-            child: ListView(
-              controller: controller,
-              padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xl),
-              children: [
-                // ── Sarlavha ──
-                Row(
-                  children: [
-                    switch (plan.source) {
-                      'gcal' => Pill(
-                        l10n.sourceCalendar,
-                        icon: Icons.calendar_month_outlined,
-                        tone: Tone.info,
-                        dense: true,
-                      ),
-                      'sample' => const SampleBadge(),
-                      _ => Pill(l10n.myPlanBadge, icon: Icons.edit_calendar_outlined, tone: Tone.primary, dense: true),
-                    },
-                  ],
-                ),
-                const SizedBox(height: Space.sm),
-                Text(plan.title, style: t.headlineSmall),
-                const SizedBox(height: Space.lg),
+          // ── Sarlavha ──
+          Row(
+            children: [
+              switch (plan.source) {
+                'gcal' => Pill(l10n.sourceCalendar, icon: Icons.calendar_month_outlined, tone: Tone.info, dense: true),
+                'sample' => const SampleBadge(),
+                _ => Pill(l10n.myPlanBadge, icon: Icons.edit_calendar_outlined, tone: Tone.primary, dense: true),
+              },
+            ],
+          ),
+          const SizedBox(height: Space.sm),
+          Text(plan.title, style: t.headlineSmall),
+          const SizedBox(height: Space.lg),
 
-                // ── Qachon · Qayerda ──
-                Container(
-                  padding: const EdgeInsets.all(Space.lg),
-                  decoration: BoxDecoration(color: p.surfaceAlt, borderRadius: BorderRadius.circular(Radii.lg)),
-                  child: Column(
-                    children: [
-                      _Row(
-                        icon: Icons.calendar_today_outlined,
-                        label: l10n.planWhen,
-                        title: dateText,
-                        subtitle: timeText,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: Space.md),
-                        child: Divider(height: 1, color: p.border),
-                      ),
-                      _Row(
-                        icon: plan.location == null ? Icons.location_off_outlined : Icons.place_outlined,
-                        label: l10n.planWhere,
-                        title: plan.locationText.isEmpty ? l10n.noLocation : plan.locationText,
-                        subtitle: plan.city.isEmpty ? null : plan.city,
-                        trailing: plan.location == null
-                            ? null
-                            : IconButton.filledTonal(
-                                tooltip: l10n.showOnMap,
-                                onPressed: map,
-                                icon: const Icon(Icons.map_outlined, size: 20),
-                              ),
-                      ),
-                      if (plan.location != null) ...[
-                        const SizedBox(height: Space.md),
-                        Row(
-                          children: [
-                            const SizedBox(width: 48),
-                            Expanded(
-                              child: WeatherChip(location: plan.location!, date: plan.start),
-                            ),
-                          ],
+          // ── Qachon · Qayerda ──
+          Container(
+            padding: const EdgeInsets.all(Space.lg),
+            decoration: BoxDecoration(color: p.surfaceAlt, borderRadius: BorderRadius.circular(Radii.lg)),
+            child: Column(
+              children: [
+                _Row(icon: Icons.calendar_today_outlined, label: l10n.planWhen, title: dateText, subtitle: timeText),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Space.md),
+                  child: Divider(height: 1, color: p.border),
+                ),
+                _Row(
+                  icon: plan.location == null ? Icons.location_off_outlined : Icons.place_outlined,
+                  label: l10n.planWhere,
+                  title: plan.locationText.isEmpty ? l10n.noLocation : plan.locationText,
+                  subtitle: plan.city.isEmpty ? null : plan.city,
+                  trailing: plan.location == null
+                      ? null
+                      : IconButton.filledTonal(
+                          tooltip: l10n.showOnMap,
+                          onPressed: map,
+                          icon: const Icon(Icons.map_outlined, size: 20),
                         ),
-                      ],
+                ),
+                if (plan.location != null) ...[
+                  const SizedBox(height: Space.md),
+                  Row(
+                    children: [
+                      const SizedBox(width: 48),
+                      Expanded(
+                        child: WeatherChip(location: plan.location!, date: plan.start),
+                      ),
                     ],
                   ),
-                ),
-
-                // ── Atrofidagi yangiliklar ──
-                SectionHeader(l10n.planAround, padding: const EdgeInsets.fromLTRB(0, Space.xl, 0, Space.sm)),
-                if (signals.isEmpty)
-                  Text(l10n.planNothingAround, style: t.bodyMedium!.copyWith(color: p.textMuted))
-                else
-                  for (final s in signals) ...[
-                    _SignalTile(signal: s, onTap: () => openSignal(context, ref, s.insight)),
-                    const SizedBox(height: Space.sm),
-                  ],
-
-                // ── Izoh ──
-                if (plan.note != null && plan.note!.isNotEmpty) ...[
-                  SectionHeader(l10n.planNote, padding: const EdgeInsets.fromLTRB(0, Space.xl, 0, Space.sm)),
-                  Text(plan.note!, style: t.bodyLarge),
                 ],
               ],
             ),
           ),
 
-          // ── Harakatlar ──
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: p.surface,
-              border: Border(top: BorderSide(color: p.border)),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.md),
-                child: Row(
-                  children: [
-                    if (plan.htmlLink != null) ...[
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => launchUrl(Uri.parse(plan.htmlLink!), mode: LaunchMode.externalApplication),
-                          icon: const Icon(Icons.open_in_new_rounded, size: 18),
-                          label: Text(l10n.calendarOpenGoogle, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        ),
-                      ),
-                      const SizedBox(width: Space.sm),
-                    ],
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: edit,
-                        icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: Text(l10n.edit),
-                      ),
+          // ── Atrofidagi yangiliklar ──
+          SectionHeader(l10n.planAround, padding: const EdgeInsets.fromLTRB(0, Space.xl, 0, Space.sm)),
+          if (signals.isEmpty)
+            Text(l10n.planNothingAround, style: t.bodyMedium!.copyWith(color: p.textMuted))
+          else
+            for (final s in signals) ...[
+              _SignalTile(signal: s, onTap: () => openSignal(context, ref, s.insight)),
+              const SizedBox(height: Space.sm),
+            ],
+
+          // ── Izoh ──
+          if (plan.note != null && plan.note!.isNotEmpty) ...[
+            SectionHeader(l10n.planNote, padding: const EdgeInsets.fromLTRB(0, Space.xl, 0, Space.sm)),
+            Text(plan.note!, style: t.bodyLarge),
+          ],
+        ],
+      ),
+      // ── Harakatlar ──
+      bottom: DecoratedBox(
+        decoration: BoxDecoration(
+          color: p.surface,
+          border: Border(top: BorderSide(color: p.border)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.md),
+            child: Row(
+              children: [
+                if (plan.htmlLink != null) ...[
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => launchUrl(Uri.parse(plan.htmlLink!), mode: LaunchMode.externalApplication),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                      label: Text(l10n.calendarOpenGoogle, maxLines: 1, overflow: TextOverflow.ellipsis),
                     ),
-                  ],
+                  ),
+                  const SizedBox(width: Space.sm),
+                ],
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: edit,
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: Text(l10n.edit),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -161,6 +161,46 @@ void main() {
     expect(find.text('Deadline'), findsWidgets);
   });
 
+  testWidgets('Home: yonga surish filtrlarni almashtiradi, filtr tepada qadalib qoladi', (tester) async {
+    await pumpApp(tester, interests: ['ai', 'startup', 'music']);
+    expect(find.text('Signals for you'), findsOneWidget);
+    // chapga surish → keyingi filtr (Due soon)
+    await tester.fling(find.byType(CustomScrollView), const Offset(-300, 0), 1200);
+    await tester.pumpAndSettle();
+    expect(find.text('Deadlines coming up'), findsOneWidget);
+    // o'ngga ikki marta → My plans
+    await tester.fling(find.byType(CustomScrollView), const Offset(300, 0), 1200);
+    await tester.pumpAndSettle();
+    await tester.fling(find.byType(CustomScrollView), const Offset(300, 0), 1200);
+    await tester.pumpAndSettle();
+    expect(find.text('Around your plans'), findsOneWidget);
+
+    // Pastga aylantirilganda ham filtr ko'rinib turadi (pinned)
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
+    await tester.pumpAndSettle();
+    expect(find.text('Due soon'), findsOneWidget);
+    expect(tester.getTopLeft(find.text('Due soon')).dy, lessThan(120)); // ekranning yuqorisida
+  });
+
+  testWidgets('Signal oynasi baland ochiladi, tortilsa to\'liq ekran, orqaga tugmasi yopadi', (tester) async {
+    await pumpApp(tester, interests: ['ai', 'startup', 'music']);
+    await tester.tap(find.byType(InsightCard).first);
+    await tester.pumpAndSettle();
+    final back = find.byTooltip('Back');
+    expect(back, findsOneWidget);
+    final screenH = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    final before = tester.getTopLeft(back).dy;
+    expect(before, lessThan(screenH * 0.15)); // ~90% balandlikda ochildi
+
+    await tester.drag(back, const Offset(0, -300));
+    await tester.pumpAndSettle();
+    expect(tester.getTopLeft(back).dy, lessThan(before)); // to'liq ekranga yoyildi
+
+    await tester.tap(back);
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Back'), findsNothing);
+  });
+
   testWidgets('👍 qaytariladi (tasdiq bilan)', (tester) async {
     await pumpApp(tester, interests: ['ai', 'startup']);
     final prefs = await SharedPreferences.getInstance();

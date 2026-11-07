@@ -1,4 +1,7 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -49,106 +52,172 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final name =
         ref.watch(profileNameProvider) ?? (session == null || session.isGuest ? null : session.name?.split(' ').first);
 
+    final counts = {
+      HomeFilter.plans: forPlans.length,
+      HomeFilter.all: all.length,
+      HomeFilter.deadlines: deadlines.length,
+    };
+
+    // Kartalar ro'yxati (filtr almashganda yon tomonga siljib almashadi).
+    final Widget cards;
+    if (cal.isBusy) {
+      cards = const Shimmer(
+        key: ValueKey('busy'),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: Space.gutter),
+          child: Column(
+            children: [
+              SkeletonCard(lines: 2, leading: false),
+              SizedBox(height: Space.md),
+              SkeletonCard(lines: 2, leading: false),
+            ],
+          ),
+        ),
+      );
+    } else if (all.isEmpty) {
+      cards = EmptyState(
+        key: const ValueKey('empty'),
+        icon: Icons.radar,
+        title: l10n.homeEmptyTitle,
+        body: l10n.homeEmptyBody,
+        actions: [
+          FilledButton(onPressed: () => context.go('/plans'), child: Text(l10n.connectCalendar)),
+          OutlinedButton(onPressed: () => context.push('/interests'), child: Text(l10n.interestsEdit)),
+        ],
+      );
+    } else if (shown.isEmpty) {
+      cards = EmptyState(
+        key: ValueKey('none-${_filter.name}'),
+        icon: Icons.inbox_outlined,
+        title: l10n.homeFilterEmpty,
+      );
+    } else {
+      cards = Column(
+        key: ValueKey(_filter),
+        children: [
+          for (var i = 0; i < shown.length; i++)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
+              child: FadeSlideIn(
+                key: ValueKey('${_filter.name}-${shown[i].id}'),
+                index: i,
+                child: InsightCard(insight: shown[i]),
+              ),
+            ),
+        ],
+      );
+    }
+
+    final d = Motion.of(context, Motion.normal);
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            if (cal.isConnected) await ref.read(calendarProvider.notifier).sync();
-            ref.invalidate(forecastProvider);
+        // Yonga surish — filtrlar orasida o'tish (Mening rejalarim ↔ Barchasi ↔ Muddati yaqin).
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragEnd: (e) {
+            final v = e.primaryVelocity ?? 0;
+            if (v.abs() < 250) return;
+            final i = _filter.index + (v < 0 ? 1 : -1);
+            if (i >= 0 && i < HomeFilter.values.length) _select(HomeFilter.values[i]);
           },
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: Space.xxxl),
-            children: [
-              // ── Sarlavha ──
-              Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, 0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(DateFormat.MMMMEEEEd(context.lang).format(now), style: t.labelMedium),
-                          const SizedBox(height: 2),
-                          Text(name == null ? l10n.homeHello : l10n.homeHelloName(name), style: t.headlineSmall),
-                        ],
-                      ),
-                    ),
-                    Semantics(
-                      button: true,
-                      label: l10n.tabProfile,
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: () => context.go('/profile'),
-                        child: AppAvatar(photoUrl: session?.photoUrl, name: name, size: 40),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ── Statistika = filtr ──
-              Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, 0),
-                child: _FilterBar(
-                  selected: _filter,
-                  counts: {
-                    HomeFilter.plans: forPlans.length,
-                    HomeFilter.all: all.length,
-                    HomeFilter.deadlines: deadlines.length,
-                  },
-                  onSelect: (f) => setState(() => _filter = f),
-                ),
-              ),
-
-              SectionHeader(switch (_filter) {
-                HomeFilter.all => l10n.homeGreeting,
-                HomeFilter.plans => l10n.homeSectionPlans,
-                HomeFilter.deadlines => l10n.homeSectionDeadlines,
-              }),
-
-              // ── Kartalar ──
-              if (cal.isBusy)
-                const Shimmer(
+          child: RefreshIndicator(
+            onRefresh: () async {
+              if (cal.isConnected) await ref.read(calendarProvider.notifier).sync();
+              ref.invalidate(forecastProvider);
+            },
+            child: CustomScrollView(
+              slivers: [
+                // ── Sarlavha ──
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Space.gutter),
-                    child: Column(
+                    padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, Space.xs),
+                    child: Row(
                       children: [
-                        SkeletonCard(lines: 2, leading: false),
-                        SizedBox(height: Space.md),
-                        SkeletonCard(lines: 2, leading: false),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(DateFormat.MMMMEEEEd(context.lang).format(now), style: t.labelMedium),
+                              const SizedBox(height: 2),
+                              Text(name == null ? l10n.homeHello : l10n.homeHelloName(name), style: t.headlineSmall),
+                            ],
+                          ),
+                        ),
+                        Semantics(
+                          button: true,
+                          label: l10n.tabProfile,
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: () => context.go('/profile'),
+                            child: AppAvatar(photoUrl: session?.photoUrl, name: name, size: 40),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                )
-              else if (all.isEmpty)
-                EmptyState(
-                  icon: Icons.radar,
-                  title: l10n.homeEmptyTitle,
-                  body: l10n.homeEmptyBody,
-                  actions: [
-                    FilledButton(onPressed: () => context.go('/plans'), child: Text(l10n.connectCalendar)),
-                    OutlinedButton(onPressed: () => context.push('/interests'), child: Text(l10n.interestsEdit)),
-                  ],
-                )
-              else if (shown.isEmpty)
-                EmptyState(icon: Icons.inbox_outlined, title: l10n.homeFilterEmpty)
-              else
-                for (var i = 0; i < shown.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
-                    child: FadeSlideIn(
-                      key: ValueKey('${_filter.name}-${shown[i].id}'),
-                      index: i,
-                      child: InsightCard(insight: shown[i]),
-                    ),
+                ),
+
+                // ── Filtr: tepada qadalgan, aylantirganda shisha "pill"ga aylanadi ──
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _FilterHeader(
+                    selected: _filter,
+                    counts: counts,
+                    onSelect: _select,
+                    labels: (l10n.statForPlans, l10n.statAll, l10n.statSoon),
                   ),
-            ],
+                ),
+
+                SliverToBoxAdapter(
+                  child: SectionHeader(switch (_filter) {
+                    HomeFilter.all => l10n.homeGreeting,
+                    HomeFilter.plans => l10n.homeSectionPlans,
+                    HomeFilter.deadlines => l10n.homeSectionDeadlines,
+                  }),
+                ),
+
+                // ── Kartalar ──
+                SliverToBoxAdapter(
+                  child: AnimatedSwitcher(
+                    duration: d,
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    layoutBuilder: (current, previous) =>
+                        Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+                    transitionBuilder: (child, anim) {
+                      final incoming = child.key == cards.key;
+                      final dx = (incoming == _forward) ? 0.18 : -0.18;
+                      return FadeTransition(
+                        opacity: anim,
+                        child: SlideTransition(
+                          position: Tween(begin: Offset(dx, 0), end: Offset.zero).animate(anim),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: cards,
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: Space.xxxl)),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  /// Oldinga/orqaga — kartalar qaysi tomonga siljishini belgilaydi.
+  bool _forward = true;
+
+  void _select(HomeFilter f) {
+    if (f == _filter) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _forward = f.index > _filter.index;
+      _filter = f;
+    });
   }
 
   static DateTime _deadlineOf(WidgetRef ref, Insight i) {
@@ -157,60 +226,110 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 }
 
-/// Uchta bo'lak: tanlangani aniq ko'rinadi (fon + rang + qalin), boshqalari bosiladigan.
-class _FilterBar extends StatelessWidget {
-  const _FilterBar({required this.selected, required this.counts, required this.onSelect});
+/// Qadalgan filtr sarlavhasi. [t] = 0 — katta karta (raqamlar katta), 1 — ixcham shisha pill
+/// (iOS segmented control kabi: siljuvchi indikator, katta radius, orqa fon xiralashadi).
+class _FilterHeader extends SliverPersistentHeaderDelegate {
+  _FilterHeader({required this.selected, required this.counts, required this.onSelect, required this.labels});
 
   final HomeFilter selected;
   final Map<HomeFilter, int> counts;
   final ValueChanged<HomeFilter> onSelect;
+  final (String, String, String) labels;
+
+  static const _max = 112.0;
+  static const _min = 64.0;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
+  double get maxExtent => _max;
+
+  @override
+  double get minExtent => _min;
+
+  @override
+  bool shouldRebuild(_FilterHeader old) =>
+      old.selected != selected || old.counts.toString() != counts.toString() || old.labels != labels;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final p = context.palette;
     final t = context.textStyles;
-    final d = Motion.of(context, Motion.fast);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final k = Curves.easeInOut.transform((shrinkOffset / (_max - _min)).clamp(0.0, 1.0));
+    double lerp(double a, double b) => a + (b - a) * k;
+
+    final radius = lerp(Radii.lg, 28);
+    final hPad = lerp(Space.gutter, Space.gutter + 18);
+    final d = Motion.of(context, Motion.normal);
+    final index = selected.index;
 
     Widget cell(HomeFilter f, String label) {
       final on = f == selected;
-      final urgent = f == HomeFilter.deadlines && (counts[f] ?? 0) > 0;
+      final n = counts[f] ?? 0;
+      final urgent = f == HomeFilter.deadlines && n > 0;
       final numberColor = on ? p.primary : (urgent ? p.accent : p.text);
       return Expanded(
         child: Semantics(
           button: true,
           selected: on,
-          label: '$label ${counts[f]}',
+          label: '$label $n',
           child: ExcludeSemantics(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(Radii.md),
-                onTap: () => onSelect(f),
-                child: AnimatedContainer(
-                  duration: d,
-                  curve: Motion.curve,
-                  padding: const EdgeInsets.symmetric(vertical: Space.md),
-                  decoration: BoxDecoration(
-                    color: on ? p.primarySoft : Colors.transparent,
-                    borderRadius: BorderRadius.circular(Radii.md),
-                  ),
-                  child: Column(
-                    children: [
-                      Text('${counts[f] ?? 0}', style: t.headlineSmall!.copyWith(color: numberColor)),
-                      const SizedBox(height: 2),
-                      Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: t.labelMedium!.copyWith(
-                          color: on ? p.primary : p.textMuted,
-                          fontWeight: on ? FontWeight.w700 : null,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onSelect(f),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Katta raqam — yig'ilganda balandligi va shaffofligi kamayadi.
+                  ClipRect(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      heightFactor: 1 - k,
+                      child: Opacity(
+                        opacity: (1 - k * 1.6).clamp(0.0, 1.0),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Text('$n', style: t.headlineSmall!.copyWith(color: numberColor)),
                         ),
                       ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: t.labelMedium!.copyWith(
+                            color: on ? p.primary : p.textMuted,
+                            fontWeight: on ? FontWeight.w700 : FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      // Ixcham holatda soni yorliq yonida — kichik "badge".
+                      if (k > 0.02)
+                        Opacity(
+                          opacity: ((k - 0.35) / 0.65).clamp(0.0, 1.0),
+                          child: Container(
+                            margin: const EdgeInsets.only(left: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: on ? p.primary : (urgent ? p.accent : p.textMuted.withValues(alpha: 0.18)),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              '$n',
+                              style: t.labelSmall!.copyWith(
+                                color: on || urgent ? p.onPrimary : p.textMuted,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ),
@@ -218,17 +337,69 @@ class _FilterBar extends StatelessWidget {
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(Space.xs + 2),
-        child: Row(
-          children: [
-            cell(HomeFilter.plans, l10n.statForPlans),
-            const SizedBox(width: Space.xs),
-            cell(HomeFilter.all, l10n.statAll),
-            const SizedBox(width: Space.xs),
-            cell(HomeFilter.deadlines, l10n.statSoon),
+    final glass = p.surface.withValues(alpha: lerp(1, dark ? 0.62 : 0.70));
+    return Padding(
+      padding: EdgeInsets.fromLTRB(hPad, lerp(Space.lg, Space.sm), hPad, lerp(Space.sm, 6)),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: (dark ? 0.35 : 0.10) * k),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18 * k, sigmaY: 18 * k),
+            child: Container(
+              decoration: BoxDecoration(
+                color: glass,
+                borderRadius: BorderRadius.circular(radius),
+                border: Border.all(color: (dark ? Colors.white : p.border).withValues(alpha: dark ? 0.10 : 0.9)),
+              ),
+              padding: const EdgeInsets.all(4),
+              child: Stack(
+                children: [
+                  // Siljuvchi indikator (tanlangan bo'lak).
+                  AnimatedAlign(
+                    duration: d,
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment(-1 + index.toDouble(), 0),
+                    child: FractionallySizedBox(
+                      widthFactor: 1 / 3,
+                      heightFactor: 1,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: p.primarySoft,
+                          borderRadius: BorderRadius.circular(radius - 4),
+                          boxShadow: k > 0.5
+                              ? [
+                                  BoxShadow(
+                                    color: p.primary.withValues(alpha: 0.12),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      cell(HomeFilter.plans, labels.$1),
+                      cell(HomeFilter.all, labels.$2),
+                      cell(HomeFilter.deadlines, labels.$3),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

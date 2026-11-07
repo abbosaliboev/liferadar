@@ -24,6 +24,8 @@ Future<void> showEventDetail(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    useRootNavigator: true, // pastki navigatsiyani ham qoplaydi; to'liq ekranga yoyila oladi
+    showDragHandle: false, // DetailSheet o'z tutqichini chizadi
     builder: (_) =>
         EventDetailSheet(event: event, onShowOnMap: onShowOnMap, opportunity: opportunity, insight: insight),
   );
@@ -108,196 +110,181 @@ class _EventDetailSheetState extends ConsumerState<EventDetailSheet> {
       label: Text(_adding ? l10n.addingToCalendar : l10n.addToCalendar),
     );
 
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.62,
-      minChildSize: 0.4,
-      maxChildSize: 0.92,
-      builder: (context, controller) => Column(
+    return DetailSheet(
+      bodyBuilder: (context, controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xl),
         children: [
-          Expanded(
-            child: ListView(
-              controller: controller,
-              padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.xl),
+          if (event.imageUrl != null) ...[_Poster(event.imageUrl!), const SizedBox(height: Space.lg)],
+          Row(
+            children: [
+              IconTile(categoryIcon(event.category), size: 44),
+              const SizedBox(width: Space.md),
+              Pill(context.categoryLabel(event.category)),
+              const Spacer(),
+              if (event.isSample) const SampleBadge(),
+            ],
+          ),
+          const SizedBox(height: Space.md),
+          Text(context.tr(event.title), style: t.headlineSmall),
+          const SizedBox(height: Space.lg),
+          if (widget.insight != null) ...[SignalWhyBlock(insight: widget.insight!), const SizedBox(height: Space.lg)],
+
+          // ── Asosiy ma'lumotlar ──
+          Container(
+            padding: const EdgeInsets.all(Space.lg),
+            decoration: BoxDecoration(color: p.surfaceAlt, borderRadius: BorderRadius.circular(Radii.lg)),
+            child: Column(
               children: [
-                if (event.imageUrl != null) ...[_Poster(event.imageUrl!), const SizedBox(height: Space.lg)],
-                Row(
-                  children: [
-                    IconTile(categoryIcon(event.category), size: 44),
-                    const SizedBox(width: Space.md),
-                    Pill(context.categoryLabel(event.category)),
-                    const Spacer(),
-                    if (event.isSample) const SampleBadge(),
-                  ],
-                ),
-                const SizedBox(height: Space.md),
-                Text(context.tr(event.title), style: t.headlineSmall),
-                const SizedBox(height: Space.lg),
-                if (widget.insight != null) ...[
-                  SignalWhyBlock(insight: widget.insight!),
-                  const SizedBox(height: Space.lg),
-                ],
-
-                // ── Asosiy ma'lumotlar ──
-                Container(
-                  padding: const EdgeInsets.all(Space.lg),
-                  decoration: BoxDecoration(color: p.surfaceAlt, borderRadius: BorderRadius.circular(Radii.lg)),
-                  child: Column(
-                    children: [
-                      // E'lon (manzilsiz): vaqt o'rniga qabul muddati, joy o'rniga tashkilot · hudud.
-                      if (event.placeless) ...[
-                        _Info(
-                          Icons.event_available_outlined,
-                          l10n.applicationPeriod(context.formatDate(event.start), context.formatDate(event.end)),
-                        ),
-                        _Info(
-                          Icons.apartment_outlined,
-                          [
-                            if (event.venue.isNotEmpty) event.venue,
-                            event.city == '전국' ? l10n.nationwide : event.city,
-                          ].join(' · '),
-                        ),
-                      ] else ...[
-                        _Info(
-                          Icons.schedule_outlined,
-                          '${context.formatDateTime(event.start)} – ${context.formatDateTime(event.end)}',
-                        ),
-                        _Info(Icons.place_outlined, '${event.venue} · ${event.city}'),
-                      ],
-                      if (event.isFree == true || event.price != null)
-                        _Info(
-                          Icons.confirmation_number_outlined,
-                          event.isFree == true ? l10n.free : event.price!,
-                          color: event.isFree == true ? p.primary : null,
-                        ),
-                      if (event.deadline != null)
-                        _Info(
-                          Icons.hourglass_bottom_rounded,
-                          '${l10n.kindDeadline} · ${context.formatDate(event.deadline!)}',
-                          color: p.accent,
-                        ),
-                      if (!event.placeless)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: Space.xs),
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 26),
-                              Expanded(
-                                child: WeatherChip(location: event.location, date: event.start),
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (o != null)
-                        _Info(
-                          Icons.alt_route_rounded,
-                          '${l10n.onYourWay} · ${o.detourKm != null ? l10n.routeDetour(o.detourKm!.toStringAsFixed(1), o.detourMinutes!) : l10n.routeFromRoute(o.distanceFromRouteKm.toStringAsFixed(1))}',
-                          color: p.primary,
-                        ),
-                    ],
+                // E'lon (manzilsiz): vaqt o'rniga qabul muddati, joy o'rniga tashkilot · hudud.
+                if (event.placeless) ...[
+                  _Info(
+                    Icons.event_available_outlined,
+                    l10n.applicationPeriod(context.formatDate(event.start), context.formatDate(event.end)),
                   ),
-                ),
-                const SizedBox(height: Space.lg),
-                Text(context.tr(event.description), style: t.bodyLarge),
-
-                if (matched.isNotEmpty) ...[
-                  const SizedBox(height: Space.lg),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(Space.md),
-                    decoration: BoxDecoration(color: p.primarySoft, borderRadius: BorderRadius.circular(Radii.md)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  _Info(
+                    Icons.apartment_outlined,
+                    [
+                      if (event.venue.isNotEmpty) event.venue,
+                      event.city == '전국' ? l10n.nationwide : event.city,
+                    ].join(' · '),
+                  ),
+                ] else ...[
+                  _Info(
+                    Icons.schedule_outlined,
+                    '${context.formatDateTime(event.start)} – ${context.formatDateTime(event.end)}',
+                  ),
+                  _Info(Icons.place_outlined, '${event.venue} · ${event.city}'),
+                ],
+                if (event.isFree == true || event.price != null)
+                  _Info(
+                    Icons.confirmation_number_outlined,
+                    event.isFree == true ? l10n.free : event.price!,
+                    color: event.isFree == true ? p.primary : null,
+                  ),
+                if (event.deadline != null)
+                  _Info(
+                    Icons.hourglass_bottom_rounded,
+                    '${l10n.kindDeadline} · ${context.formatDate(event.deadline!)}',
+                    color: p.accent,
+                  ),
+                if (!event.placeless)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: Space.xs),
+                    child: Row(
                       children: [
-                        Text(l10n.whyForYou, style: t.labelMedium!.copyWith(color: p.primary)),
-                        const SizedBox(height: Space.xs),
-                        Text(
-                          l10n.matchesInterests(
-                            matched
-                                .map((x) => interestByTag(x) == null ? '#$x' : context.tr(interestByTag(x)!.label))
-                                .join(', '),
-                          ),
-                          style: t.bodyMedium,
+                        const SizedBox(width: 26),
+                        Expanded(
+                          child: WeatherChip(location: event.location, date: event.start),
                         ),
                       ],
                     ),
                   ),
-                ],
-
-                // ── Mashina tarjimasi ekanini halol ko'rsatamiz ──
-                if (!event.isSample && context.lang != 'ko' && event.title.en != event.title.ko) ...[
-                  const SizedBox(height: Space.lg),
-                  Row(
-                    children: [
-                      Icon(Icons.translate_rounded, size: 16, color: p.textMuted),
-                      const SizedBox(width: Space.sm),
-                      Expanded(child: Text(l10n.aiTranslated, style: t.bodySmall)),
-                    ],
+                if (o != null)
+                  _Info(
+                    Icons.alt_route_rounded,
+                    '${l10n.onYourWay} · ${o.detourKm != null ? l10n.routeDetour(o.detourKm!.toStringAsFixed(1), o.detourMinutes!) : l10n.routeFromRoute(o.distanceFromRouteKm.toStringAsFixed(1))}',
+                    color: p.primary,
                   ),
-                ],
-                // ── Manba (ochiq ma'lumot litsenziyasi — atribut majburiy) ──
-                if (!event.isSample) ...[
-                  const SizedBox(height: Space.lg),
-                  Row(
-                    children: [
-                      Icon(Icons.verified_outlined, size: 16, color: p.textMuted),
-                      const SizedBox(width: Space.sm),
-                      Expanded(child: Text(l10n.dataSource(event.sourceName ?? event.source), style: t.bodySmall)),
-                      if (event.url != null)
-                        TextButton(
-                          onPressed: () => launchUrl(Uri.parse(event.url!), mode: LaunchMode.externalApplication),
-                          child: Text(l10n.openSource),
-                        ),
-                    ],
-                  ),
-                ],
               ],
             ),
           ),
+          const SizedBox(height: Space.lg),
+          Text(context.tr(event.description), style: t.bodyLarge),
 
-          // ── Harakatlar (doim ko'rinadi) ──
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: p.surface,
-              border: Border(top: BorderSide(color: p.border)),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.md),
-                child: Row(
-                  children: [
-                    if (widget.onShowOnMap != null && !event.placeless) ...[
-                      SizedBox(
-                        width: 52,
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                          onPressed: () {
-                            Navigator.pop(context);
-                            widget.onShowOnMap!();
-                          },
-                          child: Tooltip(message: l10n.showOnMap, child: const Icon(Icons.map_outlined)),
-                        ),
-                      ),
-                      const SizedBox(width: Space.sm),
-                    ],
-                    if (event.registerUrl != null) ...[
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () =>
-                              launchUrl(Uri.parse(event.registerUrl!), mode: LaunchMode.externalApplication),
-                          child: Text(event.placeless ? l10n.applyNow : l10n.register),
-                        ),
-                      ),
-                      const SizedBox(width: Space.sm),
-                    ],
-                    Expanded(flex: 2, child: addButton),
-                  ],
-                ),
+          if (matched.isNotEmpty) ...[
+            const SizedBox(height: Space.lg),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(Space.md),
+              decoration: BoxDecoration(color: p.primarySoft, borderRadius: BorderRadius.circular(Radii.md)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.whyForYou, style: t.labelMedium!.copyWith(color: p.primary)),
+                  const SizedBox(height: Space.xs),
+                  Text(
+                    l10n.matchesInterests(
+                      matched
+                          .map((x) => interestByTag(x) == null ? '#$x' : context.tr(interestByTag(x)!.label))
+                          .join(', '),
+                    ),
+                    style: t.bodyMedium,
+                  ),
+                ],
               ),
             ),
-          ),
+          ],
+
+          // ── Mashina tarjimasi ekanini halol ko'rsatamiz ──
+          if (!event.isSample && context.lang != 'ko' && event.title.en != event.title.ko) ...[
+            const SizedBox(height: Space.lg),
+            Row(
+              children: [
+                Icon(Icons.translate_rounded, size: 16, color: p.textMuted),
+                const SizedBox(width: Space.sm),
+                Expanded(child: Text(l10n.aiTranslated, style: t.bodySmall)),
+              ],
+            ),
+          ],
+          // ── Manba (ochiq ma'lumot litsenziyasi — atribut majburiy) ──
+          if (!event.isSample) ...[
+            const SizedBox(height: Space.lg),
+            Row(
+              children: [
+                Icon(Icons.verified_outlined, size: 16, color: p.textMuted),
+                const SizedBox(width: Space.sm),
+                Expanded(child: Text(l10n.dataSource(event.sourceName ?? event.source), style: t.bodySmall)),
+                if (event.url != null)
+                  TextButton(
+                    onPressed: () => launchUrl(Uri.parse(event.url!), mode: LaunchMode.externalApplication),
+                    child: Text(l10n.openSource),
+                  ),
+              ],
+            ),
+          ],
         ],
+      ),
+      // ── Harakatlar (doim ko'rinadi) ──
+      bottom: DecoratedBox(
+        decoration: BoxDecoration(
+          color: p.surface,
+          border: Border(top: BorderSide(color: p.border)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.md),
+            child: Row(
+              children: [
+                if (widget.onShowOnMap != null && !event.placeless) ...[
+                  SizedBox(
+                    width: 52,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        widget.onShowOnMap!();
+                      },
+                      child: Tooltip(message: l10n.showOnMap, child: const Icon(Icons.map_outlined)),
+                    ),
+                  ),
+                  const SizedBox(width: Space.sm),
+                ],
+                if (event.registerUrl != null) ...[
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => launchUrl(Uri.parse(event.registerUrl!), mode: LaunchMode.externalApplication),
+                      child: Text(event.placeless ? l10n.applyNow : l10n.register),
+                    ),
+                  ),
+                  const SizedBox(width: Space.sm),
+                ],
+                Expanded(flex: 2, child: addButton),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

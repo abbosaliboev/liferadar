@@ -650,3 +650,92 @@ class QuietTags extends StatelessWidget {
     );
   }
 }
+
+/// Tafsilot oynasi (bottom sheet) ramkasi: ~90% balandlikda ochiladi, yuqoriga tortilsa — to'liq ekran,
+/// pastga tortilsa — yopiladi. Tepada tutqich va doim ko'rinadigan "orqaga" tugmasi.
+/// [bodyBuilder] — aylanadigan kontent (berilgan controller'ni ishlatsin), [bottom] — qotgan pastki panel.
+class DetailSheet extends StatefulWidget {
+  const DetailSheet({super.key, required this.bodyBuilder, this.bottom});
+
+  final Widget Function(BuildContext context, ScrollController controller) bodyBuilder;
+  final Widget? bottom;
+
+  static const initial = 0.92;
+
+  @override
+  State<DetailSheet> createState() => _DetailSheetState();
+}
+
+class _DetailSheetState extends State<DetailSheet> {
+  final _sheet = DraggableScrollableController();
+
+  @override
+  void dispose() {
+    _sheet.dispose();
+    super.dispose();
+  }
+
+  void _drag(DragUpdateDetails d) {
+    if (!_sheet.isAttached) return;
+    final h = MediaQuery.sizeOf(context).height;
+    _sheet.jumpTo((_sheet.size - d.delta.dy / h).clamp(0.3, 1.0));
+  }
+
+  void _dragEnd(DragEndDetails d) {
+    if (!_sheet.isAttached) return;
+    final v = d.primaryVelocity ?? 0;
+    final size = _sheet.size;
+    final dur = Motion.of(context, Motion.normal);
+    void go(double to) => dur == Duration.zero // reduced motion: animateTo(zero) — assertion
+        ? _sheet.jumpTo(to)
+        : _sheet.animateTo(to, duration: dur, curve: Curves.easeOutCubic);
+    if (v > 700 || size < 0.6) {
+      Navigator.of(context).maybePop();
+    } else if (v < -300 || size > (DetailSheet.initial + 1) / 2) {
+      go(1);
+    } else {
+      go(DetailSheet.initial);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    return DraggableScrollableSheet(
+      controller: _sheet,
+      expand: false,
+      initialChildSize: DetailSheet.initial,
+      minChildSize: 0.3,
+      maxChildSize: 1,
+      snap: true,
+      snapSizes: const [DetailSheet.initial],
+      builder: (context, controller) => Column(children: [
+        // Tutqich + orqaga — shu joyni tortib oynani kattalashtirish/yopish mumkin.
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onVerticalDragUpdate: _drag,
+          onVerticalDragEnd: _dragEnd,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(Space.xs, Space.sm, Space.xs, 0),
+            child: Column(children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(color: p.border, borderRadius: BorderRadius.circular(2)),
+              ),
+              Row(children: [
+                IconButton(
+                  tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                ),
+              ]),
+            ]),
+          ),
+        ),
+        Expanded(child: widget.bodyBuilder(context, controller)),
+        ?widget.bottom,
+      ]),
+    );
+  }
+}
