@@ -197,7 +197,7 @@ flutter build apk --release --split-per-abi --dart-define-from-file=env.json   #
 | 일정·로그인·날씨 | Google Calendar API, Google Sign-In (Android·웹), Google Weather |
 | 알림 | Android `flutter_local_notifications`, 웹 Notification API |
 | 디자인 | 자체 디자인 시스템 — 브랜드 #5865F2 · #23272A · #FFFFFF, 라이트/다크 (본문 대비 ≥ 4.5:1), 그라데이션·누름 애니메이션·스켈레톤, 동작 줄이기 지원, Pretendard 서브셋 글꼴 |
-| 품질 | 테스트 301개 (11/14) — FE 121 · AI 105 · BE 75, 3개 저장소 모두 GitHub Actions CI. AI 기능 4종은 실제 Gemini로 실측 평가 |
+| 품질 | 테스트 325개 (11/15) — FE 145 · AI 105 · BE 75, 3개 저장소 모두 GitHub Actions CI. AI 기능 4종은 실제 Gemini로 실측 평가 |
 | 공유·버전 | `share_plus` (기기 공유 창), `package_info_plus` (프로필의 앱 버전) |
 
 ## 10. 구현 범위와 한계 (정직하게)
