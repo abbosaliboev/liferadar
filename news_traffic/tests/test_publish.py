@@ -21,6 +21,29 @@ class FeedTests(unittest.TestCase):
         self.assertEqual(len(feed['extractions'][0]['strikes'][0]), 11)
         self.assertTrue(feed['trafficImpacts'][0]['body_verified'])
 
+    def test_old_cached_general_story_is_filtered_when_republished(self):
+        feed = publish({}, self.store, [ARTICLES['marathon']], REFERENCES)
+        old = deepcopy(feed['trafficImpacts'][0])
+        old['demo'] = False
+        old['evidence'] = [{**old['evidence'][0], 'quote':
+            '실제 서울 도심에서는 주말마다 마라톤 대회가 열리면서 도로 통제와 대중교통 우회 문제가 반복되고 있다.'}]
+        restored = Store()
+        self.addCleanup(restored.db.close)
+        restored.restore_public_feed({'newsTrafficSchemaVersion': '1.0', 'trafficImpacts': [old]})
+        self.assertEqual(len(restored.snapshot('x')['impacts']), 1)
+        result = publish({}, restored, [], REFERENCES)
+        self.assertEqual(result['trafficImpacts'], [])
+
+    def test_undated_or_region_only_event_not_published(self):
+        for text in [
+            '서울 한강마라톤으로 세종대로 도로 통제가 예정되어 있다.',
+            '서울 한강마라톤은 2026-11-10 도로 통제 예정이다.',
+        ]:
+            store = Store()
+            self.addCleanup(store.db.close)
+            result = publish({}, store, [article(text)], REFERENCES)
+            self.assertEqual(result['trafficImpacts'], [])
+
     def test_failed_body_does_not_erase_old_verified_state(self):
         first = publish({}, self.store, [ARTICLES['scheduled']], REFERENCES)
         bad = {**ARTICLES['scheduled'], 'body': ''}

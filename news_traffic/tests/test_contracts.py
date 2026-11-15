@@ -140,6 +140,24 @@ class ExtractionTests(unittest.TestCase):
         self.assertEqual(r['impacts'][0]['period']['end']['time'],'11:00')
         self.assertEqual(r['impacts'][0]['assertion'],'planned')
 
+    def test_general_marathon_complaints_are_not_traffic_notices(self):
+        for text in [
+            '실제 서울 도심에서는 주말마다 마라톤 대회가 열리면서 도로 통제와 대중교통 우회 문제가 반복되고 있다.',
+            '서울 여의도공원에서 마라톤 참가자들이 많이 뛰어다녀 시민들이 불편을 겪고 있다.',
+            '서울 한강마라톤은 2026-11-10 개최된다.\n이에 따라 서울 도심에서 주말마다 도로 통제 문제가 반복되고 있다.',
+        ]:
+            with self.subTest(text=text):
+                result = event(text)
+                self.assertFalse([i for e in result['events'] for i in e['impacts']])
+
+    def test_background_complaint_does_not_hide_linked_real_notice(self):
+        text = ('서울에서는 주말마다 마라톤으로 도로 통제 문제가 반복되고 있다.\n'
+                '서울 한강마라톤은 2026-11-10 개최된다.\n'
+                '이에 따라 서울 세종대로는 07:00부터 11:00까지 도로 통제 예정이다.')
+        impacts = [i for e in event(text)['events'] for i in e['impacts']]
+        self.assertEqual(len(impacts), 1)
+        self.assertEqual(impacts[0]['period']['start']['date'], '2026-11-10')
+
     def test_E03_E04_E05_E06_impact_assertions(self):
         clauses=[('경찰은 행사로 서울 세종대로 차량 교통 혼잡을 예상한다.','CONGESTION_FORECAST','ANNOUNCED'),
                  ('이에 따라 서울 세종대로 도로 통제 방안을 검토 중이다.','ROAD_CLOSURE','UNKNOWN'),

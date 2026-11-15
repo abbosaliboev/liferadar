@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from .common import CONFIG, KST, DomainError, digest, dt
 from .schemas import validate
 from .geography import domestic_subject
+from .actionability import general_traffic_commentary
 
 MODES = {'버스': 'bus', '지하철': 'subway', '도시철도': 'subway', '철도': 'rail', '열차': 'rail', 'KTX': 'rail'}
 
@@ -266,6 +267,8 @@ def extract_event_traffic(article, refs=()):
                 linked.append(follow)
         for clause in linked:
             if not domestic_subject(s + ' ' + clause):
+                continue
+            if general_traffic_commentary(clause):
                 continue
             for impact_type, pattern, modes in IMPACT_PATTERNS:
                 if not re.search(pattern, clause):

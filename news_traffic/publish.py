@@ -11,6 +11,7 @@ from .collect import Fetcher
 from .common import CONFIG, now
 from .store import Store
 from .geography import domestic_impact
+from .actionability import publishable_event_impact
 
 
 def select_results(results, limit):
@@ -44,6 +45,8 @@ def publish(feed, store, articles, refs=()):
     impacts = []
     for impact in snapshot['impacts']:
         if not domestic_impact(impact):
+            continue
+        if not publishable_event_impact(impact):
             continue
         item = {**impact, 'body_verified': True}
         # Coordinates may ONLY enter through a separately supplied trusted reference.
