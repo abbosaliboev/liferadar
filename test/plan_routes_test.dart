@@ -7,7 +7,9 @@ import 'package:liferadar/core/theme.dart';
 import 'package:liferadar/data/plan_routes.dart';
 import 'package:liferadar/data/providers.dart';
 import 'package:liferadar/data/session.dart';
+import 'package:liferadar/data/transit_journey.dart';
 import 'package:liferadar/features/plans/plans_screen.dart';
+import 'package:liferadar/features/plans/plan_route_map_dialog.dart';
 import 'package:liferadar/l10n/app_localizations.dart';
 import 'package:liferadar/services/google_api.dart';
 import 'package:liferadar_core/liferadar_core.dart';
@@ -53,6 +55,66 @@ class _Google extends GoogleApi {
   DateTime? departure;
   GeoPoint? origin, destination;
   bool fail = false;
+  bool alternatives = false;
+  @override
+  Future<List<TransitJourney>> googleTransitJourneys(
+    GeoPoint origin,
+    GeoPoint destination, {
+    required DateTime departure,
+  }) async {
+    final route = await transit(origin, destination, departure: departure);
+    return [
+      TransitJourney(
+        route: route,
+        arrival: departure.add(const Duration(minutes: 30)),
+        boardings: [
+          TransitBoarding(
+            line: '2호선',
+            mode: 'subway',
+            departureTime: departure.add(const Duration(minutes: 5)),
+            arrivalTime: departure.add(const Duration(minutes: 25)),
+            mapGeometryLoaded: true,
+            mapPoints: [
+              GeoPoint(37.5, 127),
+              GeoPoint(37.52, 127.02),
+              GeoPoint(37.54, 127.05),
+            ],
+          ),
+        ],
+      ),
+      if (alternatives)
+        TransitJourney(
+          arrival: departure.add(const Duration(minutes: 50)),
+          route: const TravelRoute(
+            distanceMeters: 9000,
+            durationSeconds: 2400,
+            mode: TravelMode.transit,
+            transitLines: ['421'],
+            transportModes: {'bus'},
+            points: [GeoPoint(37.5, 127.0), GeoPoint(37.54, 127.05)],
+          ),
+          boardings: [
+            TransitBoarding(
+              line: '421',
+              mode: 'bus',
+              mapGeometryLoaded: true,
+              mapPoints: const [
+                GeoPoint(37.5, 127),
+                GeoPoint(37.52, 127.02),
+                GeoPoint(37.54, 127.05),
+              ],
+              departureStop: '강남역 정류장',
+              arrivalStop: '성수역 정류장',
+              departureLocation: const GeoPoint(37.5, 127.0),
+              arrivalLocation: const GeoPoint(37.54, 127.05),
+              departureTime: departure.add(const Duration(minutes: 5)),
+              arrivalTime: departure.add(const Duration(minutes: 35)),
+            ),
+          ],
+        ),
+    ];
+  }
+
   @override
   Future<TravelRoute> transit(
     GeoPoint origin,
@@ -124,6 +186,273 @@ Future<void> _open(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets(
+    'previous unscheduled Kakao route requires a fresh timetable search before saving',
+    (tester) async {
+      final c = await _pump(tester);
+      await c
+          .read(planRoutesProvider.notifier)
+          .save(
+            PlanRoute.fromSearch(
+              from: _from,
+              to: _to,
+              origin: '강남역',
+              destination: '성수역',
+              originLocation: _from.location!,
+              destinationLocation: _to.location!,
+              departure: _from.end,
+              route: _route,
+              provider: 'kakao',
+              boardings: const [
+                TransitBoarding(line: '8308', mode: 'bus', provider: 'kakao'),
+              ],
+            ),
+          );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('이동 계획'));
+      await tester.tap(find.text('이동 계획'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('이 저장 경로는 선택 시각의 시간표가 확인되지 않았어요. 경로 찾기를 다시 실행해주세요.'),
+        findsOneWidget,
+      );
+      final save = find.widgetWithText(FilledButton, '이 경로를 일정에 추가');
+      expect(tester.widget<FilledButton>(save).onPressed, isNull);
+      expect(find.byKey(const ValueKey('transit-map-button')), findsNothing);
+      await tester.tap(find.text('경로 찾기'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<FilledButton>(save).onPressed, isNotNull);
+    },
+  );
+  testWidgets(
+    'map viewport keeps its size when switching between detailed and missing shapes',
+    (tester) async {
+      await _pump(tester, width: 320);
+      const detailed = TransitBoarding(
+        line: '2호선',
+        mode: 'subway',
+        departureStop: '강남',
+        arrivalStop: '성수',
+        mapGeometryLoaded: true,
+        departureLocation: GeoPoint(37.5, 127),
+        arrivalLocation: GeoPoint(37.502, 127.002),
+        mapPoints: [
+          GeoPoint(37.5, 127),
+          GeoPoint(37.501, 127.001),
+          GeoPoint(37.502, 127.002),
+        ],
+      );
+      const coarse = TransitBoarding(
+        line: 'express',
+        mode: 'bus',
+        departureStop: '서울',
+        arrivalStop: '청주',
+        mapGeometryLoaded: true,
+        departureLocation: GeoPoint(37.5, 127),
+        arrivalLocation: GeoPoint(36.6, 127.4),
+        mapPoints: [GeoPoint(37.5, 127), GeoPoint(36.6, 127.4)],
+      );
+      unawaited(
+        showPlanRouteMap(
+          tester.element(find.byType(PlansScreen)),
+          route: _route,
+          originName: '강남',
+          destinationName: '청주',
+          origin: _from.location!,
+          destination: _to.location!,
+          departure: _from.end,
+          boardings: const [detailed, coarse],
+        ).then((_) {}),
+      );
+      await tester.pumpAndSettle();
+      final viewport = find.byKey(const ValueKey('transit-map-viewport'));
+      final original = tester.getRect(viewport);
+      await tester.tap(find.byKey(const ValueKey('transit-map-segment-0')));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(viewport), original);
+      await tester.tap(find.byKey(const ValueKey('transit-map-segment-1')));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(viewport), original);
+      await tester.tap(find.text('전체'));
+      await tester.pumpAndSettle();
+      expect(tester.getRect(viewport), original);
+      await tester.tap(find.byTooltip('닫기').last);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  test(
+    'map rejects endpoint-only and broken geometry, retains detailed per-service shape after save',
+    () {
+      const coarse = TransitBoarding(
+        line: 'intercity',
+        mapGeometryLoaded: true,
+        mapPoints: [GeoPoint(37.5, 127), GeoPoint(36.6, 127.4)],
+      );
+      const detailed = TransitBoarding(
+        line: '2호선',
+        mapGeometryLoaded: true,
+        mapPoints: [
+          GeoPoint(37.5, 127),
+          GeoPoint(37.501, 127.001),
+          GeoPoint(37.502, 127.002),
+        ],
+      );
+      const broken = TransitBoarding(
+        line: 'broken',
+        mapGeometryLoaded: true,
+        mapPoints: [
+          GeoPoint(37.5, 127),
+          GeoPoint(37.501, 127),
+          GeoPoint(36.6, 127.4),
+        ],
+      );
+      expect(coarse.hasDetailedMapGeometry, isFalse);
+      expect(detailed.hasDetailedMapGeometry, isTrue);
+      expect(broken.hasDetailedMapGeometry, isFalse);
+      final restored = TransitBoarding.fromJson(detailed.toJson());
+      expect(restored.hasDetailedMapGeometry, isTrue);
+      expect(restored.mapPoints.last.lng, 127.002);
+      expect(restored.mapGeometryLoaded, isTrue);
+      expect(
+        TransitBoarding.fromJson({'line': 'old'}).mapGeometryLoaded,
+        isFalse,
+      );
+    },
+  );
+
+  test('refresh cannot replace a saved service with another departure', () {
+    final original = TransitBoarding(
+      line: '421',
+      mode: 'bus',
+      departureStop: 'A',
+      arrivalStop: 'B',
+      departureTime: DateTime(2026, 11, 27, 12),
+      arrivalTime: DateTime(2026, 11, 27, 13),
+    );
+    final same = TransitBoarding.fromJson(original.toJson());
+    final later = TransitBoarding.fromJson({
+      ...original.toJson(),
+      'departureTime': DateTime(2026, 11, 27, 12, 30).toIso8601String(),
+    });
+    expect(sameTransitBoardings([original], [same]), isTrue);
+    expect(sameTransitBoardings([original], [later]), isFalse);
+    expect(sameTransitBoardings([], []), isFalse);
+  });
+
+  test(
+    'show at most three routes, preferring distinct lines over later departures',
+    () {
+      const subway = TransitJourney(route: _route);
+      const bus = TransitJourney(
+        route: TravelRoute(
+          distanceMeters: 1,
+          durationSeconds: 1,
+          mode: TravelMode.transit,
+          transitLines: ['421'],
+        ),
+      );
+      const rail = TransitJourney(
+        route: TravelRoute(
+          distanceMeters: 2,
+          durationSeconds: 2,
+          mode: TravelMode.transit,
+          transitLines: ['KTX'],
+        ),
+      );
+      expect(
+        compactTransitJourneys([subway, subway, subway, subway, bus, rail]),
+        [subway, bus, rail],
+      );
+      expect(compactTransitJourneys([subway]), [subway]);
+      expect(
+        compactTransitJourneys([subway, subway, subway, subway]).length,
+        3,
+      );
+    },
+  );
+
+  testWidgets(
+    'select alternative → persist boarding facts → reopen and save without losing modes or geometry',
+    (tester) async {
+      final c = await _pump(tester, width: 320);
+      (c.read(googleApiProvider) as _Google).alternatives = true;
+      await _open(tester);
+      await tester.tap(find.text('경로 찾기'));
+      await tester.pumpAndSettle();
+      final alternative = find.byKey(const ValueKey('transit-option-1'));
+      await tester.ensureVisible(alternative);
+      await tester.tap(alternative);
+      await tester.pumpAndSettle();
+      expect(find.text('강남역 정류장 → 성수역 정류장'), findsNothing);
+      final mapButton = find.byKey(const ValueKey('transit-map-button'));
+      await tester.ensureVisible(mapButton);
+      await tester.tap(mapButton);
+      await tester.pumpAndSettle();
+      expect(find.text('경로 지도'), findsOneWidget);
+      final popup = tester.widget<PlanRouteMapDialog>(
+        find.byType(PlanRouteMapDialog),
+      );
+      expect(popup.route.transitLines, ['421']);
+      expect(popup.route.points.length, 2);
+      expect(popup.boardings.single.departureLocation!.lat, 37.5);
+      expect(find.text('구간을 누르면 확대돼요'), findsOneWidget);
+      final section = find.byKey(const ValueKey('transit-map-segment-0'));
+      await tester.ensureVisible(section);
+      await tester.tap(section);
+      await tester.pumpAndSettle();
+      expect(tester.widget<ListTile>(section).selected, isTrue);
+      await tester.tap(find.text('전체'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<ListTile>(section).selected, isFalse);
+      await tester.tap(find.byTooltip('닫기').last);
+      await tester.pumpAndSettle();
+      final details = find.byKey(const ValueKey('transit-timetable'));
+      await tester.ensureVisible(details);
+      await tester.tap(find.text('상세 시간표'));
+      await tester.pumpAndSettle();
+      expect(find.text('강남역 정류장 → 성수역 정류장'), findsOneWidget);
+      final save = find.widgetWithText(FilledButton, '이 경로를 일정에 추가');
+      await tester.ensureVisible(save);
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+      c.invalidate(planRoutesProvider);
+      var saved = c.read(planRoutesProvider).values.single;
+      expect(saved.lines, ['421']);
+      expect(saved.durationSeconds, 3000);
+      expect(saved.arrival, _from.end.add(const Duration(minutes: 50)));
+      expect(saved.modes, {'bus'});
+      expect(saved.points.first.lat, 37.5);
+      expect(saved.boardings.single.arrivalLocation!.lng, 127.05);
+      expect(
+        saved.boardings.single.departureTime,
+        _from.end.add(const Duration(minutes: 5)),
+      );
+      await tester.ensureVisible(find.text('이동 계획'));
+      await tester.tap(find.text('이동 계획'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('상세 시간표'));
+      await tester.tap(find.text('상세 시간표'));
+      await tester.pumpAndSettle();
+      expect(find.text('강남역 정류장 → 성수역 정류장'), findsOneWidget);
+      await tester.ensureVisible(save);
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+      saved = c.read(planRoutesProvider).values.single;
+      expect(saved.modes, {'bus'});
+      expect(saved.points.first.lat, 37.5);
+      expect(saved.boardings.single.line, '421');
+      expect(saved.arrival, _from.end.add(const Duration(minutes: 50)));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  test('legacy routes without boarding details still load', () {
+    final json = _saved().toJson()..remove('boardings');
+    expect(PlanRoute.fromJson(json).boardings, isEmpty);
+    expect(PlanRoute.fromJson(json).lines, ['2호선']);
+  });
   test('only connect same-day, timed, non-overlapping appointments', () {
     expect(canConnectPlans(_from, _to), isTrue);
     expect(

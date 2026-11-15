@@ -6,6 +6,7 @@ import 'package:liferadar_core/liferadar_core.dart';
 import 'plan_travel.dart';
 import 'providers.dart';
 import 'session.dart';
+import 'transit_journey.dart';
 
 /// Only connect timed, non-overlapping appointments on the same local day.
 bool canConnectPlans(Plan from, Plan to) {
@@ -48,6 +49,9 @@ class PlanRoute {
     this.modes = const {},
     this.facilityIds = const {},
     this.points = const [],
+    this.boardings = const [],
+    this.scheduledArrival,
+    this.provider = 'google',
   });
 
   final String key, fromSignature, toSignature, origin, destination;
@@ -57,7 +61,11 @@ class PlanRoute {
   final List<String> lines;
   final Set<String> modes, facilityIds;
   final List<GeoPoint> points;
-  DateTime get arrival => departure.add(Duration(seconds: durationSeconds));
+  final List<TransitBoarding> boardings;
+  final DateTime? scheduledArrival;
+  final String provider;
+  DateTime get arrival =>
+      scheduledArrival ?? departure.add(Duration(seconds: durationSeconds));
 
   bool matches(Plan from, Plan to) =>
       canConnectPlans(from, to) &&
@@ -74,6 +82,9 @@ class PlanRoute {
     required GeoPoint destinationLocation,
     required DateTime departure,
     required TravelRoute route,
+    List<TransitBoarding> boardings = const [],
+    DateTime? scheduledArrival,
+    String provider = 'google',
   }) => PlanRoute(
     key: planRouteKey(from, to),
     fromSignature: _signature(from),
@@ -85,9 +96,14 @@ class PlanRoute {
     destinationLocation: destinationLocation,
     durationSeconds: route.durationSeconds,
     lines: List.unmodifiable(route.transitLines),
-    modes: route.mode == TravelMode.car ? const {'car'} : Set.unmodifiable(route.transportModes),
+    modes: route.mode == TravelMode.car
+        ? const {'car'}
+        : Set.unmodifiable(route.transportModes),
     facilityIds: Set.unmodifiable(route.facilityIds),
     points: List.unmodifiable(route.points),
+    boardings: List.unmodifiable(boardings),
+    scheduledArrival: scheduledArrival,
+    provider: provider,
   );
 
   Map<String, dynamic> toJson() => {
@@ -99,9 +115,15 @@ class PlanRoute {
     'departure': departure.toIso8601String(),
     'seconds': durationSeconds,
     'lines': lines,
+    'boardings': [for (final b in boardings) b.toJson()],
+    'provider': provider,
+    if (scheduledArrival != null)
+      'scheduledArrival': scheduledArrival!.toIso8601String(),
     'modes': modes.toList()..sort(),
     'facilityIds': facilityIds.toList()..sort(),
-    'points': [for (final p in points) [p.lat, p.lng]],
+    'points': [
+      for (final p in points) [p.lat, p.lng],
+    ],
     'originLat': originLocation.lat,
     'originLng': originLocation.lng,
     'destinationLat': destinationLocation.lat,
@@ -116,10 +138,19 @@ class PlanRoute {
     destination: j['destination'] as String,
     departure: DateTime.parse(j['departure'] as String),
     durationSeconds: j['seconds'] as int,
+    provider: j['provider'] as String? ?? 'google',
     lines: (j['lines'] as List).cast<String>(),
+    scheduledArrival: DateTime.tryParse(j['scheduledArrival'] as String? ?? ''),
+    boardings: [
+      for (final b in j['boardings'] as List? ?? const [])
+        TransitBoarding.fromJson(b as Map<String, dynamic>),
+    ],
     modes: Set<String>.from(j['modes'] as List? ?? const []),
     facilityIds: Set<String>.from(j['facilityIds'] as List? ?? const []),
-    points: [for (final p in j['points'] as List? ?? const []) GeoPoint((p[0] as num).toDouble(), (p[1] as num).toDouble())],
+    points: [
+      for (final p in j['points'] as List? ?? const [])
+        GeoPoint((p[0] as num).toDouble(), (p[1] as num).toDouble()),
+    ],
     originLocation: GeoPoint(
       (j['originLat'] as num).toDouble(),
       (j['originLng'] as num).toDouble(),
@@ -133,7 +164,8 @@ class PlanRoute {
 
 /// Only currently adjacent, unchanged appointments may supply route facts.
 final tripsByPlanIdProvider = Provider<Map<String, TripContext>>((ref) {
-  final plans = [...ref.watch(plansProvider)]..sort((a, b) => a.start.compareTo(b.start));
+  final plans = [...ref.watch(plansProvider)]
+    ..sort((a, b) => a.start.compareTo(b.start));
   final stored = ref.watch(planRoutesProvider);
   final references = ref.watch(newsFeedProvider).transportReferences;
   final trips = <String, TripContext>{};
@@ -141,18 +173,37 @@ final tripsByPlanIdProvider = Provider<Map<String, TripContext>>((ref) {
     final from = plans[index - 1], to = plans[index];
     final r = stored[planRouteKey(from, to)];
     if (r == null || !r.matches(from, to)) continue;
-    final ids = {...r.facilityIds, if (to.location != null) ...resolveTripFacilityIds(
-      lines: r.lines, modes: r.modes, region: KoreaRegions.regionOf(to.location!),
-      departure: r.departure, demo: to.source == 'sample', references: references)};
-    trips[to.id] = TripContext(id: r.key, version: jsonEncode([r.toJson(), ids.toList()..sort()]), departure: r.departure,
-      arrival: r.arrival, modes: r.modes, facilityIds: ids, lines: r.lines, points: r.points);
+    final ids = {
+      ...r.facilityIds,
+      if (to.location != null)
+        ...resolveTripFacilityIds(
+          lines: r.lines,
+          modes: r.modes,
+          region: KoreaRegions.regionOf(to.location!),
+          departure: r.departure,
+          demo: to.source == 'sample',
+          references: references,
+        ),
+    };
+    trips[to.id] = TripContext(
+      id: r.key,
+      version: jsonEncode([r.toJson(), ids.toList()..sort()]),
+      departure: r.departure,
+      arrival: r.arrival,
+      modes: r.modes,
+      facilityIds: ids,
+      lines: r.lines,
+      points: r.points,
+    );
   }
   // 앞뒤 일정 경로가 없으면, 일정에 직접 적은 이동 방법을 쓴다.
   final travels = ref.watch(planTravelProvider);
   for (final plan in plans) {
     if (trips.containsKey(plan.id)) continue;
     final travel = PlanTravelController.lookupIn(travels, plan);
-    if (travel != null) trips[plan.id] = travel.toTrip(plan, references: references);
+    if (travel != null) {
+      trips[plan.id] = travel.toTrip(plan, references: references);
+    }
   }
   return trips;
 });

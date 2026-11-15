@@ -634,5 +634,53 @@
   "visitDayConfirm": "Add this day",
   "avatarTitle": "Profile picture",
   "avatarChanged": "Profile picture updated",
-  "planSavedLocalOnly": "Couldn't reach Google Calendar — saved on this device"
+  "planSavedLocalOnly": "Couldn't reach Google Calendar — saved on this device",
+  "transitOptions": "Choose a route",
+  "transitOption": "Route {number}",
+  "transitTowards": "Direction: {direction}",
+  "transitStops": "{count} stops",
+  "transitSource": "Route information: Google Maps",
+  "transitScheduleNotice": "Estimated routes reflect the search result. Actual service and delays may differ.",
+  "transitLineUnavailable": "Line name unavailable",
+  "transitStopUnavailable": "Stop information unavailable",
+  "@transitOption": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@transitTowards": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "@transitStops": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transitMapShow": "View map",
+  "transitMapTitle": "Route map",
+  "transitMapFit": "Fit entire route",
+  "transitTimetable": "Timetable details",
+  "transitMapNoGeometry": "Map geometry is unavailable. Search for this route again.",
+  "transitMapError": "Could not load the map. Please try again.",
+  "transitMapGeometryNotice": "Segments without a detailed route show boarding locations only.",
+  "transitMapTapSegment": "Tap a segment to zoom in",
+  "transitMapOverview": "Overview",
+  "transitSourceTmap": "Route information: TMAP",
+  "transitQuotaFallback": "TMAP quota exceeded. Showing Google routes.",
+  "transitServiceInactive": "Some segments are marked as not operating at the selected time. Please check the timetable.",
+  "transitSourceKakao": "Route information: Kakao Maps",
+  "transitKakaoScheduleNotice": "Estimated route using currently available lines. Timetables for the selected date and departure time are not included; check service availability.",
+  "transitNoDetailedRoutes": "No route with detailed shapes for every transit leg was found. Express bus and train journeys without detailed coordinates are excluded.",
+  "transitDetailedRoutesOnly": "Only journeys with detailed shapes for every transit leg are shown.",
+  "transitScheduledRoutesOnly": "Timetable-based routes for the selected departure and next appointment.",
+  "transitNoScheduledRoutes": "No timetable-based journey arriving before your next appointment was found. Try another departure time.",
+  "transitSavedTimetableMissing": "The timetable for this saved route is unverified. Search again before saving."
 }

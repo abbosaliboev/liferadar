@@ -1377,4 +1377,97 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get planSavedLocalOnly => '캘린더에 저장하지 못해 이 기기에 저장했어요';
+
+  @override
+  String get transitOptions => '이동 경로 선택';
+
+  @override
+  String transitOption(int number) {
+    return '경로 $number';
+  }
+
+  @override
+  String transitTowards(String direction) {
+    return '방향: $direction';
+  }
+
+  @override
+  String transitStops(int count) {
+    return '$count개 정류장·역 이동';
+  }
+
+  @override
+  String get transitSource => '경로 정보 제공: Google Maps';
+
+  @override
+  String get transitScheduleNotice =>
+      '조회 시점의 예상 경로입니다. 실제 운행·지연 상황은 달라질 수 있어요.';
+
+  @override
+  String get transitLineUnavailable => '노선명 정보 없음';
+
+  @override
+  String get transitStopUnavailable => '정류장·역 정보 없음';
+
+  @override
+  String get transitMapShow => '지도로 보기';
+
+  @override
+  String get transitMapTitle => '경로 지도';
+
+  @override
+  String get transitMapFit => '전체 경로 보기';
+
+  @override
+  String get transitTimetable => '상세 시간표';
+
+  @override
+  String get transitMapNoGeometry => '이 경로의 지도 정보가 없어요. 경로를 다시 검색해주세요.';
+
+  @override
+  String get transitMapError => '지도를 불러오지 못했어요. 다시 시도해주세요.';
+
+  @override
+  String get transitMapGeometryNotice => '일부 구간은 상세 노선이 제공되지 않아 승하차 위치만 표시해요.';
+
+  @override
+  String get transitMapTapSegment => '구간을 누르면 확대돼요';
+
+  @override
+  String get transitMapOverview => '전체';
+
+  @override
+  String get transitSourceTmap => '경로 정보 제공: TMAP';
+
+  @override
+  String get transitQuotaFallback => 'TMAP 조회 한도 초과로 Google 경로를 표시해요.';
+
+  @override
+  String get transitServiceInactive =>
+      '선택한 시각에 운행하지 않는 것으로 표시된 구간이 있어요. 시간표를 확인해주세요.';
+
+  @override
+  String get transitSourceKakao => '경로 정보 제공: 카카오맵';
+
+  @override
+  String get transitKakaoScheduleNotice =>
+      '현재 제공되는 노선 기준의 예상 경로입니다. 선택한 날짜·출발시각의 시간표는 반영되지 않으므로 운행 여부를 확인해주세요.';
+
+  @override
+  String get transitNoDetailedRoutes =>
+      '모든 구간의 상세 노선을 제공하는 경로를 찾지 못했어요. 상세 좌표가 없는 고속버스·기차 경로는 표시하지 않아요.';
+
+  @override
+  String get transitDetailedRoutesOnly => '모든 대중교통 구간의 상세 노선이 있는 경로만 표시해요.';
+
+  @override
+  String get transitScheduledRoutesOnly => '선택한 출발시각과 다음 일정에 맞는 시간표 기준 경로입니다.';
+
+  @override
+  String get transitNoScheduledRoutes =>
+      '선택한 출발시각부터 다음 일정 시작 전까지 도착하는 시간표 경로를 확인하지 못했어요. 출발시각을 조정해주세요.';
+
+  @override
+  String get transitSavedTimetableMissing =>
+      '이 저장 경로는 선택 시각의 시간표가 확인되지 않았어요. 경로 찾기를 다시 실행해주세요.';
 }

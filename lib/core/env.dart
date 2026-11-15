@@ -10,6 +10,7 @@ abstract final class Env {
   static const kakaoJsKey = String.fromEnvironment('KAKAO_JS_KEY');
   static const kakaoRestApiKey = String.fromEnvironment('KAKAO_REST_API_KEY');
   static const googleApiKey = String.fromEnvironment('GOOGLE_API_KEY');
+  static const tmapAppKey = String.fromEnvironment('TMAP_APP_KEY');
   static const googleOAuthWebClientId = String.fromEnvironment('GOOGLE_OAUTH_WEB_CLIENT_ID');
 
   /// 홈 인사이트 텍스트용 (비어 있으면 — 규칙 텍스트만 표시). 데모용으로 클라이언트에 위치.

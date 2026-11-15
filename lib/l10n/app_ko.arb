@@ -430,5 +430,53 @@
   "visitDayConfirm": "이날 추가",
   "avatarTitle": "프로필 사진",
   "avatarChanged": "프로필 사진을 바꿨어요",
-  "planSavedLocalOnly": "캘린더에 저장하지 못해 이 기기에 저장했어요"
+  "planSavedLocalOnly": "캘린더에 저장하지 못해 이 기기에 저장했어요",
+  "transitOptions": "이동 경로 선택",
+  "transitOption": "경로 {number}",
+  "transitTowards": "방향: {direction}",
+  "transitStops": "{count}개 정류장·역 이동",
+  "transitSource": "경로 정보 제공: Google Maps",
+  "transitScheduleNotice": "조회 시점의 예상 경로입니다. 실제 운행·지연 상황은 달라질 수 있어요.",
+  "transitLineUnavailable": "노선명 정보 없음",
+  "transitStopUnavailable": "정류장·역 정보 없음",
+  "@transitOption": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "@transitTowards": {
+    "placeholders": {
+      "direction": {
+        "type": "String"
+      }
+    }
+  },
+  "@transitStops": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transitMapShow": "지도로 보기",
+  "transitMapTitle": "경로 지도",
+  "transitMapFit": "전체 경로 보기",
+  "transitTimetable": "상세 시간표",
+  "transitMapNoGeometry": "이 경로의 지도 정보가 없어요. 경로를 다시 검색해주세요.",
+  "transitMapError": "지도를 불러오지 못했어요. 다시 시도해주세요.",
+  "transitMapGeometryNotice": "일부 구간은 상세 노선이 제공되지 않아 승하차 위치만 표시해요.",
+  "transitMapTapSegment": "구간을 누르면 확대돼요",
+  "transitMapOverview": "전체",
+  "transitSourceTmap": "경로 정보 제공: TMAP",
+  "transitQuotaFallback": "TMAP 조회 한도 초과로 Google 경로를 표시해요.",
+  "transitServiceInactive": "선택한 시각에 운행하지 않는 것으로 표시된 구간이 있어요. 시간표를 확인해주세요.",
+  "transitSourceKakao": "경로 정보 제공: 카카오맵",
+  "transitKakaoScheduleNotice": "현재 제공되는 노선 기준의 예상 경로입니다. 선택한 날짜·출발시각의 시간표는 반영되지 않으므로 운행 여부를 확인해주세요.",
+  "transitNoDetailedRoutes": "모든 구간의 상세 노선을 제공하는 경로를 찾지 못했어요. 상세 좌표가 없는 고속버스·기차 경로는 표시하지 않아요.",
+  "transitDetailedRoutesOnly": "모든 대중교통 구간의 상세 노선이 있는 경로만 표시해요.",
+  "transitScheduledRoutesOnly": "선택한 출발시각과 다음 일정에 맞는 시간표 기준 경로입니다.",
+  "transitNoScheduledRoutes": "선택한 출발시각부터 다음 일정 시작 전까지 도착하는 시간표 경로를 확인하지 못했어요. 출발시각을 조정해주세요.",
+  "transitSavedTimetableMissing": "이 저장 경로는 선택 시각의 시간표가 확인되지 않았어요. 경로 찾기를 다시 실행해주세요."
 }

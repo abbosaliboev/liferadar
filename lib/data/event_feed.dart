@@ -88,7 +88,7 @@ class EventFeed {
   /// 웹은 isolate가 없어 같은 스레드에서 한다.
   static Future<EventFeed> parseInBackground(String raw) => kIsWeb ? Future.value(parse(raw)) : compute(parse, raw);
 
-  /// 에셋이 없거나 손상되었으면 빈 피드 (앱은 샘플로 동작한다).
+  /// 에셋이 없거나 손상되었으면 빈 피드 (일반 앱은 샘플을 자동 주입하지 않는다).
   static Future<EventFeed> load([AssetBundle? bundle]) async {
     try {
       final b = bundle ?? rootBundle;

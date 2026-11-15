@@ -521,8 +521,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "38967d7519b4bc34406e5d81ecb0bc82f470a84c"
-      resolved-ref: "38967d7519b4bc34406e5d81ecb0bc82f470a84c"
+      ref: "7f9fd7cc114d4d62661f222bd5949934db1c0952"
+      resolved-ref: "7f9fd7cc114d4d62661f222bd5949934db1c0952"
       url: "https://github.com/woowangthon/WOOWANGTHON_TEAM_27_AI.git"
     source: git
     version: "0.3.0"

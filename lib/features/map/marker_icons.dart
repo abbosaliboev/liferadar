@@ -15,13 +15,63 @@ class MarkerIcons {
 
   static final Map<String, Future<km.KImage>> _cache = {};
 
-  static Future<km.KImage> pin(Color color, IconData icon, {bool selected = false}) {
+  /// Compact map labels for route endpoints; avoids stacking large pin images.
+  static Future<km.KImage> badge(Color color, String label) =>
+      _cache['badge-${color.toARGB32()}-$label'] ??= _drawBadge(color, label);
+
+  static Future<km.KImage> _drawBadge(Color color, String label) async {
+    const size = 26.0, scale = 3.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder)..scale(scale);
+    canvas.drawCircle(
+      const Offset(size / 2, size / 2),
+      size / 2,
+      Paint()..color = Colors.white,
+    );
+    canvas.drawCircle(
+      const Offset(size / 2, size / 2),
+      size / 2 - 2,
+      Paint()..color = color,
+    );
+    final text = TextPainter(
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    )..layout();
+    text.paint(
+      canvas,
+      Offset((size - text.width) / 2, (size - text.height) / 2),
+    );
+    final image = await recorder.endRecording().toImage(
+      (size * scale).round(),
+      (size * scale).round(),
+    );
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    return km.KImage.fromData(
+      bytes!.buffer.asUint8List(),
+      size.round(),
+      size.round(),
+    );
+  }
+
+  static Future<km.KImage> pin(
+    Color color,
+    IconData icon, {
+    bool selected = false,
+  }) {
     final key = '${color.toARGB32()}-${icon.codePoint}-$selected';
     return _cache[key] ??= _draw(color, icon, selected);
   }
 
   /// "현재 위치": 파란 점 + 흰 테두리 + 부드러운 halo. 중심 기준 (anchor 0.5, 0.5).
-  static Future<km.KImage> myLocation(Color color) => _cache['me-${color.toARGB32()}'] ??= _drawMe(color);
+  static Future<km.KImage> myLocation(Color color) =>
+      _cache['me-${color.toARGB32()}'] ??= _drawMe(color);
 
   static Future<km.KImage> _drawMe(Color color) async {
     const size = 34.0;
@@ -30,22 +80,38 @@ class MarkerIcons {
     final canvas = Canvas(recorder);
     final c = Offset(s / 2, s / 2);
     canvas.drawCircle(c, s / 2, Paint()..color = color.withValues(alpha: 0.18));
-    canvas.drawCircle(c, s * 0.27, Paint()..color = Colors.black.withValues(alpha: 0.18));
+    canvas.drawCircle(
+      c,
+      s * 0.27,
+      Paint()..color = Colors.black.withValues(alpha: 0.18),
+    );
     canvas.drawCircle(c, s * 0.25, Paint()..color = Colors.white);
     canvas.drawCircle(c, s * 0.18, Paint()..color = color);
     final image = await recorder.endRecording().toImage(s.round(), s.round());
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    return km.KImage.fromData(bytes!.buffer.asUint8List(), size.round(), size.round());
+    return km.KImage.fromData(
+      bytes!.buffer.asUint8List(),
+      size.round(),
+      size.round(),
+    );
   }
 
-  static Future<km.KImage> _draw(Color color, IconData icon, bool selected) async {
+  static Future<km.KImage> _draw(
+    Color color,
+    IconData icon,
+    bool selected,
+  ) async {
     final w = width * _scale, h = height * _scale;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     final r = w / 2;
 
     // 그림자
-    canvas.drawCircle(Offset(r, h - 3 * _scale), 3 * _scale, Paint()..color = Colors.black.withValues(alpha: 0.25));
+    canvas.drawCircle(
+      Offset(r, h - 3 * _scale),
+      3 * _scale,
+      Paint()..color = Colors.black.withValues(alpha: 0.25),
+    );
 
     // 핀 모양: 원 + 아래쪽 꼭짓점
     final path = Path()
@@ -54,7 +120,10 @@ class MarkerIcons {
       ..lineTo(r, h - 4 * _scale)
       ..lineTo(r + r * 0.55, r + r * 0.6)
       ..close();
-    canvas.drawPath(path, Paint()..color = selected ? Colors.black : Colors.white);
+    canvas.drawPath(
+      path,
+      Paint()..color = selected ? Colors.black : Colors.white,
+    );
     canvas.drawCircle(Offset(r, r), r - 4 * _scale, Paint()..color = color);
 
     // 아이콘
@@ -73,6 +142,10 @@ class MarkerIcons {
 
     final image = await recorder.endRecording().toImage(w.round(), h.round());
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    return km.KImage.fromData(bytes!.buffer.asUint8List(), width.round(), height.round());
+    return km.KImage.fromData(
+      bytes!.buffer.asUint8List(),
+      width.round(),
+      height.round(),
+    );
   }
 }

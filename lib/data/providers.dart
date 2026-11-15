@@ -8,6 +8,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:liferadar_core/liferadar_core.dart';
 import '../services/google_api.dart';
 import '../services/kakao_api.dart';
+import '../services/kakao_transit_api.dart';
+import '../services/mapped_transit_options.dart';
 import 'ai_insights.dart';
 import 'event_feed.dart';
 import 'interests.dart';
@@ -31,6 +33,9 @@ export 'interests.dart'
 
 final kakaoApiProvider = Provider<KakaoApi>((ref) => KakaoApi());
 final googleApiProvider = Provider<GoogleApi>((ref) => GoogleApi());
+final kakaoTransitApiProvider = Provider<KakaoTransitApi>((ref) => KakaoTransitApi());
+final mappedTransitOptionsProvider = Provider<MappedTransitOptions>((ref) =>
+  MappedTransitOptions(primary: ref.watch(googleApiProvider)));
 
 
 
@@ -83,13 +88,13 @@ class EventFeedController extends Notifier<EventFeed> {
   }
 }
 
-/// 전체 행사: 실제(공개 API) + 데모 시나리오용 샘플 ("Sample" 배지).
+/// 전체 행사: 실제 피드. liveEventsEnabled가 false인 데모/테스트에서만 샘플 추가.
 final eventsProvider = Provider<List<RadarEvent>>(
   (ref) => [...ref.watch(eventFeedProvider).events,
     if (!ref.watch(liveEventsEnabledProvider)) ...sampleEventsAt(ref.watch(nowProvider))],
 );
 
-/// 일정 = 기본 출처 (Google 캘린더 연결 전에는 샘플, 이후 캘린더)
+/// 일정 = 기본 출처 (일반 앱은 빈 목록/연결한 캘린더, 데모/테스트는 샘플)
 /// + 앱에서 직접 만든 일정 (기기에 계정별 저장).
 /// 같은 id의 직접 만든 일정이 기본 출처의 일정을 대체한다 (예: 수정한 샘플).
 final plansProvider = NotifierProvider<PlansController, List<Plan>>(PlansController.new);

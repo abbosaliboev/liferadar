@@ -129,6 +129,113 @@ Future<void> _saveTrip(
 
 void main() {
   test(
+    'general marathon complaints never become cards or notifications, including cached records',
+    () async {
+      var delivered = 0;
+      final c = await _container((title, body, {tag}) async {
+        delivered++;
+        return true;
+      });
+      await _saveTrip(c);
+      for (final quote in [
+        '실제 서울 도심에서는 주말마다 마라톤 대회가 열리면서 도로 통제와 대중교통 우회 문제가 반복되고 있다.',
+        '서울 여의도공원에 사람들이 많이 뛰어다녀 시민들이 불편을 겪고 있다.',
+        '서울에서는 매주 마라톤으로 버스 우회 문제가 반복된다.',
+      ]) {
+        // Even an old parser's accidentally assigned date/route cannot make
+        // general commentary actionable. This also exercises cached JSON input.
+        final row = _feed().trafficImpacts.single.toJson();
+        final impact = NewsTrafficImpact.fromJson({
+          ...row,
+          'type': 'ROAD_CLOSURE',
+          'event_name': '주말마다 마라톤',
+          'evidence': [
+            {'quote': quote},
+          ],
+        });
+        (c.read(newsFeedProvider.notifier) as _Feed).replace(
+          NewsFeed(trafficImpacts: [impact]),
+        );
+        expect(
+          c.read(newsTrafficDecisionsProvider).every((e) => !e.visible),
+          isTrue,
+        );
+        final cards = c
+            .read(baseInsightsProvider)
+            .where((i) => i.id.startsWith('news-traffic:'))
+            .toList();
+        expect(cards, isEmpty, reason: quote);
+        await c.read(signalNotifierProvider).dispatch(cards);
+        final oldWarning = const NewsTrafficMatcher().evaluate(
+          _to,
+          c.read(tripsByPlanIdProvider)['b'],
+          impact,
+          DateTime(2026, 11, 9),
+          previousDecision: 'caution',
+        );
+        expect(oldWarning.visible, isFalse);
+        expect(oldWarning.notificationEligible, isFalse);
+      }
+      expect(delivered, 0);
+    },
+  );
+
+  test(
+    'event notices require a date and matching route; concrete notices survive background complaints',
+    () async {
+      final c = await _container((title, body, {tag}) async => true);
+      await _saveTrip(c);
+      final trip = c.read(tripsByPlanIdProvider)['b']!;
+      final row = {
+        ..._feed().trafficImpacts.single.toJson(),
+        'type': 'BUS_DETOUR',
+        'event_name': '서울 한강마라톤',
+        'evidence': [
+          {'quote': '서울 도심에서는 주말마다 마라톤 대회로 도로 통제 문제가 반복되고 있다.'},
+          {'quote': '서울 한강마라톤으로 2026-11-10 08:00부터 11:00까지 101번 버스가 우회한다.'},
+        ],
+      };
+      NewsTrafficEvaluation evaluate(Map<String, dynamic> json) =>
+          const NewsTrafficMatcher().evaluate(
+            _to,
+            trip,
+            NewsTrafficImpact.fromJson(json),
+            DateTime(2026, 11, 9),
+          );
+      expect(evaluate(row).decision, NewsTrafficDecision.recommend);
+      expect(
+        evaluate({
+          ...row,
+          'period': {
+            'start': {..._time('08:00'), 'date': null},
+            'end': {..._time('11:00'), 'date': null},
+          },
+        }).visible,
+        isFalse,
+      );
+      expect(
+        evaluate({
+          ...row,
+          'scope': [
+            {'region': '서울', 'raw': '서울'},
+          ],
+        }).visible,
+        isFalse,
+      );
+      expect(
+        evaluate({
+          ...row,
+          'period': {
+            'start': {..._time('08:00'), 'date': '2026-11-11'},
+            'end': {..._time('11:00'), 'date': '2026-11-11'},
+          },
+        }).visible,
+        isFalse,
+      );
+    },
+  );
+
+  test(
     'versioned regional reference maps provider line into verified route ID',
     () async {
       final c = await _container((title, body, {tag}) async => true);

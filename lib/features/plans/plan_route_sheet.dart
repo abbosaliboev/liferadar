@@ -10,6 +10,10 @@ import '../../core/theme.dart';
 import '../../data/plan_routes.dart';
 import '../../data/providers.dart';
 import '../../data/session.dart';
+import '../../data/transit_journey.dart';
+import '../../services/mapped_transit_options.dart';
+import 'transit_boardings_view.dart';
+import 'plan_route_map_dialog.dart';
 import '../route/route_panel.dart' show PlaceSearchSheet;
 
 Future<void> showPlanRouteSheet(
@@ -51,14 +55,30 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
   late DateTime _departure =
       widget.saved?.departure.toLocal() ?? widget.from.end.toLocal();
   // A previously confirmed route can be saved again without another network call.
-  late TravelRoute? _result = widget.saved == null
+  late TravelRoute? _result =
+      widget.saved == null ||
+          widget.saved!.provider != 'google' ||
+          widget.saved!.scheduledArrival == null ||
+          widget.saved!.boardings.isEmpty ||
+          widget.saved!.boardings.any(
+            (b) => b.departureTime == null || b.arrivalTime == null,
+          )
       ? null
       : TravelRoute(
           distanceMeters: 0,
           durationSeconds: widget.saved!.durationSeconds,
           mode: TravelMode.transit,
           transitLines: widget.saved!.lines,
+          transportModes: widget.saved!.modes,
+          facilityIds: widget.saved!.facilityIds,
+          points: widget.saved!.points,
         );
+  late List<TransitBoarding> _boardings = widget.saved?.boardings ?? const [];
+  late DateTime? _scheduledArrival = widget.saved?.scheduledArrival;
+  late String _routeProvider = widget.saved?.provider ?? 'google';
+  String? _fallbackReason;
+  List<TransitJourney> _journeys = const [];
+  int _selected = 0;
   late String _originName = widget.saved?.origin ?? widget.from.locationText;
   late String _destinationName =
       widget.saved?.destination ?? widget.to.locationText;
@@ -72,6 +92,19 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
   bool get _validDeparture =>
       !_departure.isBefore(widget.from.end) &&
       !_departure.isAfter(widget.to.start);
+
+  bool get _hasUsableTimetable =>
+      _result != null &&
+      MappedTransitOptions.hasUsableTimetable(
+        TransitJourney(
+          route: _result!,
+          boardings: _boardings,
+          arrival: _scheduledArrival,
+          provider: _routeProvider,
+        ),
+        _departure,
+        arriveBy: widget.to.start,
+      );
 
   Future<void> _pickPlace(bool origin) async {
     final picked = await showModalBottomSheet<Place>(
@@ -90,6 +123,9 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
         _destinationName = picked.name;
       }
       _result = null;
+      _journeys = const [];
+      _scheduledArrival = null;
+      _boardings = const [];
       _error = null;
     });
   }
@@ -110,6 +146,9 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
         picked.minute,
       );
       _result = null;
+      _journeys = const [];
+      _scheduledArrival = null;
+      _boardings = const [];
       _error = null;
     });
   }
@@ -122,21 +161,37 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
       _busy = true;
       _error = null;
       _result = null;
+      _journeys = const [];
+      _scheduledArrival = null;
+      _boardings = const [];
     });
     try {
       final result = await ref
-          .read(googleApiProvider)
-          .transit(
+          .read(mappedTransitOptionsProvider)
+          .search(
             _origin!.location,
             _destination!.location,
             departure: _departure,
+            arriveBy: widget.to.start,
           )
-          .timeout(const Duration(seconds: 25));
+          .timeout(const Duration(seconds: 40));
       if (!mounted) return;
-      setState(() => _result = result);
+      setState(() {
+        _journeys = compactTransitJourneys(result);
+        _selected = 0;
+        _result = _journeys.first.route;
+        _boardings = _journeys.first.boardings;
+        _scheduledArrival = _journeys.first.arrival;
+        _routeProvider = _journeys.first.provider;
+        _fallbackReason = _journeys.first.fallbackReason;
+      });
     } catch (e) {
       if (mounted) {
-        setState(() => _error = friendlyError(context.l10n, e));
+        setState(
+          () => _error = e is NoScheduledTransitRoute
+              ? context.l10n.transitNoScheduledRoutes
+              : friendlyError(context.l10n, e),
+        );
         Toast.show(context.l10n.planRouteError, type: ToastType.error);
       }
     } finally {
@@ -167,6 +222,9 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
             destinationLocation: _destination!.location,
             departure: _departure,
             route: _result!,
+            boardings: _boardings,
+            scheduledArrival: _scheduledArrival,
+            provider: _routeProvider,
           );
     if (!remove &&
         (!adjacent ||
@@ -175,6 +233,10 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
             !route!.matches(currentFrom, currentTo))) {
       setState(() => _error = context.l10n.planRouteStale);
       Toast.show(context.l10n.planRouteStale, type: ToastType.warning);
+      return;
+    }
+    if (!remove && !_hasUsableTimetable) {
+      setState(() => _error = context.l10n.transitSavedTimetableMissing);
       return;
     }
     setState(() {
@@ -215,9 +277,15 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
     final l10n = context.l10n;
     final result = _result;
     final minutes = result == null ? 0 : (result.durationSeconds / 60).ceil();
+    String duration(int seconds) {
+      final m = (seconds / 60).ceil();
+      return l10n.hoursMinutes(m ~/ 60, m % 60);
+    }
+
     final arrival = result == null
         ? null
-        : _departure.add(Duration(seconds: result.durationSeconds));
+        : (_scheduledArrival?.toLocal() ??
+              _departure.add(Duration(seconds: result.durationSeconds)));
 
     return SafeArea(
       top: false,
@@ -326,7 +394,84 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
                 const SizedBox(height: Space.sm),
                 Text(_error!, style: t.bodySmall!.copyWith(color: p.danger)),
               ],
+              if (widget.saved != null &&
+                  result == null &&
+                  !_busy &&
+                  _error == null)
+                Text(
+                  l10n.transitSavedTimetableMissing,
+                  style: t.bodySmall!.copyWith(color: p.danger),
+                ),
               if (result != null) ...[
+                const SizedBox(height: Space.sm),
+                Text(
+                  _hasUsableTimetable
+                      ? l10n.transitScheduledRoutesOnly
+                      : l10n.transitSavedTimetableMissing,
+                  style: t.bodySmall,
+                ),
+                if (_journeys.length > 1) ...[
+                  const SizedBox(height: Space.md),
+                  Text(l10n.transitOptions, style: t.titleSmall),
+                  for (var i = 0; i < _journeys.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(top: Space.sm),
+                      child: OutlinedButton(
+                        key: ValueKey('transit-option-$i'),
+                        onPressed: _busy
+                            ? null
+                            : () => setState(() {
+                                _selected = i;
+                                _result = _journeys[i].route;
+                                _boardings = _journeys[i].boardings;
+                                _scheduledArrival = _journeys[i].arrival;
+                                _routeProvider = _journeys[i].provider;
+                                _fallbackReason = _journeys[i].fallbackReason;
+                              }),
+                        child: Row(
+                          children: [
+                            Icon(
+                              i == _selected
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_off,
+                            ),
+                            const SizedBox(width: Space.sm),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: Space.sm,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${l10n.transitOption(i + 1)} · ${duration(_journeys[i].route.durationSeconds)}',
+                                    ),
+                                    Text(
+                                      context.transitSourceFor(
+                                        _journeys[i].provider,
+                                      ),
+                                      style: t.bodySmall,
+                                    ),
+                                    Text(
+                                      _journeys[i].route.transitLines.isEmpty
+                                          ? l10n.travelTransit
+                                          : _journeys[i].route.transitLines
+                                                .join(' → '),
+                                    ),
+                                    if (_journeys[i].arrival != null)
+                                      Text(
+                                        '${l10n.planRouteArrival} ${DateFormat.Md(context.lang).add_Hm().format(_journeys[i].arrival!.toLocal())}',
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
                 const SizedBox(height: Space.md),
                 Container(
                   padding: const EdgeInsets.all(Space.md),
@@ -361,6 +506,41 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
                             : result.transitLines.join(' → '),
                         style: t.labelLarge,
                       ),
+                      const SizedBox(height: Space.sm),
+                      OutlinedButton.icon(
+                        key: const ValueKey('transit-map-button'),
+                        onPressed: () async {
+                          final updated = await showPlanRouteMap(
+                            context,
+                            route: result,
+                            originName: _originName,
+                            destinationName: _destinationName,
+                            origin: _origin!.location,
+                            destination: _destination!.location,
+                            departure: _departure,
+                            boardings: _boardings,
+                          );
+                          if (mounted &&
+                              updated != null &&
+                              identical(_result, result)) {
+                            setState(() => _boardings = updated);
+                          }
+                        },
+                        icon: const Icon(Icons.map_outlined),
+                        label: Text(l10n.transitMapShow),
+                      ),
+                      if (_boardings.isNotEmpty)
+                        ExpansionTile(
+                          key: const ValueKey('transit-timetable'),
+                          tilePadding: EdgeInsets.zero,
+                          title: Text(
+                            l10n.transitTimetable,
+                            style: t.labelLarge,
+                          ),
+                          children: [
+                            TransitBoardingsView(boardings: _boardings),
+                          ],
+                        ),
                       const SizedBox(height: Space.xs),
                       Text(
                         '${l10n.planRouteArrival} ${DateFormat.Hm(context.lang).format(arrival!)}',
@@ -373,13 +553,37 @@ class _PlanRouteSheetState extends ConsumerState<_PlanRouteSheet> {
                           style: t.bodySmall!.copyWith(color: p.danger),
                         ),
                       ],
+                      if (_boardings.any((b) => b.serviceActive == false)) ...[
+                        const SizedBox(height: Space.sm),
+                        Text(
+                          l10n.transitServiceInactive,
+                          style: t.bodySmall!.copyWith(color: p.danger),
+                        ),
+                      ],
                     ],
                   ),
+                ),
+                const SizedBox(height: Space.sm),
+                Text(
+                  context.transitSourceFor(_routeProvider),
+                  style: t.bodySmall,
+                ),
+                if (_fallbackReason == 'quota')
+                  Text(l10n.transitQuotaFallback, style: t.bodySmall),
+                Text(
+                  _routeProvider == 'kakao'
+                      ? l10n.transitKakaoScheduleNotice
+                      : l10n.transitScheduleNotice,
+                  style: t.bodySmall,
                 ),
               ],
               const SizedBox(height: Space.lg),
               FilledButton.icon(
-                onPressed: _busy || result == null || !_validDeparture
+                onPressed:
+                    _busy ||
+                        result == null ||
+                        !_validDeparture ||
+                        !_hasUsableTimetable
                     ? null
                     : () => _save(),
                 icon: const Icon(Icons.add_rounded),

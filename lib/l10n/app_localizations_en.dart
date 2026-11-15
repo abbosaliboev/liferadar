@@ -1420,4 +1420,102 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get planSavedLocalOnly =>
       'Couldn\'t reach Google Calendar — saved on this device';
+
+  @override
+  String get transitOptions => 'Choose a route';
+
+  @override
+  String transitOption(int number) {
+    return 'Route $number';
+  }
+
+  @override
+  String transitTowards(String direction) {
+    return 'Direction: $direction';
+  }
+
+  @override
+  String transitStops(int count) {
+    return '$count stops';
+  }
+
+  @override
+  String get transitSource => 'Route information: Google Maps';
+
+  @override
+  String get transitScheduleNotice =>
+      'Estimated routes reflect the search result. Actual service and delays may differ.';
+
+  @override
+  String get transitLineUnavailable => 'Line name unavailable';
+
+  @override
+  String get transitStopUnavailable => 'Stop information unavailable';
+
+  @override
+  String get transitMapShow => 'View map';
+
+  @override
+  String get transitMapTitle => 'Route map';
+
+  @override
+  String get transitMapFit => 'Fit entire route';
+
+  @override
+  String get transitTimetable => 'Timetable details';
+
+  @override
+  String get transitMapNoGeometry =>
+      'Map geometry is unavailable. Search for this route again.';
+
+  @override
+  String get transitMapError => 'Could not load the map. Please try again.';
+
+  @override
+  String get transitMapGeometryNotice =>
+      'Segments without a detailed route show boarding locations only.';
+
+  @override
+  String get transitMapTapSegment => 'Tap a segment to zoom in';
+
+  @override
+  String get transitMapOverview => 'Overview';
+
+  @override
+  String get transitSourceTmap => 'Route information: TMAP';
+
+  @override
+  String get transitQuotaFallback =>
+      'TMAP quota exceeded. Showing Google routes.';
+
+  @override
+  String get transitServiceInactive =>
+      'Some segments are marked as not operating at the selected time. Please check the timetable.';
+
+  @override
+  String get transitSourceKakao => 'Route information: Kakao Maps';
+
+  @override
+  String get transitKakaoScheduleNotice =>
+      'Estimated route using currently available lines. Timetables for the selected date and departure time are not included; check service availability.';
+
+  @override
+  String get transitNoDetailedRoutes =>
+      'No route with detailed shapes for every transit leg was found. Express bus and train journeys without detailed coordinates are excluded.';
+
+  @override
+  String get transitDetailedRoutesOnly =>
+      'Only journeys with detailed shapes for every transit leg are shown.';
+
+  @override
+  String get transitScheduledRoutesOnly =>
+      'Timetable-based routes for the selected departure and next appointment.';
+
+  @override
+  String get transitNoScheduledRoutes =>
+      'No timetable-based journey arriving before your next appointment was found. Try another departure time.';
+
+  @override
+  String get transitSavedTimetableMissing =>
+      'The timetable for this saved route is unverified. Search again before saving.';
 }

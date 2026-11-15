@@ -2665,6 +2665,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t reach Google Calendar — saved on this device'**
   String get planSavedLocalOnly;
+
+  /// No description provided for @transitOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a route'**
+  String get transitOptions;
+
+  /// No description provided for @transitOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Route {number}'**
+  String transitOption(int number);
+
+  /// No description provided for @transitTowards.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction: {direction}'**
+  String transitTowards(String direction);
+
+  /// No description provided for @transitStops.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} stops'**
+  String transitStops(int count);
+
+  /// No description provided for @transitSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Route information: Google Maps'**
+  String get transitSource;
+
+  /// No description provided for @transitScheduleNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated routes reflect the search result. Actual service and delays may differ.'**
+  String get transitScheduleNotice;
+
+  /// No description provided for @transitLineUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Line name unavailable'**
+  String get transitLineUnavailable;
+
+  /// No description provided for @transitStopUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop information unavailable'**
+  String get transitStopUnavailable;
+
+  /// No description provided for @transitMapShow.
+  ///
+  /// In en, this message translates to:
+  /// **'View map'**
+  String get transitMapShow;
+
+  /// No description provided for @transitMapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Route map'**
+  String get transitMapTitle;
+
+  /// No description provided for @transitMapFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit entire route'**
+  String get transitMapFit;
+
+  /// No description provided for @transitTimetable.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable details'**
+  String get transitTimetable;
+
+  /// No description provided for @transitMapNoGeometry.
+  ///
+  /// In en, this message translates to:
+  /// **'Map geometry is unavailable. Search for this route again.'**
+  String get transitMapNoGeometry;
+
+  /// No description provided for @transitMapError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the map. Please try again.'**
+  String get transitMapError;
+
+  /// No description provided for @transitMapGeometryNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Segments without a detailed route show boarding locations only.'**
+  String get transitMapGeometryNotice;
+
+  /// No description provided for @transitMapTapSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a segment to zoom in'**
+  String get transitMapTapSegment;
+
+  /// No description provided for @transitMapOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get transitMapOverview;
+
+  /// No description provided for @transitSourceTmap.
+  ///
+  /// In en, this message translates to:
+  /// **'Route information: TMAP'**
+  String get transitSourceTmap;
+
+  /// No description provided for @transitQuotaFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'TMAP quota exceeded. Showing Google routes.'**
+  String get transitQuotaFallback;
+
+  /// No description provided for @transitServiceInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Some segments are marked as not operating at the selected time. Please check the timetable.'**
+  String get transitServiceInactive;
+
+  /// No description provided for @transitSourceKakao.
+  ///
+  /// In en, this message translates to:
+  /// **'Route information: Kakao Maps'**
+  String get transitSourceKakao;
+
+  /// No description provided for @transitKakaoScheduleNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated route using currently available lines. Timetables for the selected date and departure time are not included; check service availability.'**
+  String get transitKakaoScheduleNotice;
+
+  /// No description provided for @transitNoDetailedRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'No route with detailed shapes for every transit leg was found. Express bus and train journeys without detailed coordinates are excluded.'**
+  String get transitNoDetailedRoutes;
+
+  /// No description provided for @transitDetailedRoutesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only journeys with detailed shapes for every transit leg are shown.'**
+  String get transitDetailedRoutesOnly;
+
+  /// No description provided for @transitScheduledRoutesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Timetable-based routes for the selected departure and next appointment.'**
+  String get transitScheduledRoutesOnly;
+
+  /// No description provided for @transitNoScheduledRoutes.
+  ///
+  /// In en, this message translates to:
+  /// **'No timetable-based journey arriving before your next appointment was found. Try another departure time.'**
+  String get transitNoScheduledRoutes;
+
+  /// No description provided for @transitSavedTimetableMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The timetable for this saved route is unverified. Search again before saving.'**
+  String get transitSavedTimetableMissing;
 }
 
 class _AppLocalizationsDelegate

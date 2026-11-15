@@ -1,7 +1,7 @@
 name: liferadar
 description: "LifeRadar — 내 일정을 챙기는 AI 동료 (Flutter 앱)."
 publish_to: 'none'
-version: 1.0.4+2020
+version: 1.0.10+4027
 
 environment:
   sdk: ^3.11.5
@@ -25,7 +25,7 @@ dependencies:
     version: ^0.3.0
     git:
       url: https://github.com/woowangthon/WOOWANGTHON_TEAM_27_AI.git
-      ref: 38967d7519b4bc34406e5d81ecb0bc82f470a84c
+      ref: 7f9fd7cc114d4d62661f222bd5949934db1c0952
   package_info_plus: ^10.2.2
   share_plus: ^13.3.1
   shared_preferences: ^2.5.6
