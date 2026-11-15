@@ -135,13 +135,17 @@ class NewsTrafficImpact {
   );
   bool get hasTransportEvidence => evidence.any((e) {
     final quote = e['quote'] as String;
+    // A recurring social complaint is not a dated disruption notice. Check
+    // each passage separately so background prose cannot veto a real notice.
+    if (type != 'STRIKE' && isGeneralTrafficCommentary(quote)) return false;
     if (RegExp(r'혼잡.*(?:없|않|아니)|통제.*(?:없|하지 않)|정상 통행').hasMatch(quote)) {
       return false;
     }
     return switch (type) {
       'STRIKE' => quote.contains('파업'),
-      'CONGESTION_FORECAST' =>
-        RegExp(r'(?:교통|차량|보행).*혼잡.*(?:예상|전망)').hasMatch(quote),
+      'CONGESTION_FORECAST' => RegExp(
+        r'(?:교통|차량|보행).*혼잡.*(?:예상|전망)',
+      ).hasMatch(quote),
       'ROAD_CLOSURE' => RegExp(r'(?:도로|차량|대로|구간).*통제').hasMatch(quote),
       'BUS_DETOUR' => RegExp(r'버스.*우회').hasMatch(quote),
       'STOP_SKIP' => quote.contains('무정차'),
@@ -149,16 +153,33 @@ class NewsTrafficImpact {
       _ => false,
     };
   });
+
+  static bool isGeneralTrafficCommentary(String quote) {
+    final recurring = RegExp(
+      r'주말마다|매주|평소|반복되고|반복된다|반복돼|불편을\s*(?:겪|호소)',
+    ).hasMatch(quote);
+    final dated = RegExp(
+      r'20\d{2}[-년.]\s*\d{1,2}[-월.]\s*\d{1,2}|\d{1,2}월\s*\d{1,2}일|오늘|내일|모레',
+    ).hasMatch(quote);
+    final notice = RegExp(
+      r'(?:통제|우회|무정차|폐쇄)(?:를|는|가|될|할)?\s*(?:예정|실시|시행|한다|된다|중|유지|해제)|이용\s*제한',
+    ).hasMatch(quote);
+    return recurring && !(dated && notice);
+  }
+
   // The radius must be supplied by a trusted geographic reference for the
   // affected scope. An event coordinate alone is not an impact area.
   double? get verifiedRadiusKm {
     final radius = _json['affected_radius_m'];
-    return radius is num && radius.isFinite && radius > 0 &&
+    return radius is num &&
+            radius.isFinite &&
+            radius > 0 &&
             _json['area_reference_source'] is String &&
             (_json['area_reference_source'] as String).isNotEmpty
         ? radius.toDouble() / 1000
         : null;
   }
+
   Map<String, dynamic> get period =>
       (_json['period'] as Map).cast<String, dynamic>();
   List<Map<String, dynamic>> get scope => maps(_json['scope']);

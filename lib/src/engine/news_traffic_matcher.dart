@@ -33,7 +33,7 @@ class NewsTrafficEvaluation {
   final String planId, scheduleVersion, tripId, tripVersion;
   final NewsTrafficImpact impact;
   final DateTime evaluatedAt;
-  static const ruleVersion = 'news-traffic-1.2';
+  static const ruleVersion = 'news-traffic-1.3';
   bool get visible => decision != NewsTrafficDecision.ignore;
   bool get notificationEligible => const [
     NewsTrafficDecision.caution,
@@ -141,9 +141,22 @@ class NewsTrafficMatcher {
     } else if (!impact.hasTransportEvidence) {
       decision = NewsTrafficDecision.ignore;
       reason = 'TRANSPORT_EFFECT_NOT_REPORTED';
+    } else if (impact.type != 'STRIKE' &&
+        ((impact.period['start'] as Map)['date'] == null ||
+            !const [
+              'ROUTE_MATCH',
+              'NEARBY',
+              'SCOPE_UNCONFIRMED',
+            ].contains(space))) {
+      // Personal impact cards require a dated, located effect as well as
+      // transport wording. Apply this at evaluation time to old cached feeds.
+      decision = NewsTrafficDecision.ignore;
+      reason = 'EVENT_IMPACT_NOT_SPECIFIC_TO_TRIP';
     } else if (impact.type == 'STRIKE' &&
         (trip == null || space != 'ROUTE_MATCH' || mode != 'APPLICABLE')) {
-      decision = hadNotice ? NewsTrafficDecision.resolved : NewsTrafficDecision.ignore;
+      decision = hadNotice
+          ? NewsTrafficDecision.resolved
+          : NewsTrafficDecision.ignore;
       reason = 'STRIKE_ROUTE_NOT_CONFIRMED';
     } else if (impact.demo != (plan.source == 'sample')) {
       decision = NewsTrafficDecision.ignore;
