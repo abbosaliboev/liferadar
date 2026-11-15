@@ -4,7 +4,7 @@
 >
 > 저장소: **FE (이 저장소, Flutter 앱)** · [BE (데이터 파이프라인)](https://github.com/woowangthon/WOOWANGTHON_TEAM_27_BE) · [AI (판단 엔진·AI 모듈)](https://github.com/woowangthon/WOOWANGTHON_TEAM_27_AI)
 >
-> 📑 **발표 자료**: [PDF](docs/presentation/LifeRadar_Team27.pdf) · [PPTX](docs/presentation/LifeRadar_Team27.pptx) (영문 초안, 20장) · 🎬 [시연 영상 (YouTube)](https://youtu.be/Sjh8cfFDoKc) · 📱 [APK 다운로드 (Google Drive)](https://drive.google.com/file/d/1n6Zk4ZCfaOjXBC2wYlcID8ptnPDMxG6i/view?usp=sharing) · 현재 버전 1.0.11
+> 🎬 [시연 영상 (YouTube)](https://youtu.be/Sjh8cfFDoKc) · 📱 [APK 다운로드 (Google Drive)](https://drive.google.com/file/d/1n6Zk4ZCfaOjXBC2wYlcID8ptnPDMxG6i/view?usp=sharing) · 현재 버전 1.0.11
 
 **LifeRadar는 내 캘린더 일정과 관심사를 실제 행사·공식 교통 통제·날씨와 연결해, 묻기 전에 "이건 당신에게 중요해요, 이유는 이거예요"라고 알려주는 앱입니다.** 갈지, 캘린더에 넣을지는 사용자가 결정합니다.
 
@@ -184,7 +184,7 @@ flutter build apk --release --split-per-abi --dart-define-from-file=env.json   #
 ```
 
 - 개발자 가이드: [docs/DEVELOPER.md](docs/DEVELOPER.md) · 사용자 가이드: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
-- 시연 시나리오: [docs/DEMO.md](docs/DEMO.md) · MVP 계획: [docs/PLAN.md](docs/PLAN.md) · 서버 푸시 설계: [docs/PUSH_NOTIFICATIONS.md](docs/PUSH_NOTIFICATIONS.md)
+- MVP 계획: [docs/PLAN.md](docs/PLAN.md) · 서버 푸시 설계: [docs/PUSH_NOTIFICATIONS.md](docs/PUSH_NOTIFICATIONS.md)
 
 ## 9. 기술 스택
 
