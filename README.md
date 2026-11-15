@@ -4,7 +4,7 @@
 >
 > 저장소: **FE (이 저장소, Flutter 앱)** · [BE (데이터 파이프라인)](https://github.com/woowangthon/WOOWANGTHON_TEAM_27_BE) · [AI (판단 엔진·AI 모듈)](https://github.com/woowangthon/WOOWANGTHON_TEAM_27_AI)
 >
-> 📑 **발표 자료**: [PDF](docs/presentation/LifeRadar_Team27.pdf) · [PPTX](docs/presentation/LifeRadar_Team27.pptx) (영어, 20장) · 🎬 시연 영상: *(제출 시 YouTube 링크)* · 📱 APK: *(제출 시 Google Drive 링크)* · 현재 버전 1.0.4
+> 🎬 [시연 영상 (YouTube)](https://youtu.be/Sjh8cfFDoKc) · 📱 [APK 다운로드 (Google Drive)](https://drive.google.com/file/d/1n6Zk4ZCfaOjXBC2wYlcID8ptnPDMxG6i/view?usp=sharing) · 현재 버전 1.0.11
 
 **LifeRadar는 내 캘린더 일정과 관심사를 실제 행사·공식 교통 통제·날씨와 연결해, 묻기 전에 "이건 당신에게 중요해요, 이유는 이거예요"라고 알려주는 앱입니다.** 갈지, 캘린더에 넣을지는 사용자가 결정합니다.
 
@@ -184,7 +184,7 @@ flutter build apk --release --split-per-abi --dart-define-from-file=env.json   #
 ```
 
 - 개발자 가이드: [docs/DEVELOPER.md](docs/DEVELOPER.md) · 사용자 가이드: [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
-- 시연 시나리오: [docs/DEMO.md](docs/DEMO.md) · MVP 계획: [docs/PLAN.md](docs/PLAN.md) · 서버 푸시 설계: [docs/PUSH_NOTIFICATIONS.md](docs/PUSH_NOTIFICATIONS.md)
+- MVP 계획: [docs/PLAN.md](docs/PLAN.md) · 서버 푸시 설계: [docs/PUSH_NOTIFICATIONS.md](docs/PUSH_NOTIFICATIONS.md)
 
 ## 9. 기술 스택
 
@@ -197,7 +197,7 @@ flutter build apk --release --split-per-abi --dart-define-from-file=env.json   #
 | 일정·로그인·날씨 | Google Calendar API, Google Sign-In (Android·웹), Google Weather |
 | 알림 | Android `flutter_local_notifications`, 웹 Notification API |
 | 디자인 | 자체 디자인 시스템 — 브랜드 #5865F2 · #23272A · #FFFFFF, 라이트/다크 (본문 대비 ≥ 4.5:1), 그라데이션·누름 애니메이션·스켈레톤, 동작 줄이기 지원, Pretendard 서브셋 글꼴 |
-| 품질 | 테스트 301개 (11/14) — FE 121 · AI 105 · BE 75, 3개 저장소 모두 GitHub Actions CI. AI 기능 4종은 실제 Gemini로 실측 평가 |
+| 품질 | 테스트 325개 (11/15) — FE 145 · AI 105 · BE 75, 3개 저장소 모두 GitHub Actions CI. AI 기능 4종은 실제 Gemini로 실측 평가 |
 | 공유·버전 | `share_plus` (기기 공유 창), `package_info_plus` (프로필의 앱 버전) |
 
 ## 10. 구현 범위와 한계 (정직하게)
