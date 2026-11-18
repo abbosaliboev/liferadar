@@ -26,6 +26,29 @@
   <img src="fe/docs/images/plan-travel.png" width="19%" alt="이동 계획">
 </p>
 
+## ▶️ 바로 보기 · 설치
+
+<table>
+<tr>
+<td width="55%" align="center">
+<a href="https://youtu.be/Sjh8cfFDoKc"><img src="https://img.youtube.com/vi/Sjh8cfFDoKc/maxresdefault.jpg" alt="LifeRadar 시연 영상 (YouTube)"></a>
+<br><b>🎬 <a href="https://youtu.be/Sjh8cfFDoKc">시연 영상 보기 (YouTube)</a></b>
+</td>
+<td width="45%" align="center">
+<a href="https://drive.google.com/file/d/1n6Zk4ZCfaOjXBC2wYlcID8ptnPDMxG6i/view?usp=sharing"><img src="docs/apk-qr.svg" width="170" alt="APK 다운로드 QR 코드"></a>
+<br><b>📱 <a href="https://drive.google.com/file/d/1n6Zk4ZCfaOjXBC2wYlcID8ptnPDMxG6i/view?usp=sharing">Android APK 다운로드</a></b>
+<br><sub>휴대폰 카메라로 QR을 찍으면 바로 받을 수 있어요</sub>
+</td>
+</tr>
+</table>
+
+**Android에 설치하기** (Android 6.0 이상, 버전 1.0.11)
+1. 위 링크나 QR로 Google Drive에서 APK를 다운로드합니다.
+2. 파일을 열고, *"출처를 알 수 없는 앱"* 안내가 나오면 **설정 → 이 출처 허용**을 켭니다.
+3. **설치** → 앱을 열고 **Google로 계속하기** 또는 **게스트로 둘러보기**를 선택합니다.
+
+> Google 로그인 중 *"Google에서 확인하지 않은 앱"* 화면이 나오면 **고급 → LifeRadar(으)로 이동**을 누르세요 (심사 중인 테스트 앱이라 표시됩니다). 로그인 없이 게스트로도 주요 기능을 볼 수 있습니다.
+
 ## 문제
 
 행사·공모전, 파업·도로 통제 정보는 여러 서비스에 흩어져 있습니다. 사용자는 직접 검색하고 **내 일정·이동 경로와 하나하나 비교**해야 하고, 그래서 관심 있는 기회를 늦게 알거나 이동 당일에야 차질을 알게 됩니다.
