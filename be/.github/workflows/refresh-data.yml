@@ -1,0 +1,180 @@
+# 실제 데이터를 주기적으로 수집해 이 저장소의 `data` 브랜치에 게시한다.
+# - 06:00 KST: 행사 전체 (서울 문화행사 · TourAPI 축제 · KOPIS 공연) + 교통 통제
+# - 그 외 3시간마다: 교통 통제 (서울시 TOPIS) + 뉴스 파업 판독 (네이버 뉴스 → Gemini)
+#   ※ ITS는 해외 IP 차단으로 앱이 기기에서 직접 조회한다
+# 앱은 https://raw.githubusercontent.com/woowangthon/WOOWANGTHON_TEAM_27_BE/data/{events,traffic,news}.json 을 받는다.
+#
+# 필요한 Secrets: SEOUL_OPEN_API_KEY, DATA_GO_KR_KEY, GEMINI_API_KEY, ITS_API_KEY, KOPIS_API_KEY,
+#                 NAVER_API_KEY_ID, NAVER_API_KEY
+name: Refresh data
+
+on:
+  schedule:
+    - cron: "0 21 * * *" # 06:00 KST — 전체
+    - cron: "0 0,3,6,9,12,15,18 * * *" # 3시간마다 — 교통 통제만
+  workflow_dispatch: # 수동 실행: Actions → Refresh data → Run workflow
+
+permissions:
+  contents: write # data 브랜치에 게시
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Enable only after conditions review and core/FE rollout (ops/SOTONG.md).
+      SOTONG_ENABLED: ${{ vars.SOTONG_ENABLED || 'false' }}
+      TZ: Asia/Seoul # "오늘"과 수집 기간을 한국 시간 기준으로
+      FULL: ${{ github.event_name != 'schedule' || github.event.schedule == '0 21 * * *' }}
+      SEOUL_OPEN_API_KEY: ${{ secrets.SEOUL_OPEN_API_KEY }}
+      DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      ITS_API_KEY: ${{ secrets.ITS_API_KEY }}
+      KOPIS_API_KEY: ${{ secrets.KOPIS_API_KEY }}
+      NAVER_API_KEY_ID: ${{ secrets.NAVER_API_KEY_ID }}
+      NAVER_API_KEY: ${{ secrets.NAVER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.11.5
+      - run: dart pub get
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r news_traffic/requirements.txt
+
+      # Gemini 캐시 (번역·뉴스 판독): 새 행사·새 기사만 Gemini에 보낸다 (속도·할당량 절약).
+      - name: Restore Gemini cache
+        uses: actions/cache/restore@v4
+        with:
+          path: cache
+          key: ai-cache-${{ github.run_id }}
+          restore-keys: ai-cache-
+
+      - name: Restore durable contest ledger and previous events
+        id: contest-state
+        if: env.FULL == 'true'
+        continue-on-error: true # Unverifiable restore skips events, traffic/news continue.
+        run: |
+          mkdir -p out
+          set +e
+          git ls-remote --exit-code --heads origin data >/tmp/contest-branch-ref
+          BRANCH_STATUS=$?
+          set -e
+          if [ "$BRANCH_STATUS" = 0 ]; then
+            git fetch --no-tags --depth=1 origin data
+            if git cat-file -e FETCH_HEAD:events.json 2>/dev/null; then
+              git show FETCH_HEAD:events.json > out/previous-events.json
+            fi
+            if git cat-file -e FETCH_HEAD:contests-state.json 2>/dev/null; then
+              git show FETCH_HEAD:contests-state.json > out/contests-state.json
+            fi
+          elif [ "$BRANCH_STATUS" != 2 ]; then
+            echo 'Cannot verify data branch; retain published events and ledger'
+            exit 1
+          fi
+
+      - name: Collect events
+        id: events
+        if: env.FULL == 'true' && steps.contest-state.outcome == 'success'
+        continue-on-error: true # Validation/preservation failure must not stop traffic/news.
+        run: dart run bin/collect_events.dart --out=out/events.json
+
+      - name: Validate events
+        id: events-validation
+        if: steps.events.outcome == 'success'
+        continue-on-error: true
+        run: |
+          dart run bin/validate_contests.dart out/events.json
+          python3 - <<'PY'
+          import json
+          d = json.load(open("out/events.json"))
+          n = len(d["events"])
+          print("events:", n, "generatedAt:", d["generatedAt"])
+          print({s["id"]: s["count"] for s in d["sources"]})
+          assert n >= 20, "행사가 너무 적음 — 게시하지 않는다"
+          PY
+
+      - name: Restore durable traffic ledger
+        id: traffic-state
+        continue-on-error: true # Failed restore must skip traffic, not unrelated events/news.
+        run: |
+          mkdir -p out
+          set +e
+          git ls-remote --exit-code --heads origin data >/tmp/traffic-branch-ref
+          BRANCH_STATUS=$?
+          set -e
+          if [ "$BRANCH_STATUS" = 0 ]; then
+            git fetch --no-tags --depth=1 origin data
+            if git cat-file -e FETCH_HEAD:traffic-state.json 2>/dev/null; then
+              git show FETCH_HEAD:traffic-state.json > out/traffic-state.json
+            elif git cat-file -e FETCH_HEAD:traffic-v2.json 2>/dev/null; then
+              echo 'v2 feed exists without its durable ledger; skip traffic publication'
+              exit 1
+            fi
+          elif [ "$BRANCH_STATUS" != 2 ]; then
+            echo 'Cannot verify existing data branch; skip traffic publication'
+            exit 1
+          fi
+
+      - name: Collect traffic notices
+        if: steps.traffic-state.outcome == 'success'
+        continue-on-error: true # 교통 수집이 실패해도 행사는 게시한다
+        run: dart run bin/collect_traffic.dart --out=out/traffic.json
+
+      - name: Collect strike news (AI)
+        continue-on-error: true # 뉴스 판독이 실패해도 다른 데이터는 게시한다
+        run: dart run bin/collect_news.dart --out=out/news.json
+
+      - name: Validate full-body strike and event traffic information
+        # Existing verified state is retained if individual sources fail.
+        run: |
+          mkdir -p cache
+          if git fetch --no-tags --depth=1 origin data; then
+            git show FETCH_HEAD:news.json > cache/previous-news.json || true
+          fi
+          python -m news_traffic.publish --feed out/news.json --previous cache/previous-news.json --references news_traffic/references.json
+
+      - name: Save Gemini cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: cache
+          key: ai-cache-${{ github.run_id }}
+
+      - name: Publish to data branch
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          REMOTE="https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git"
+          if git ls-remote --exit-code --heads "$REMOTE" data >/dev/null; then
+            git clone --depth 1 --branch data "$REMOTE" /tmp/data
+          else
+            mkdir /tmp/data && git -C /tmp/data init -b data && git -C /tmp/data remote add origin "$REMOTE"
+          fi
+          if [ "${{ steps.events-validation.outcome }}" = success ]; then
+            cp out/events.json /tmp/data/events.json
+            cp out/contests-state.json /tmp/data/contests-state.json
+          fi
+          if [ "${{ steps.traffic-state.outcome }}" = success ] && [ -f out/traffic-v2.json ]; then
+            if dart run bin/publish_traffic.dart --dir=out --base=/tmp/data --legacy; then
+            if [ -f out/traffic.json ]; then cp out/traffic.json /tmp/data/traffic.json; fi
+            if [ -f out/traffic-v2.json ]; then cp out/traffic-v2.json /tmp/data/traffic-v2.json; fi
+            if [ -f out/traffic-state.json ]; then cp out/traffic-state.json /tmp/data/traffic-state.json; fi
+            else
+              echo 'Traffic rebase/validation failed; keep published traffic and continue other feeds'
+            fi
+          fi
+          [ -f out/news.json ] && cp out/news.json /tmp/data/news.json
+          cd /tmp/data
+          git config user.name "liferadar-bot"
+          git config user.email "liferadar-bot@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && { echo "변경 없음"; exit 0; }
+          git commit -m "data: $(date '+%F %H:%M') KST"
+          git push origin data

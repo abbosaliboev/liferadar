@@ -1,0 +1,184 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:liferadar_core/liferadar_core.dart';
+
+import 'ai_insights.dart';
+import 'providers.dart';
+
+/// 제안 행동의 상태 — 사용자가 [추가] / [취소]를 누르기 전에는 아무것도 바뀌지 않는다.
+enum ActionStatus { pending, running, done, cancelled, failed }
+
+class AssistantMessage {
+  const AssistantMessage({
+    required this.fromUser,
+    this.text = '',
+    this.eventIds = const [],
+    this.actions = const [],
+    this.actionStatus = const [],
+    this.fromAi = false,
+    this.loading = false,
+    this.understood = '',
+    this.offTopic = false,
+  });
+
+  /// 앱 범위 밖 질문에 대한 안내 (출처 배지 없이).
+  final bool offTopic;
+
+  final bool fromUser;
+  final String text;
+  final List<String> eventIds;
+  final List<AssistantAction> actions;
+  final List<ActionStatus> actionStatus;
+
+  /// Gemini 답이 검증을 통과했는지 (false = 조건 검색 규칙 문장).
+  final bool fromAi;
+  final bool loading;
+
+  /// 코드가 질문에서 읽은 조건 ("11/20 · 부산").
+  final String understood;
+
+  AssistantMessage withStatus(int i, ActionStatus s) => AssistantMessage(
+    fromUser: fromUser,
+    text: text,
+    eventIds: eventIds,
+    actions: actions,
+    actionStatus: [...actionStatus]..[i] = s,
+    fromAi: fromAi,
+    understood: understood,
+    offTopic: offTopic,
+  );
+}
+
+/// 앱 안의 AI 비서 대화 (이 세션 동안만, 기기에 저장하지 않음).
+final assistantProvider = NotifierProvider<AssistantController, List<AssistantMessage>>(AssistantController.new);
+
+class AssistantController extends Notifier<List<AssistantMessage>> {
+  int _conversation = 0;
+  @override
+  List<AssistantMessage> build() => const [];
+
+  bool get busy => state.any((m) => m.loading);
+
+  void clear() {
+    _conversation++;
+    state = const [];
+  }
+
+  void setActionStatus(int message, int action, ActionStatus s) {
+    if (message >= state.length) return;
+    state = [...state]..[message] = state[message].withStatus(action, s);
+  }
+
+  /// 질문 → (코드) 조건·후보 → (Gemini) 답 → (코드) 검증. AI가 안 되면 같은 후보로 규칙 문장.
+  Future<void> ask(String question, {required String lang}) async {
+    final text = question.trim();
+    if (text.isEmpty || busy) return;
+    final conversation = _conversation;
+    final history = [
+      for (final m in state)
+        if (!m.loading && m.text.isNotEmpty) ChatTurn(fromUser: m.fromUser, text: m.text),
+    ];
+    state = [
+      ...state,
+      AssistantMessage(fromUser: true, text: text),
+      const AssistantMessage(fromUser: false, loading: true),
+    ];
+
+    // 계산·코드·숙제처럼 앱과 무관한 것이 분명하면 AI에 보내지 않고 바로 안내한다.
+    if (Assistant.isOffTopic(text)) {
+      await Future<void>.delayed(const Duration(milliseconds: 350)); // 타이핑 점이 잠깐 보이게
+      if (!ref.mounted || conversation != _conversation) return;
+      state = [
+        for (final m in state)
+          if (!m.loading) m,
+        AssistantMessage(fromUser: false, text: Assistant.offTopicReply(lang: lang).text, offTopic: true),
+      ];
+      return;
+    }
+
+    final now = ref.read(nowProvider);
+    final plans = ref.read(plansProvider);
+    final interests = ref.read(interestsProvider);
+    final query = AssistantQuery.parse(text, now: now, plans: plans);
+    final candidates = Assistant.retrieve(
+      query,
+      events: ref.read(eventsProvider),
+      interests: interests,
+      taste: ref.read(tasteProvider),
+      now: now,
+    );
+    final ctx = Assistant.context(
+      query: query,
+      candidates: candidates,
+      plans: plans,
+      now: now,
+      interests: interests,
+      stage: ref.read(lifeStageProvider),
+      signals: ref.read(insightsProvider),
+    );
+
+    AssistantReply reply;
+    final api = ref.read(geminiApiProvider);
+    try {
+      if (!api.isConfigured) throw const GeminiException('no key');
+      reply = await Assistant.ask(
+        api,
+        question: text,
+        query: query,
+        candidates: candidates,
+        context: ctx,
+        history: history,
+        lang: lang,
+      );
+    } catch (_) {
+      reply = Assistant.fallback(query, candidates, lang: lang);
+      if (query.isEmpty ||
+          (candidates.isEmpty &&
+              query.from == null &&
+              query.region == null &&
+              query.categories.isEmpty &&
+              !query.freeOnly &&
+              !query.deadlineSoon &&
+              query.plan == null)) {
+        reply = AssistantReply(
+          text: lang == 'ko'
+              ? '지금은 AI 대화에 연결할 수 없어 조건 검색만 가능해요. “이번 주말 서울 무료 행사”처럼 날짜나 지역을 포함해 물어봐 주세요.'
+              : 'AI chat is unavailable right now, but event filters still work. Try a date or city, such as “free events in Seoul this weekend”.',
+          eventIds: const [],
+        );
+      }
+    }
+    if (!ref.mounted || conversation != _conversation) return;
+    // Deadline queries always expose the verified search results, even when
+    // the model replies with prose but omits event IDs or proposed actions.
+    final deadlineEvents = query.deadlineSoon
+        ? candidates.take(Assistant.maxCards).toList()
+        : const <RadarEvent>[];
+    final eventIds = query.deadlineSoon
+        ? deadlineEvents.map((e) => e.id).toList()
+        : reply.eventIds;
+    final actions = query.deadlineSoon
+        ? [
+            for (final e in deadlineEvents)
+              if (e.applicationActionable(now))
+                AssistantAction(AssistantActionType.addToCalendar, e.id),
+            for (final action in reply.actions)
+              if (action.type == AssistantActionType.showOnMap &&
+                  deadlineEvents.any((e) => e.id == action.eventId && !e.placeless))
+                action,
+          ]
+        : reply.actions;
+    state = [
+      for (final m in state)
+        if (!m.loading) m,
+      AssistantMessage(
+        fromUser: false,
+        text: reply.text,
+        eventIds: eventIds,
+        actions: actions,
+        actionStatus: [for (final _ in actions) ActionStatus.pending],
+        fromAi: reply.fromAi,
+        understood: query.describe(lang: lang),
+      ),
+    ];
+  }
+}

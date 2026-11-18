@@ -1,0 +1,23 @@
+name: liferadar_pipeline
+description: LifeRadar 데이터 파이프라인 — 공공 API에서 실제 행사와 공식 교통 통제를 수집·정규화해 앱이 받을 JSON으로 게시한다.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/woowangthon/WOOWANGTHON_TEAM_27_BE
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  html: ^0.15.6
+  crypto: ^3.0.7
+  xml: ^6.6.1
+  http: ^1.6.0
+  liferadar_core:
+    version: ^0.3.0
+    git:
+      url: https://github.com/woowangthon/WOOWANGTHON_TEAM_27_AI.git
+      ref: e3e41fb0e829c2216d034895b9fd148b19b2a8df
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0
