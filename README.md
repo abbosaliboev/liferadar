@@ -110,7 +110,6 @@ flutter build apk --release --split-per-abi --dart-define-from-file=env.json   #
 
 개발 기간: 2026-10-24 ~ 2026-11-15 · 개발 과정에서 AI 코딩 도우미(Claude)를 사용했고 커밋에 공동 작성자로 표시했습니다.
 
-<sub>팀 저장소로 옮기기 전의 초기 프로토타입(11/05~11/08)은 태그 [`prototype-1108`](../../tree/prototype-1108)에 보존되어 있습니다.</sub>
 
 ## 라이선스
 
