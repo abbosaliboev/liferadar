@@ -1,0 +1,16 @@
+name: liferadar_core
+description: LifeRadar core models, insight and route rules, preference learning, and grounded AI assistance.
+version: 0.3.0
+publish_to: none
+repository: https://github.com/woowangthon/WOOWANGTHON_TEAM_27_AI
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  html: ^0.15.6
+  http: ^1.6.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0
